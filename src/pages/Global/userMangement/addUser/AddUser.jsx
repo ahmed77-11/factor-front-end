@@ -45,8 +45,8 @@ const AddUser = () => {
     };
 
     return (
-        <Box m="20px" display="flex" flexDirection="column" alignItems="center">
-            <Header title="CRÉER UN UTILISATEUR" subtitle="Créer un nouveau profil utilisateur" />
+        <Box m="20px" display="flex" flexDirection="column">
+            <Header title="Les Utlisateurs" subtitle="Créer un utilisateur" />
 
             <Card sx={{ width: "100%", maxWidth: "1200px", boxShadow: 5, borderRadius: 3, p: 3 }}>
                 <CardContent>

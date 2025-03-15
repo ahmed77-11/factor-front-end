@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import {CssBaseline, ThemeProvider} from "@mui/material";
 import {useMode} from "./redux/mode/modeSlice.js";
-import {useDispatch, useSelector} from "react-redux";
 import {Route, Routes} from "react-router";
 import Login from "./pages/login/login.jsx";
 import ResetPassword from "./pages/resetPassword/resetPassword.jsx";
@@ -14,6 +13,10 @@ import Home from "./pages/Home/Home.jsx";
 import AddUser from "./pages/Global/userMangement/addUser/AddUser.jsx";
 import AddPersonePhysique from "./pages/personePhysique/addPersonePhysique/AddPersonePhysique.jsx";
 import AddPersonneMorale from "./pages/PersonneMorale/AddPersoneMoral/AddPersonneMorale.jsx";
+import ListPp from "./pages/personePhysique/getAllPersonnePhysique/GetAllPersonnePhysique.jsx";
+import ListPm from "./pages/PersonneMorale/getAllPersonneMorale/GetAllPersonneMorale.jsx";
+import UpdatePP from "./pages/personePhysique/updatePP/UpdatePP.jsx";
+import UpdatePM from "./pages/PersonneMorale/updatePM/UpdatePM.jsx";
 
 
 function App() {
@@ -42,6 +45,10 @@ function App() {
                       <Route path={"/ajouter-utlisateur"} element={<AddUser/>}/>
                       <Route path={"/ajouter-pp"} element={<AddPersonePhysique/>}/>
                       <Route path={"/ajouter-pm"} element={<AddPersonneMorale/>}/>
+                      <Route path={"/all-pp"} element={<ListPp/>}/>
+                      <Route path={"/all-pm"} element={<ListPm/>}/>
+                      <Route path={"/modifier-pp/:id"} element={<UpdatePP/>}/>
+                      <Route path={"/modifier-pm/:id"} element={<UpdatePM/>}/>
 
                   </Route>
               </Route>

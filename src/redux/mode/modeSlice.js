@@ -27,7 +27,7 @@ const colorModeSlice = createSlice({
 export const useMode = () => {
     const dispatch = useDispatch();
     // const mode = useSelector((state) => state.colorMode.mode);
-    const mode =useSelector(state => state.mode.mode);
+    const mode =useSelector(state => state.mode.mode || 'dark');
     const theme = useMemo(() => createTheme(themeSettings(mode)), [mode]);
 
     const colorMode = useMemo(

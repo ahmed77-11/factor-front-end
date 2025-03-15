@@ -1,3 +1,72 @@
+export const localeText = {
+    // General
+    noRowsLabel: "Aucune donnée disponible",
+    noResultsOverlayLabel: "Aucun résultat trouvé",
+
+    // Toolbar
+    toolbarColumns: "Colonnes",
+    toolbarFilters: "Filtres",
+    toolbarDensity: "Densité",
+    toolbarDensityCompact: "Compact",
+    toolbarDensityStandard: "Standard",
+    toolbarDensityComfortable: "Confortable",
+    toolbarExport: "Exporter",
+    toolbarExportCSV: "Exporter en CSV",
+    toolbarExportPrint: "Imprimer",
+    toolbarExportExcel: "Exporter en Excel",
+
+    // Column menu
+    columnMenuSortAsc: "Trier par ordre croissant",
+    columnMenuSortDesc: "Trier par ordre décroissant",
+    columnMenuUnsort: "Annuler le tri",
+    columnMenuFilter: "Filtrer",
+    columnMenuHideColumn: "Masquer la colonne",
+    columnMenuShowColumns: "Afficher les colonnes",
+    columnsManagementShowHideAllText: 'Afficher/Cacher Tous',
+    columnsManagementSearchTitle: 'Rechercher une colonne',
+    columnsManagementReset: 'Réinitialiser',
+
+    // Filter panel
+    filterPanelAddFilter: "Ajouter un filtre",
+    filterPanelDeleteIconLabel: "Supprimer",
+    filterPanelOperators: "Opérateurs",
+    filterPanelOperatorAnd: "Et",
+    filterPanelOperatorOr: "Ou",
+    filterPanelColumns: "Colonnes",
+    filterPanelInputLabel: "Valeur",
+    filterPanelInputPlaceholder: "Filtrer la valeur...",
+    filterPanelApplyButton: "Rechercher", // ✅ Translated "Search"
+    filterPanelResetButton: "Réinitialiser", // ✅ Translated "Reset"
+
+    // Filter operators
+    filterOperatorContains: "contient",
+    filterOperatorEquals: "égal à",
+    filterOperatorDoesNotEqual: "n'est pas égal à",
+    filterOperatorStartsWith: "commence par",
+    filterOperatorEndsWith: "se termine par",
+    filterOperatorIsEmpty: "est vide",
+    filterOperatorIsNotEmpty: "n'est pas vide",
+    filterOperatorIsAnyOf: "fait partie de",
+
+    // Pagination
+    paginationNext: "Suivant",
+    paginationPrevious: "Précédent",
+    paginationRowsPerPage: "Lignes par page", // ✅ Translated "Rows per page"
+    paginationOf: "de",
+    paginationRowPerPage: "Lignes par page", // ✅ Translated "Rows per page"
+    paginationTotalRows: "Total de lignes",
+
+
+
+
+    // Checkbox Selection
+    checkboxSelectionHeaderName: "Sélection",
+    checkboxSelectionSelectAllRows: "Sélectionner toutes les lignes",
+    checkboxSelectionUnselectAllRows: "Désélectionner toutes les lignes",
+    checkboxSelectionSelectRow: "Sélectionner une ligne",
+    checkboxSelectionUnselectRow: "Désélectionner une ligne",
+
+};
 
 
 // color design tokens

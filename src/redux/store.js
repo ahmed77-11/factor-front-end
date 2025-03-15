@@ -8,6 +8,7 @@ import {persistReducer,persistStore} from "redux-persist";
 import {createTransform} from "redux-persist";
 
 const EXPIRATION_TIME = 2 * 24 * 60 * 60 * 1000;
+// const EXPIRATION_TIME =10000;
 
 const expireTransform = createTransform(
     // Transform inbound state (before persisting)
