@@ -17,6 +17,9 @@ import ListPp from "./pages/personePhysique/getAllPersonnePhysique/GetAllPersonn
 import ListPm from "./pages/PersonneMorale/getAllPersonneMorale/GetAllPersonneMorale.jsx";
 import UpdatePP from "./pages/personePhysique/updatePP/UpdatePP.jsx";
 import UpdatePM from "./pages/PersonneMorale/updatePM/UpdatePM.jsx";
+import AjoutContrat from "./pages/contrat/ajouterContrat/AjoutContrat.jsx";
+import ValidValidateur from "./pages/contrat/validation/validationValidateur/ValidValidateur.jsx";
+import NotificationPanel from "./components/NotificationPanel.jsx";
 
 
 function App() {
@@ -49,7 +52,9 @@ function App() {
                       <Route path={"/all-pm"} element={<ListPm/>}/>
                       <Route path={"/modifier-pp/:id"} element={<UpdatePP/>}/>
                       <Route path={"/modifier-pm/:id"} element={<UpdatePM/>}/>
-
+                      <Route path={"/ajouter-contrat"} element={<AjoutContrat/>}/>
+                      <Route path={`/validation-validateur/:notifId`} element={<ValidValidateur/>}/>
+                      <Route path={"/notification"} element={<NotificationPanel/>}/>
                   </Route>
               </Route>
           </Routes>

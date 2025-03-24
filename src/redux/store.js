@@ -4,6 +4,8 @@ import userReducer from "./user/userSlice";
 import modeReducer from "./mode/modeSlice";
 import ppReducer from "./personne/PersonnePhysiqueSlice";
 import pmReducer from "./personne/PersonneMoraleSlice.js";
+import formReducer from "./formSteperSlice/FormSlice";
+import contratReducer from "./contrat/ContratSlice";
 import {persistReducer,persistStore} from "redux-persist";
 import {createTransform} from "redux-persist";
 
@@ -43,7 +45,9 @@ const rootReducer = combineReducers({
     user:userReducer,
     mode:modeReducer,
     personnePhysique:ppReducer,
-    personneMorale:pmReducer
+    personneMorale:pmReducer,
+    form:formReducer,
+    contrat:contratReducer,
 });
 
 const persistConfig = {
