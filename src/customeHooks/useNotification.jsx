@@ -62,10 +62,30 @@ export const useNotification = () => {
         }
     };
 
+    const findNotificationByNotes=async (id)=> {
+        setLoading(true);
+        try {
+            const response = await axios.get(
+                `http://localhost:8083/factoring/contrat/api/notification-notes-by-id/${id}`,
+                {withCredentials: true}
+            );
+            if (response.status !== 200) {
+                throw new Error("Une erreur s'est produite");
+            }
+            setNotification(response.data);
+        } catch (e) {
+            setError(e.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     // On mount, only fetch all notifications
     useEffect(() => {
         fetchNotifications();
     }, []);
 
-    return { notifications, notification, loading, error, readNotification, findNotificationById };
+
+
+    return { notifications, notification, loading, error, readNotification, findNotificationById ,findNotificationByNotes};
 };

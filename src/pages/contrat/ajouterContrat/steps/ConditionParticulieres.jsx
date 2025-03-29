@@ -2,7 +2,20 @@
 /* eslint-disable react/display-name */
 
 import { forwardRef, useImperativeHandle } from "react";
-import { Box, TextField, MenuItem, Typography, IconButton, Grid } from "@mui/material";
+import {
+    Box,
+    TextField,
+    MenuItem,
+    Typography,
+    IconButton,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper, useTheme
+} from "@mui/material";
 import { Formik, FieldArray } from "formik";
 import * as yup from "yup";
 import AddIcon from "@mui/icons-material/Add";
@@ -12,17 +25,17 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import { useTypeCommission } from "../../../../customeHooks/useTypeCommission.jsx";
 import { useTypeEvent } from "../../../../customeHooks/useTypeEvent.jsx";
 import { useTypeDoc } from "../../../../customeHooks/useTypeDoc.jsx";
+import {tokens} from "../../../../theme.js";
 
-// Example data arrays for select fields
 const periodicites = ["par mois", "par 4 mois", "par an"];
 
 const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
-    console.log(formData)
+    const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
     const { typeCommission, error: comErr, loading: comLoading } = useTypeCommission();
     const { typeEvent, loading: eveLoading, error: eveErr } = useTypeEvent();
     const { typeDoc, loading: docLoading, error: docErr } = useTypeDoc();
 
-    // Set default initial values using formData or fallback values.
     const initialValues = {
         commissions: formData.commissions || [
             {
@@ -47,61 +60,36 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
         ],
     };
 
-    // Define a Yup validation schema with custom error messages.
     const validationSchema = yup.object({
         commissions: yup.array().of(
             yup.object({
-                TypeEvent: yup.object().required("Type Evenement is required"),
-                TypeDocRemise: yup.object().required("Type Document is required"),
-                TypeCommission: yup.object().required("Type Commission is required"),
-                Periodicite: yup.string().required("Periodicité is required"),
-                Minorant: yup
-                    .number()
-                    .typeError("Minorant must be a number")
-                    .required("Minorant is required"),
-                Majorant: yup
-                    .number()
-                    .typeError("Majorant must be a number")
-                    .required("Majorant is required"),
-                ValidDateDeb: yup
-                    .date()
-                    .typeError("Valid From must be a valid date")
-                    .required("Valid From date is required"),
-                ValidDateFin: yup
-                    .date()
-                    .typeError("Valid To must be a valid date")
-                    .required("Valid To date is required"),
-                // Assuming these commission fields are required:
-                CommA: yup.string().required("Commission A is required"),
-                CommX: yup.string().required("Commission X is required"),
-                CommB: yup.string().required("Commission B is required"),
+                TypeEvent: yup.object().required("Type Evenement requis"),
+                TypeDocRemise: yup.object().required("Type Document requis"),
+                TypeCommission: yup.object().required("Type Commission requis"),
+                Periodicite: yup.string().required("Periodicité requise"),
+                Minorant: yup.number().required("Minorant requis"),
+                Majorant: yup.number().required("Majorant requis"),
+                ValidDateDeb: yup.date().required("Date début requise"),
+                ValidDateFin: yup.date().required("Date fin requise"),
+                CommA: yup.number().required("Commission A requise"),
+                CommX: yup.number().required("Commission X requise"),
+                CommB: yup.number().required("Commission B requise"),
             })
         ),
         fondGaranti: yup.array().of(
             yup.object({
-                TauxGarantie: yup
-                    .number()
-                    .typeError("Taux de garantie must be a number")
-                    .required("Taux de garantie is required"),
-                TauxReserve: yup
-                    .number()
-                    .typeError("Taux de reserve must be a number")
-                    .required("Taux de reserve is required"),
+                TauxGarantie: yup.number().required("Taux de garantie requis"),
+                TauxReserve: yup.number().required("Taux de réserve requis"),
             })
         ),
     });
 
     return (
-        <Box width="100%" maxWidth="800px" p={3}>
-            <Typography variant="h6" mb={2}>
-                Conditions Particulières
-            </Typography>
+        <Box width="100%" maxWidth="1400px" p={3}> {/* Increased maxWidth */}
             <Formik
                 initialValues={initialValues}
                 validationSchema={validationSchema}
-                onSubmit={(values) => {
-                    console.log(values)
-                    updateData(values)}}
+                onSubmit={(values) => updateData(values)}
                 enableReinitialize
             >
                 {({
@@ -115,20 +103,17 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                       validateForm,
                       setFieldValue,
                   }) => {
-                    // Expose a "submit" method to the parent component.
-                    // eslint-disable-next-line react-hooks/rules-of-hooks
                     useImperativeHandle(ref, () => ({
                         async submit() {
                             await submitForm();
                             const formErrors = await validateForm();
-                            // Return true if there are no errors.
                             return Object.keys(formErrors).length === 0;
                         },
                     }));
 
                     return (
                         <form onSubmit={handleSubmit}>
-                            {/* Commissions Section */}
+                            {/* Commissions Table */}
                             <FieldArray name="commissions">
                                 {({ push, remove }) => (
                                     <Box mt={4}>
@@ -136,320 +121,185 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                             <AttachMoneyIcon sx={{ mr: 1 }} />
                                             <Typography variant="h6">Commissions</Typography>
                                             <IconButton
-                                                onClick={() =>
-                                                    push({
-                                                        TypeEvent: "",
-                                                        TypeDocRemise: "",
-                                                        TypeCommission: "",
-                                                        Periodicite: "",
-                                                        Minorant: "",
-                                                        CommA: "",
-                                                        CommX: "",
-                                                        CommB: "",
-                                                        Majorant: "",
-                                                        ValidDateDeb: "",
-                                                        ValidDateFin: "",
-                                                    })
-                                                }
+                                                onClick={() => push({
+                                                    TypeEvent: "",
+                                                    TypeDocRemise: "",
+                                                    TypeCommission: "",
+                                                    Periodicite: "",
+                                                    Minorant: "",
+                                                    CommA: "",
+                                                    CommX: "",
+                                                    CommB: "",
+                                                    Majorant: "",
+                                                    ValidDateDeb: "",
+                                                    ValidDateFin: "",
+                                                })}
                                                 color="success"
                                                 sx={{ ml: 2 }}
                                             >
                                                 <AddIcon />
                                             </IconButton>
                                         </Box>
-                                        {values.commissions.map((commission, index) => (
-                                            <Box
-                                                key={index}
-                                                sx={{
-                                                    border: "1px solid #ccc",
-                                                    borderRadius: "8px",
-                                                    padding: 4,
-                                                    mb: 2,
-                                                    position: "relative",
-                                                }}
-                                            >
-                                                <IconButton
-                                                    onClick={() => remove(index)}
-                                                    color="error"
-                                                    sx={{ position: "absolute", top: 5, right: 5 }}
-                                                >
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                                <Grid container spacing={2} alignItems="center">
-                                                    <Grid item xs={3}>
-                                                        <TextField
-                                                            select
-                                                            fullWidth
-                                                            name={`commissions.${index}.TypeEvent`}
-                                                            value={commission.TypeEvent?.id || ""} // Display the ID as the select value
-                                                            onChange={(e) => {
-                                                                const selectedId = e.target.value;
-                                                                const selectedEvent = typeEvent.find((te) => te.id === selectedId);
-                                                                setFieldValue(`commissions.${index}.TypeEvent`, selectedEvent);
-                                                            }}
-                                                            onBlur={handleBlur}
-                                                            label="Type Evenement"
-                                                            error={
-                                                                touched?.commissions?.[index]?.TypeEvent &&
-                                                                Boolean(errors?.commissions?.[index]?.TypeEvent)
-                                                            }
-                                                            helperText={
-                                                                touched?.commissions?.[index]?.TypeEvent &&
-                                                                errors?.commissions?.[index]?.TypeEvent
-                                                            }
-                                                        >
-                                                            {eveLoading ? (
-                                                                <MenuItem value="">Loading...</MenuItem>
-                                                            ) : eveErr ? (
-                                                                <MenuItem value="">Error loading options</MenuItem>
-                                                            ) : (
-                                                                typeEvent.map((item) => (
-                                                                    <MenuItem key={item.id} value={item.id}>
-                                                                        {item.dsg}
-                                                                    </MenuItem>
-                                                                ))
-                                                            )}
-                                                        </TextField>
-                                                    </Grid>
-                                                    <Grid item xs={3}>
-                                                        <TextField
-                                                            select
-                                                            fullWidth
-                                                            name={`commissions.${index}.TypeDocRemise`}
-                                                            value={commission.TypeDocRemise?.id || ""}
-                                                            onChange={(e) => {
-                                                                const selectedId = e.target.value;
-                                                                const selectedDoc = typeDoc.find((td) => td.id === selectedId);
-                                                                setFieldValue(`commissions.${index}.TypeDocRemise`, selectedDoc);
-                                                            }}
-                                                            onBlur={handleBlur}
-                                                            label="Type Document"
-                                                            error={
-                                                                touched?.commissions?.[index]?.TypeDocRemise &&
-                                                                Boolean(errors?.commissions?.[index]?.TypeDocRemise)
-                                                            }
-                                                            helperText={
-                                                                touched?.commissions?.[index]?.TypeDocRemise &&
-                                                                errors?.commissions?.[index]?.TypeDocRemise
-                                                            }
-                                                        >
-                                                            {docLoading ? (
-                                                                <MenuItem value="">Loading...</MenuItem>
-                                                            ) : docErr ? (
-                                                                <MenuItem value="">Error loading options</MenuItem>
-                                                            ) : (
-                                                                typeDoc.map((item) => (
-                                                                    <MenuItem key={item.id} value={item.id}>
-                                                                        {item.dsg}
-                                                                    </MenuItem>
-                                                                ))
-                                                            )}
-                                                        </TextField>
-                                                    </Grid>
-                                                    <Grid item xs={3}>
-                                                        <TextField
-                                                            select
-                                                            fullWidth
-                                                            name={`commissions.${index}.TypeCommission`}
-                                                            value={commission.TypeCommission?.id || ""}
-                                                            onChange={(e) => {
-                                                                const selectedId = e.target.value;
-                                                                const selectedCommission = typeCommission.find((tc) => tc.id === selectedId);
-                                                                setFieldValue(`commissions.${index}.TypeCommission`, selectedCommission);
-                                                            }}
-                                                            onBlur={handleBlur}
-                                                            label="Type Commission"
-                                                            error={
-                                                                touched?.commissions?.[index]?.TypeCommission &&
-                                                                Boolean(errors?.commissions?.[index]?.TypeCommission)
-                                                            }
-                                                            helperText={
-                                                                touched?.commissions?.[index]?.TypeCommission &&
-                                                                errors?.commissions?.[index]?.TypeCommission
-                                                            }
-                                                        >
-                                                            {comLoading ? (
-                                                                <MenuItem value="">Loading...</MenuItem>
-                                                            ) : comErr ? (
-                                                                <MenuItem value="">Error loading options</MenuItem>
-                                                            ) : (
-                                                                typeCommission.map((item) => (
-                                                                    <MenuItem key={item.id} value={item.id}>
-                                                                        {item.dsg}
-                                                                    </MenuItem>
-                                                                ))
-                                                            )}
-                                                        </TextField>
-                                                    </Grid>
-                                                    <Grid item xs={3}>
-                                                        <TextField
-                                                            select
-                                                            fullWidth
-                                                            name={`commissions.${index}.Periodicite`}
-                                                            value={commission.Periodicite}
-                                                            onChange={handleChange}
-                                                            onBlur={handleBlur}
-                                                            label="Periodicité"
-                                                            error={
-                                                                touched?.commissions?.[index]?.Periodicite &&
-                                                                Boolean(errors?.commissions?.[index]?.Periodicite)
-                                                            }
-                                                            helperText={
-                                                                touched?.commissions?.[index]?.Periodicite &&
-                                                                errors?.commissions?.[index]?.Periodicite
-                                                            }
-                                                        >
-                                                            {periodicites.map((option) => (
-                                                                <MenuItem key={option} value={option}>
-                                                                    {option}
-                                                                </MenuItem>
+
+                                        <TableContainer component={Paper} sx={{
+                                            backgroundColor: colors.grey[700],
+                                            overflowX: 'auto' // Added horizontal scrolling for smaller screens
+                                        }}>
+                                            <Table sx={{ minWidth: 1200 }}> {/* Increased minWidth */}
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell sx={{ minWidth: 180 }}>Type Événement</TableCell>
+                                                        <TableCell sx={{ minWidth: 180 }}>Type Document</TableCell>
+                                                        <TableCell sx={{ minWidth: 180 }}>Type Commission</TableCell>
+                                                        <TableCell sx={{ minWidth: 120 }}>Périodicité</TableCell>
+                                                        <TableCell sx={{ minWidth: 100 }}>Minorant</TableCell>
+                                                        <TableCell sx={{ minWidth: 100 }}>Majorant</TableCell>
+                                                        <TableCell sx={{ minWidth: 100 }}>Commission A</TableCell>
+                                                        <TableCell sx={{ minWidth: 100 }}>Commission X</TableCell>
+                                                        <TableCell sx={{ minWidth: 100 }}>Commission B</TableCell>
+                                                        <TableCell sx={{ minWidth: 150 }}>Validité Début</TableCell>
+                                                        <TableCell sx={{ minWidth: 150 }}>Validité Fin</TableCell>
+                                                        <TableCell sx={{ minWidth: 80 }}>Actions</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {values.commissions.map((commission, index) => (
+                                                        <TableRow key={index}>
+                                                            {/* Type Event */}
+                                                            <TableCell>
+                                                                <TextField
+                                                                    select
+                                                                    fullWidth
+                                                                    size="small"
+                                                                    value={commission.TypeEvent?.id || ""}
+                                                                    onChange={(e) => {
+                                                                        const selected = typeEvent.find(te => te.id === e.target.value);
+                                                                        setFieldValue(`commissions.${index}.TypeEvent`, selected);
+                                                                    }}
+                                                                    error={touched.commissions?.[index]?.TypeEvent && !!errors.commissions?.[index]?.TypeEvent}
+                                                                    helperText={touched.commissions?.[index]?.TypeEvent && errors.commissions?.[index]?.TypeEvent}
+                                                                    sx={{ minWidth: 180 }}
+                                                                >
+                                                                    {typeEvent.map((item) => (
+                                                                        <MenuItem key={item.id} value={item.id}>
+                                                                            {item.dsg}
+                                                                        </MenuItem>
+                                                                    ))}
+                                                                </TextField>
+                                                            </TableCell>
+
+                                                            {/* Type Document */}
+                                                            <TableCell>
+                                                                <TextField
+                                                                    select
+                                                                    fullWidth
+                                                                    size="small"
+                                                                    value={commission.TypeDocRemise?.id || ""}
+                                                                    onChange={(e) => {
+                                                                        const selected = typeDoc.find(td => td.id === e.target.value);
+                                                                        setFieldValue(`commissions.${index}.TypeDocRemise`, selected);
+                                                                    }}
+                                                                    error={touched.commissions?.[index]?.TypeDocRemise && !!errors.commissions?.[index]?.TypeDocRemise}
+                                                                    sx={{ minWidth: 180 }}
+                                                                >
+                                                                    {typeDoc.map((item) => (
+                                                                        <MenuItem key={item.id} value={item.id}>
+                                                                            {item.dsg}
+                                                                        </MenuItem>
+                                                                    ))}
+                                                                </TextField>
+                                                            </TableCell>
+
+                                                            {/* Type Commission */}
+                                                            <TableCell>
+                                                                <TextField
+                                                                    select
+                                                                    fullWidth
+                                                                    size="small"
+                                                                    value={commission.TypeCommission?.id || ""}
+                                                                    onChange={(e) => {
+                                                                        const selected = typeCommission.find(tc => tc.id === e.target.value);
+                                                                        setFieldValue(`commissions.${index}.TypeCommission`, selected);
+                                                                    }}
+                                                                    error={touched.commissions?.[index]?.TypeCommission && !!errors.commissions?.[index]?.TypeCommission}
+                                                                    sx={{ minWidth: 180 }}
+                                                                >
+                                                                    {typeCommission.map((item) => (
+                                                                        <MenuItem key={item.id} value={item.id}>
+                                                                            {item.dsg}
+                                                                        </MenuItem>
+                                                                    ))}
+                                                                </TextField>
+                                                            </TableCell>
+
+                                                            {/* Periodicite */}
+                                                            <TableCell>
+                                                                <TextField
+                                                                    select
+                                                                    fullWidth
+                                                                    size="small"
+                                                                    name={`commissions.${index}.Periodicite`}
+                                                                    value={commission.Periodicite}
+                                                                    onChange={handleChange}
+                                                                    error={touched.commissions?.[index]?.Periodicite && !!errors.commissions?.[index]?.Periodicite}
+                                                                    sx={{ minWidth: 120 }}
+                                                                >
+                                                                    {periodicites.map((option) => (
+                                                                        <MenuItem key={option} value={option}>
+                                                                            {option}
+                                                                        </MenuItem>
+                                                                    ))}
+                                                                </TextField>
+                                                            </TableCell>
+
+                                                            {/* Numeric Fields */}
+                                                            {['Minorant', 'Majorant', 'CommA', 'CommX', 'CommB'].map((field) => (
+                                                                <TableCell key={field}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        size="small"
+                                                                        type="number"
+                                                                        name={`commissions.${index}.${field}`}
+                                                                        value={commission[field]}
+                                                                        onChange={handleChange}
+                                                                        error={touched.commissions?.[index]?.[field] && !!errors.commissions?.[index]?.[field]}
+                                                                        sx={{ minWidth: 100 }}
+                                                                    />
+                                                                </TableCell>
                                                             ))}
-                                                        </TextField>
-                                                    </Grid>
-                                                    <Grid item xs={3}>
-                                                        <TextField
-                                                            fullWidth
-                                                            name={`commissions.${index}.Minorant`}
-                                                            value={commission.Minorant}
-                                                            onChange={handleChange}
-                                                            onBlur={handleBlur}
-                                                            label="Minorant"
-                                                            type="number"
-                                                            error={
-                                                                touched?.commissions?.[index]?.Minorant &&
-                                                                Boolean(errors?.commissions?.[index]?.Minorant)
-                                                            }
-                                                            helperText={
-                                                                touched?.commissions?.[index]?.Minorant &&
-                                                                errors?.commissions?.[index]?.Minorant
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item xs={3}>
-                                                        <TextField
-                                                            fullWidth
-                                                            name={`commissions.${index}.Majorant`}
-                                                            value={commission.Majorant}
-                                                            onChange={handleChange}
-                                                            onBlur={handleBlur}
-                                                            label="Majorant"
-                                                            type="number"
-                                                            error={
-                                                                touched?.commissions?.[index]?.Majorant &&
-                                                                Boolean(errors?.commissions?.[index]?.Majorant)
-                                                            }
-                                                            helperText={
-                                                                touched?.commissions?.[index]?.Majorant &&
-                                                                errors?.commissions?.[index]?.Majorant
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item xs={3}>
-                                                        <TextField
-                                                            fullWidth
-                                                            name={`commissions.${index}.ValidDateDeb`}
-                                                            value={commission.ValidDateDeb}
-                                                            onChange={handleChange}
-                                                            onBlur={handleBlur}
-                                                            label="Valid From (Date)"
-                                                            type="date"
-                                                            InputLabelProps={{ shrink: true }}
-                                                            error={
-                                                                touched?.commissions?.[index]?.ValidDateDeb &&
-                                                                Boolean(errors?.commissions?.[index]?.ValidDateDeb)
-                                                            }
-                                                            helperText={
-                                                                touched?.commissions?.[index]?.ValidDateDeb &&
-                                                                errors?.commissions?.[index]?.ValidDateDeb
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item xs={3}>
-                                                        <TextField
-                                                            fullWidth
-                                                            name={`commissions.${index}.ValidDateFin`}
-                                                            value={commission.ValidDateFin}
-                                                            onChange={handleChange}
-                                                            onBlur={handleBlur}
-                                                            label="Valid To (Date)"
-                                                            type="date"
-                                                            InputLabelProps={{ shrink: true }}
-                                                            error={
-                                                                touched?.commissions?.[index]?.ValidDateFin &&
-                                                                Boolean(errors?.commissions?.[index]?.ValidDateFin)
-                                                            }
-                                                            helperText={
-                                                                touched?.commissions?.[index]?.ValidDateFin &&
-                                                                errors?.commissions?.[index]?.ValidDateFin
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    {/* If needed, you can add fields for CommA, CommX, and CommB here */}
-                                                    <Grid item xs={3}>
-                                                        <TextField
-                                                            fullWidth
-                                                            name={`commissions.${index}.CommA`}
-                                                            value={commission.CommA}
-                                                            onChange={handleChange}
-                                                            onBlur={handleBlur}
-                                                            label="Commission A"
-                                                            type="number"
-                                                            error={
-                                                                touched?.commissions?.[index]?.CommA &&
-                                                                Boolean(errors?.commissions?.[index]?.CommA)
-                                                            }
-                                                            helperText={
-                                                                touched?.commissions?.[index]?.CommA &&
-                                                                errors?.commissions?.[index]?.CommA
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item xs={3}>
-                                                        <TextField
-                                                            fullWidth
-                                                            name={`commissions.${index}.CommX`}
-                                                            value={commission.CommX}
-                                                            onChange={handleChange}
-                                                            onBlur={handleBlur}
-                                                            label="Commission X"
-                                                            type="number"
-                                                            error={
-                                                                touched?.commissions?.[index]?.CommX &&
-                                                                Boolean(errors?.commissions?.[index]?.CommX)
-                                                            }
-                                                            helperText={
-                                                                touched?.commissions?.[index]?.CommX &&
-                                                                errors?.commissions?.[index]?.CommX
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item xs={3}>
-                                                        <TextField
-                                                            fullWidth
-                                                            name={`commissions.${index}.CommB`}
-                                                            value={commission.CommB}
-                                                            onChange={handleChange}
-                                                            onBlur={handleBlur}
-                                                            label="Commission B"
-                                                            type="number"
-                                                            error={
-                                                                touched?.commissions?.[index]?.CommB &&
-                                                                Boolean(errors?.commissions?.[index]?.CommB)
-                                                            }
-                                                            helperText={
-                                                                touched?.commissions?.[index]?.CommB &&
-                                                                errors?.commissions?.[index]?.CommB
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                </Grid>
-                                            </Box>
-                                        ))}
+
+                                                            {/* Date Fields */}
+                                                            {['ValidDateDeb', 'ValidDateFin'].map((field) => (
+                                                                <TableCell key={field}>
+                                                                    <TextField
+                                                                        fullWidth
+                                                                        size="small"
+                                                                        type="date"
+                                                                        name={`commissions.${index}.${field}`}
+                                                                        value={commission[field]}
+                                                                        onChange={handleChange}
+                                                                        InputLabelProps={{ shrink: true }}
+                                                                        error={touched.commissions?.[index]?.[field] && !!errors.commissions?.[index]?.[field]}
+                                                                        sx={{ minWidth: 150 }}
+                                                                    />
+                                                                </TableCell>
+                                                            ))}
+
+                                                            <TableCell>
+                                                                <IconButton onClick={() => remove(index)} color="error">
+                                                                    <DeleteIcon />
+                                                                </IconButton>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
                                     </Box>
                                 )}
                             </FieldArray>
 
-                            {/* Frais de Financement Section */}
+                            {/* Fonds de Garantie Table */}
                             <FieldArray name="fondGaranti">
                                 {({ push, remove }) => (
                                     <Box mt={4}>
@@ -457,84 +307,66 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                             <CreditCardIcon sx={{ mr: 1 }} />
                                             <Typography variant="h6">Fonds de Garantie</Typography>
                                             <IconButton
-                                                onClick={() =>
-                                                    push({
-                                                        TauxGarantie: "",
-                                                        TauxReserve: "",
-                                                    })
-                                                }
+                                                onClick={() => push({ TauxGarantie: "", TauxReserve: "" })}
                                                 color="success"
                                                 sx={{ ml: 2 }}
                                             >
                                                 <AddIcon />
                                             </IconButton>
                                         </Box>
-                                        {values.fondGaranti.map((frais, index) => (
-                                            <Box
-                                                key={index}
-                                                sx={{
-                                                    border: "1px solid #ccc",
-                                                    borderRadius: "8px",
-                                                    padding: 4,
-                                                    mb: 2,
-                                                    position: "relative",
-                                                }}
-                                            >
-                                                <IconButton
-                                                    onClick={() => remove(index)}
-                                                    color="error"
-                                                    sx={{ position: "absolute", top: 12, right: 12 }}
-                                                >
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                                <Grid container spacing={2} alignItems="center">
-                                                    <Grid item xs={3}>
-                                                        <TextField
-                                                            fullWidth
-                                                            name={`fondGaranti.${index}.TauxGarantie`}
-                                                            value={frais.TauxGarantie}
-                                                            onChange={handleChange}
-                                                            onBlur={handleBlur}
-                                                            label="Taux de garantie"
-                                                            type="number"
-                                                            error={
-                                                                touched?.fondGaranti?.[index]?.TauxGarantie &&
-                                                                Boolean(errors?.fondGaranti?.[index]?.TauxGarantie)
-                                                            }
-                                                            helperText={
-                                                                touched?.fondGaranti?.[index]?.TauxGarantie &&
-                                                                errors?.fondGaranti?.[index]?.TauxGarantie
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item xs={3}>
-                                                        <TextField
-                                                            fullWidth
-                                                            name={`fondGaranti.${index}.TauxReserve`}
-                                                            value={frais.TauxReserve}
-                                                            onChange={handleChange}
-                                                            onBlur={handleBlur}
-                                                            label="Taux de reserve"
-                                                            type="number"
-                                                            error={
-                                                                touched?.fondGaranti?.[index]?.TauxReserve &&
-                                                                Boolean(errors?.fondGaranti?.[index]?.TauxReserve)
-                                                            }
-                                                            helperText={
-                                                                touched?.fondGaranti?.[index]?.TauxReserve &&
-                                                                errors?.fondGaranti?.[index]?.TauxReserve
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                </Grid>
-                                            </Box>
-                                        ))}
+
+                                        <TableContainer component={Paper} sx={{
+                                            backgroundColor: colors.grey[700],
+                                            overflowX: 'auto'
+                                        }}>
+                                            <Table sx={{ minWidth: 600 }}>
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell sx={{ minWidth: 200 }}>Taux Garantie (%)</TableCell>
+                                                        <TableCell sx={{ minWidth: 200 }}>Taux Réserve (%)</TableCell>
+                                                        <TableCell sx={{ minWidth: 80 }}>Actions</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {values.fondGaranti.map((frais, index) => (
+                                                        <TableRow key={index}>
+                                                            <TableCell>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    size="small"
+                                                                    type="number"
+                                                                    name={`fondGaranti.${index}.TauxGarantie`}
+                                                                    value={frais.TauxGarantie}
+                                                                    onChange={handleChange}
+                                                                    error={touched.fondGaranti?.[index]?.TauxGarantie && !!errors.fondGaranti?.[index]?.TauxGarantie}
+                                                                    sx={{ minWidth: 200 }}
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    size="small"
+                                                                    type="number"
+                                                                    name={`fondGaranti.${index}.TauxReserve`}
+                                                                    value={frais.TauxReserve}
+                                                                    onChange={handleChange}
+                                                                    error={touched.fondGaranti?.[index]?.TauxReserve && !!errors.fondGaranti?.[index]?.TauxReserve}
+                                                                    sx={{ minWidth: 200 }}
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <IconButton onClick={() => remove(index)} color="error">
+                                                                    <DeleteIcon />
+                                                                </IconButton>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
                                     </Box>
                                 )}
                             </FieldArray>
-
-                            {/* Fond Garanti Field */}
-
                         </form>
                     );
                 }}

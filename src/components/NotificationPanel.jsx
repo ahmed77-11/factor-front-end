@@ -33,6 +33,7 @@ const NotificationPanel = () => {
             message: notification.payload?.message || notification.notificationMessage,
             createdAt,
             taskId: notification?.taskId || notification.notificationTaskId,
+            notificationType: notification.payload?.eventType || notification.notificationType,
             read: notification.notificationRead ?? false, // Default to false if undefined
         };
     };
@@ -67,7 +68,15 @@ const NotificationPanel = () => {
 
             await readNotification(notification.id); // Mark as read first
         }
-        navigate("/validation-validateur/"+notification.id); // Then navigate
+        if(notification.notificationType==="TASK_CREATED"){
+            navigate("/validation-validateur/"+notification.id); // Then navigate
+        }
+        if(notification.notificationType==="TASK_CREATED_JURIDIQUE"){
+            navigate("/validation-juridique/"+notification.id); // Then navigate
+        }
+        if(notification.notificationType==="TASK_CREATED_MODIFY"){
+            navigate("/update-contrat/"+notification.id); // Then navigate
+        }
     };
 
     return (

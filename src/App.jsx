@@ -20,6 +20,8 @@ import UpdatePM from "./pages/PersonneMorale/updatePM/UpdatePM.jsx";
 import AjoutContrat from "./pages/contrat/ajouterContrat/AjoutContrat.jsx";
 import ValidValidateur from "./pages/contrat/validation/validationValidateur/ValidValidateur.jsx";
 import NotificationPanel from "./components/NotificationPanel.jsx";
+import UpdateContrat from "./pages/contrat/updateContrat/UpdateContrat.jsx";
+import ValidJuridique from "./pages/contrat/validation/validationJuridique/ValidJuridique.jsx";
 
 
 function App() {
@@ -54,7 +56,10 @@ function App() {
                       <Route path={"/modifier-pm/:id"} element={<UpdatePM/>}/>
                       <Route path={"/ajouter-contrat"} element={<AjoutContrat/>}/>
                       <Route path={`/validation-validateur/:notifId`} element={<ValidValidateur/>}/>
+                      <Route path={`/validation-juridique/:notifId`} element={<ValidJuridique/>}/>
+
                       <Route path={"/notification"} element={<NotificationPanel/>}/>
+                      <Route path={"/update-contrat/:notificationId"} element={<UpdateContrat/>}/>
                   </Route>
               </Route>
           </Routes>
