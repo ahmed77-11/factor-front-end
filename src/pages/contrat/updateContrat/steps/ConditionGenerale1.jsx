@@ -13,7 +13,7 @@ const contratOptions = [
 ];
 
 // eslint-disable-next-line ,
-const ConditionGenerale1 = forwardRef(({ formData, updateData, data }, ref) => {
+const ConditionGenerale1 = forwardRef(({ formData, updateData, data ,description}, ref) => {
     const { typeFactorings, loading, error } = useTypeFactoring();
     const dispatch = useDispatch();
 
@@ -77,6 +77,11 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.NumContrat && errors.NumContrat)}
                                     helperText={touched.NumContrat && errors.NumContrat}
                                 />
+                                {description.NumContrat && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.NumContrat}
+                                    </Typography>
+                                )}
                             </Box>
 
                             <Box mb={2}>
@@ -108,6 +113,11 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data }, ref) => {
                                         ))
                                     )}
                                 </TextField>
+                                {description.typeFactoring && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.typeFactoring}
+                                    </Typography>
+                                )}
                             </Box>
 
 
@@ -134,6 +144,11 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data }, ref) => {
                                         </MenuItem>
                                     ))}
                                 </TextField>
+                                {description.typeContrat && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.typeContrat}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Comité de risque */}
@@ -148,6 +163,11 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.comiteRisque && errors.comiteRisque)}
                                     helperText={touched.comiteRisque && errors.comiteRisque}
                                 />
+                                {description.comiteRisque && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.comiteRisque}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Comité de dérogation */}
@@ -162,6 +182,11 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.comiteDerogation && errors.comiteDerogation)}
                                     helperText={touched.comiteDerogation && errors.comiteDerogation}
                                 />
+                                {description.comiteDerogation && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.comiteDerogation}
+                                    </Typography>
+                                )}
                             </Box>
                         </form>
                     );

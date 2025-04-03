@@ -18,7 +18,7 @@ import { useTypeEvent } from "../../../../customeHooks/useTypeEvent.jsx";
 import { useTypeDoc } from "../../../../customeHooks/useTypeDoc.jsx";
 
 
-const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions, contratFonds }, ref) => {
+const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions, contratFonds,description }, ref) => {
     const formikRef = useRef();
     const { typeCommission } = useTypeCommission();
     const { typeEvent } = useTypeEvent();
@@ -184,6 +184,7 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                     <TableCell>Valid From</TableCell>
                                                     <TableCell>Valid To</TableCell>
                                                     <TableCell>Actions</TableCell>
+                                                    <TableCell>Notes</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
@@ -308,6 +309,24 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 <DeleteIcon />
                                                             </IconButton>
                                                         </TableCell>
+                                                        <TableCell>
+                                                            {description[`commissions_${index}`] && (
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    sx={{
+                                                                        ml: 1,
+                                                                        maxWidth: '200px',
+                                                                        whiteSpace: 'nowrap',
+                                                                        wordWrap: "break-word",
+                                                                        overflow: 'visible',
+                                                                        display: '-webkit-box',
+                                                                        WebkitBoxOrient: 'vertical',
+                                                                    }}
+                                                                >
+                                                                    {description[`commissions_${index}`]}
+                                                                </Typography>
+                                                            )}
+                                                        </TableCell>
                                                     </TableRow>
                                                 ))}
                                             </TableBody>
@@ -341,6 +360,7 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                     <TableCell>Taux Garantie (%)</TableCell>
                                                     <TableCell>Taux Réserve (%)</TableCell>
                                                     <TableCell>Actions</TableCell>
+                                                    <TableCell>Notes</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
@@ -376,6 +396,25 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                             >
                                                                 <DeleteIcon />
                                                             </IconButton>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {description[`fondGaranti_${index}`] && (
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    sx={{
+                                                                        ml: 1,
+                                                                        maxWidth: '200px',
+                                                                        whiteSpace: 'nowrap',
+                                                                        wordWrap: 'nowrap',
+                                                                        overflow: 'visible',
+                                                                        display: '-webkit-box',
+                                                                        WebkitBoxOrient: 'vertical',
+                                                                    }}
+                                                                >
+                                                                    {description[`fondGaranti_${index}`]}
+                                                                </Typography>
+                                                            )
+                                                            }
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}

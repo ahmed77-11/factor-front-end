@@ -18,10 +18,11 @@ import ListPm from "./pages/PersonneMorale/getAllPersonneMorale/GetAllPersonneMo
 import UpdatePP from "./pages/personePhysique/updatePP/UpdatePP.jsx";
 import UpdatePM from "./pages/PersonneMorale/updatePM/UpdatePM.jsx";
 import AjoutContrat from "./pages/contrat/ajouterContrat/AjoutContrat.jsx";
-import ValidValidateur from "./pages/contrat/validation/validationValidateur/ValidValidateur.jsx";
 import NotificationPanel from "./components/NotificationPanel.jsx";
 import UpdateContrat from "./pages/contrat/updateContrat/UpdateContrat.jsx";
+import ValidValidateur from "./pages/contrat/validation/validationValidateur/ValidValidateur.jsx";
 import ValidJuridique from "./pages/contrat/validation/validationJuridique/ValidJuridique.jsx";
+import AdherAchet from "./pages/relations/adherAchat/AdherAchat.jsx";
 
 
 function App() {
@@ -55,11 +56,12 @@ function App() {
                       <Route path={"/modifier-pp/:id"} element={<UpdatePP/>}/>
                       <Route path={"/modifier-pm/:id"} element={<UpdatePM/>}/>
                       <Route path={"/ajouter-contrat"} element={<AjoutContrat/>}/>
-                      <Route path={`/validation-validateur/:notifId`} element={<ValidValidateur/>}/>
-                      <Route path={`/validation-juridique/:notifId`} element={<ValidJuridique/>}/>
+                      <Route path={`/validation-juridique/:notificationId`} element={<ValidJuridique/>}/>
+                      <Route path={"/validation-validateur/:notificationId"} element={<ValidValidateur/>}/>
 
                       <Route path={"/notification"} element={<NotificationPanel/>}/>
                       <Route path={"/update-contrat/:notificationId"} element={<UpdateContrat/>}/>
+                      <Route path={"/ajouter-acheteurs"} element={<AdherAchet/>}/>
                   </Route>
               </Route>
           </Routes>

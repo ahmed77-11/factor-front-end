@@ -10,7 +10,7 @@ import { setFormData } from "../../../../redux/formSteperSlice/FormSlice.js";
 
 const tmmOptions = ["1", "2", "3"]; // Replace with actual options
 
-const ConditionGenerale3 = forwardRef(({ formData, updateData, data }, ref) => {
+const ConditionGenerale3 = forwardRef(({ formData, updateData, data,description }, ref) => {
     const dispatch = useDispatch();
 
     // Initial values with proper fallbacks from data prop
@@ -97,6 +97,11 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData, data }, ref) => {
                                         </MenuItem>
                                     ))}
                                 </TextField>
+                                {description.tmm && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.tmm}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* TMM Texte field */}
@@ -111,6 +116,11 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.tmmText && errors.tmmText)}
                                     helperText={touched.tmmText && errors.tmmText}
                                 />
+                                {description.tmmText && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.tmmText}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Résiliation */}
@@ -125,6 +135,11 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.resiliation && errors.resiliation)}
                                     helperText={touched.resiliation && errors.resiliation}
                                 />
+                                {description.resiliation && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.resiliation}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Date révision */}
@@ -141,6 +156,11 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData, data }, ref) => {
                                     helperText={touched.dateRevision && errors.dateRevision}
                                     InputLabelProps={{ shrink: true }}
                                 />
+                                {description.dateRevision && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.dateRevision}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Date résiliation */}
@@ -157,6 +177,12 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData, data }, ref) => {
                                     helperText={touched.dateResiliation && errors.dateResiliation}
                                     InputLabelProps={{ shrink: true }}
                                 />
+                                {description.dateResiliation && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.dateResiliation}
+                                    </Typography>
+                                )}
+
                             </Box>
                         </form>
                     );

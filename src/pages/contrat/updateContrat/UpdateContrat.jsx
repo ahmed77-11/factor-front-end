@@ -302,7 +302,7 @@ const UpdateContrat = () => {
                 return (
                     <ConditionGenerale1
                         data={notification}
-
+                        description={JSON.parse( notification?.notesContent)}
                         ref={conditionRef}
                         formData={formData}
                         updateData={(data) => dispatch(setFormData(data))}
@@ -312,6 +312,8 @@ const UpdateContrat = () => {
                 return (
                     <ConditionGenerale2
                         data={notification}
+                        description={JSON.parse( notification?.notesContent)}
+
                         ref={conditionRef}
                         formData={formData}
                         updateData={(data) => dispatch(setFormData(data))}
@@ -321,7 +323,7 @@ const UpdateContrat = () => {
                 return (
                     <ConditionGenerale3
                         data={notification}
-
+                        description={JSON.parse( notification?.notesContent)}
                         ref={conditionRef}
                         formData={formData}
                         updateData={(data) => dispatch(setFormData(data))}
@@ -338,6 +340,8 @@ const UpdateContrat = () => {
                         ) : (
                             <ConditionParticulieres
                                 ref={conditionRef}
+                                description={JSON.parse( notification?.notesContent)}
+
                                 formData={formData}
                                 commissions={commisions}
                                 contratFonds={contratFonds}

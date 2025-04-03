@@ -12,7 +12,7 @@ const contratOptions = [
     { label: "non", value: false },
 ];
 
-const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
+const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description }, ref) => {
     const { devises, loading, error } = useDevise();
     const dispatch = useDispatch();
 
@@ -115,6 +115,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                         ))
                                     )}
                                 </TextField>
+                                {description.devise && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.devise}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Prévision chiffre total */}
@@ -129,6 +134,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.previsionChiffreTotal && errors.previsionChiffreTotal)}
                                     helperText={touched.previsionChiffreTotal && errors.previsionChiffreTotal}
                                 />
+                                {description.previsionChiffreTotal && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.previsionChiffreTotal}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Prévision chiffre local */}
@@ -143,6 +153,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.previsionChiffreLocal && errors.previsionChiffreLocal)}
                                     helperText={touched.previsionChiffreLocal && errors.previsionChiffreLocal}
                                 />
+                                {description.previsionChiffreLocal && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.previsionChiffreLocal}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Prévision chiffre export */}
@@ -157,6 +172,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.previsionChiffreExport && errors.previsionChiffreExport)}
                                     helperText={touched.previsionChiffreExport && errors.previsionChiffreExport}
                                 />
+                                {description.previsionChiffreExport && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.previsionChiffreExport}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Nombre acheteur */}
@@ -171,6 +191,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.nombreAcheteur && errors.nombreAcheteur)}
                                     helperText={touched.nombreAcheteur && errors.nombreAcheteur}
                                 />
+                                {description.nombreAcheteur && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.nombreAcheteur}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Nombre remise */}
@@ -185,6 +210,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.nombreRemise && errors.nombreRemise)}
                                     helperText={touched.nombreRemise && errors.nombreRemise}
                                 />
+                                {description.nombreRemise && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.nombreRemise}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Nombre document remise */}
@@ -199,6 +229,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.nombreDocumentRemise && errors.nombreDocumentRemise)}
                                     helperText={touched.nombreDocumentRemise && errors.nombreDocumentRemise}
                                 />
+                                {description.nombreDocumentRemise && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.nombreDocumentRemise}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Taux concentration */}
@@ -213,6 +248,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.tauxConcentration && errors.tauxConcentration)}
                                     helperText={touched.tauxConcentration && errors.tauxConcentration}
                                 />
+                                {description.tauxConcentration && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.tauxConcentration}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Nombre avoir */}
@@ -227,6 +267,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.nombreAvoir && errors.nombreAvoir)}
                                     helperText={touched.nombreAvoir && errors.nombreAvoir}
                                 />
+                                {description.nombreAvoir && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.nombreAvoir}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Durée max paiement */}
@@ -241,6 +286,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.dureeMaxPaiement && errors.dureeMaxPaiement)}
                                     helperText={touched.dureeMaxPaiement && errors.dureeMaxPaiement}
                                 />
+                                {description.dureeMaxPaiement && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.dureeMaxPaiement}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Limite fin auto */}
@@ -255,6 +305,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.limiteFinAuto && errors.limiteFinAuto)}
                                     helperText={touched.limiteFinAuto && errors.limiteFinAuto}
                                 />
+                                {description.limiteFinAuto && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.limiteFinAuto}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Fin marge */}
@@ -269,6 +324,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.finMarge && errors.finMarge)}
                                     helperText={touched.finMarge && errors.finMarge}
                                 />
+                                {description.finMarge && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.finMarge}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Marge ret */}
@@ -283,6 +343,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     error={Boolean(touched.margeRet && errors.margeRet)}
                                     helperText={touched.margeRet && errors.margeRet}
                                 />
+                                {description.margeRet && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.margeRet}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Scanner path */}
@@ -298,6 +363,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     helperText={touched.scannerPath && errors.scannerPath}
                                     disabled
                                 />
+                                {description.scannerPath && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.scannerPath}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Nom fichier scanner */}
@@ -313,6 +383,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     helperText={touched.nomFichierScanner && errors.nomFichierScanner}
                                     disabled
                                 />
+                                {description.nomFichierScanner && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.nomFichierScanner}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Date acceptation remise */}
@@ -331,6 +406,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                         shrink: true,
                                     }}
                                 />
+                                {description.dateAcceptationRemise && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.dateAcceptationRemise}
+                                    </Typography>
+                                )}
                             </Box>
 
                             {/* Exigence littrage */}
@@ -350,6 +430,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data }, ref) => {
                                     <MenuItem value={true}>Oui</MenuItem>
                                     <MenuItem value={false}>Non</MenuItem>
                                 </TextField>
+                                {description.exigenceLittrage && (
+                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
+                                        Note: {description.exigenceLittrage}
+                                    </Typography>
+                                )}
                             </Box>
                         </form>
                     );
