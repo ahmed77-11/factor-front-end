@@ -213,6 +213,7 @@ import * as yup from "yup";
 import { useTypeFactoring } from "../../../../../customeHooks/useTypeFactoring.jsx";
 import { useDispatch } from "react-redux";
 import { setFormData } from "../../../../../redux/formSteperSlice/FormSlice.js";
+import NotesDescription from "../../../../../helpers/NotesDescription.jsx";
 
 const contratOptions = [
     { label: "Contrat avec recours", value: true },
@@ -281,9 +282,7 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data, handleOpenN
                                     helperText={touched.NumContrat && errors.NumContrat}
                                 />
                                 {description.NumContrat && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.NumContrat}
-                                    </Typography>
+                                    <NotesDescription msg={description.NumContrat}/>
                                 )}
                             </Box>
 
@@ -322,9 +321,7 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data, handleOpenN
                                     )}
                                 </TextField>
                                 {description.typeFactoring && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.typeFactoring}
-                                    </Typography>
+                                    <NotesDescription msg={description.typeFactoring}/>
                                 )}
                             </Box>
 
@@ -357,9 +354,7 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data, handleOpenN
                                     ))}
                                 </TextField>
                                 {description.typeContrat && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.typeContrat}
-                                    </Typography>
+                                    <NotesDescription msg={description.typeContrat}/>
                                 )}
                             </Box>
 
@@ -384,9 +379,7 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data, handleOpenN
                                     helperText={touched.comiteRisque && errors.comiteRisque}
                                 />
                                 {description.comiteRisque && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.comiteRisque}
-                                    </Typography>
+                                    <NotesDescription msg={description.comiteRisque}/>
                                 )}
                             </Box>
 
@@ -411,9 +404,7 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data, handleOpenN
                                     helperText={touched.comiteDerogation && errors.comiteDerogation}
                                 />
                                 {description.comiteDerogation && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.comiteDerogation}
-                                    </Typography>
+                                    <NotesDescription msg={description.comiteDerogation}/>
                                 )}
                             </Box>
                         </form>

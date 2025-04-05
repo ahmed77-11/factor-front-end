@@ -58,7 +58,6 @@ function App() {
                       <Route path={"/ajouter-contrat"} element={<AjoutContrat/>}/>
                       <Route path={`/validation-juridique/:notificationId`} element={<ValidJuridique/>}/>
                       <Route path={"/validation-validateur/:notificationId"} element={<ValidValidateur/>}/>
-
                       <Route path={"/notification"} element={<NotificationPanel/>}/>
                       <Route path={"/update-contrat/:notificationId"} element={<UpdateContrat/>}/>
                       <Route path={"/ajouter-acheteurs"} element={<AdherAchet/>}/>

@@ -7,6 +7,7 @@ import * as yup from "yup";
 import { useDevise } from "../../../../../customeHooks/useDevise.jsx";
 import { useDispatch } from "react-redux";
 import { setFormData } from "../../../../../redux/formSteperSlice/FormSlice.js";
+import NotesDescription from "../../../../../helpers/NotesDescription.jsx";
 
 const DisabledField = ({ children }) => (
     <Box position="relative">
@@ -113,9 +114,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     </TextField>
                                 </DisabledField>
                                 {description.devise && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.devise}
-                                    </Typography>
+                                    <NotesDescription msg={description.devise}/>
                                 )}
                             </Box>
 
@@ -142,9 +141,9 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.previsionChiffreTotal && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.previsionChiffreTotal}
-                                    </Typography>
+                                    <NotesDescription msg={description.previsionChiffreTotal}/>
+
+
                                 )}
                             </Box>
 
@@ -171,9 +170,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.previsionChiffreLocal && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.previsionChiffreLocal}
-                                    </Typography>
+                                    <NotesDescription msg={description.previsionChiffreLocal}/>
                                 )}
                             </Box>
 
@@ -200,9 +197,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.previsionChiffreExport && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.previsionChiffreExport}
-                                    </Typography>
+                                    <NotesDescription msg={description.previsionChiffreExport}/>
                                 )}
                             </Box>
 
@@ -229,9 +224,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.nombreAcheteur && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.nombreAcheteur}
-                                    </Typography>
+                                    <NotesDescription msg={description.nombreAcheteur}/>
                                 )}
                             </Box>
 
@@ -258,9 +251,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.nombreRemise && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.nombreRemise}
-                                    </Typography>
+                                    <NotesDescription msg={description.nombreRemise}/>
                                 )}
                             </Box>
 
@@ -287,9 +278,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.nombreDocumentRemise && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.nombreDocumentRemise}
-                                    </Typography>
+                                    <NotesDescription msg={description.nombreDocumentRemise}/>
                                 )}
                             </Box>
 
@@ -316,9 +305,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.tauxConcentration && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.tauxConcentration}
-                                    </Typography>
+                                    <NotesDescription msg={description.tauxConcentration}/>
                                 )}
                             </Box>
 
@@ -345,9 +332,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.nombreAvoir && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.nombreAvoir}
-                                    </Typography>
+                                    <NotesDescription msg={description.nombreAvoir}/>
                                 )}
                             </Box>
 
@@ -374,9 +359,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.dureeMaxPaiement && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.dureeMaxPaiement}
-                                    </Typography>
+                                    <NotesDescription msg={description.dureeMaxPaiement}/>
                                 )}
                             </Box>
 
@@ -403,9 +386,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.limiteFinAuto && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.limiteFinAuto}
-                                    </Typography>
+                                    <NotesDescription msg={description.limiteFinAuto}/>
                                 )}
                             </Box>
 
@@ -432,9 +413,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.finMarge && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.finMarge}
-                                    </Typography>
+                                    <NotesDescription msg={description.finMarge}/>
                                 )}
                             </Box>
 
@@ -461,9 +440,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.margeRet && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.margeRet}
-                                    </Typography>
+                                    <NotesDescription msg={description.margeRet}/>
                                 )}
                             </Box>
 
@@ -490,9 +467,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.scannerPath && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.scannerPath}
-                                    </Typography>
+                                    <NotesDescription msg={description.scannerPath}/>
                                 )}
                             </Box>
 
@@ -519,9 +494,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.nomFichierScanner && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.nomFichierScanner}
-                                    </Typography>
+                                    <NotesDescription msg={description.nomFichierScanner}/>
                                 )}
                             </Box>
 
@@ -550,9 +523,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     />
                                 </DisabledField>
                                 {description.dateAcceptationRemise && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.dateAcceptationRemise}
-                                    </Typography>
+                                    <NotesDescription msg={description.dateAcceptationRemise}/>
                                 )}
                             </Box>
 
@@ -584,9 +555,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                     </TextField>
                                 </DisabledField>
                                 {description.exigenceLittrage && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.exigenceLittrage}
-                                    </Typography>
+                                    <NotesDescription msg={description.exigenceLittrage}/>
                                 )}
                             </Box>
                         </form>

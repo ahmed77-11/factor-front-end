@@ -802,6 +802,9 @@ const ConditionsParticulieres = forwardRef(({
                                                                         overflow: 'visible',
                                                                         display: '-webkit-box',
                                                                         WebkitBoxOrient: 'vertical',
+                                                                        fontSize:"15px",
+
+                                                                        color:colors.greenAccent[500]
                                                                     }}
                                                                 >
                                                                     {description[`commissions_${index}`]}
@@ -910,6 +913,9 @@ const ConditionsParticulieres = forwardRef(({
                                                                         overflow: 'visible',
                                                                         display: '-webkit-box',
                                                                         WebkitBoxOrient: 'vertical',
+                                                                        fontSize:"15px",
+                                                                        color:colors.greenAccent[500]
+
                                                                     }}
                                                                 >
                                                                     {description[`fondGaranti_${index}`]}

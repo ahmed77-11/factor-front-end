@@ -1,11 +1,11 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react/display-name */
 
-import { forwardRef, useImperativeHandle, useMemo, useRef, useEffect } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
 import {
     Box, TextField, MenuItem, Typography, IconButton,
     Table, TableBody, TableCell, TableContainer, TableHead,
-    TableRow, Paper
+    TableRow, Paper, useTheme
 } from "@mui/material";
 import { Formik, FieldArray } from "formik";
 import * as yup from "yup";
@@ -16,9 +16,12 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import { useTypeCommission } from "../../../../customeHooks/useTypeCommission.jsx";
 import { useTypeEvent } from "../../../../customeHooks/useTypeEvent.jsx";
 import { useTypeDoc } from "../../../../customeHooks/useTypeDoc.jsx";
+import {tokens} from "../../../../theme.js";
 
 
 const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions, contratFonds,description }, ref) => {
+    const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
     const formikRef = useRef();
     const { typeCommission } = useTypeCommission();
     const { typeEvent } = useTypeEvent();
@@ -321,6 +324,8 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                         overflow: 'visible',
                                                                         display: '-webkit-box',
                                                                         WebkitBoxOrient: 'vertical',
+                                                                        fontSize:"15px",
+                                                                        color:colors.greenAccent[500]
                                                                     }}
                                                                 >
                                                                     {description[`commissions_${index}`]}
@@ -409,6 +414,8 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                         overflow: 'visible',
                                                                         display: '-webkit-box',
                                                                         WebkitBoxOrient: 'vertical',
+                                                                        fontSize:"15px",
+                                                                        color:colors.greenAccent[500]
                                                                     }}
                                                                 >
                                                                     {description[`fondGaranti_${index}`]}

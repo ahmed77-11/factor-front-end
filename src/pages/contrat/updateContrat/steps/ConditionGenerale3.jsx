@@ -7,6 +7,7 @@ import { Formik } from "formik";
 import * as yup from "yup";
 import { useDispatch } from "react-redux";
 import { setFormData } from "../../../../redux/formSteperSlice/FormSlice.js";
+import NotesDescription from "../../../../helpers/NotesDescription.jsx";
 
 const tmmOptions = ["1", "2", "3"]; // Replace with actual options
 
@@ -98,9 +99,7 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData, data,description 
                                     ))}
                                 </TextField>
                                 {description.tmm && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.tmm}
-                                    </Typography>
+                                    <NotesDescription msg={description.tmm}/>
                                 )}
                             </Box>
 
@@ -117,9 +116,7 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData, data,description 
                                     helperText={touched.tmmText && errors.tmmText}
                                 />
                                 {description.tmmText && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.tmmText}
-                                    </Typography>
+                                    <NotesDescription msg={description.tmmText}/>
                                 )}
                             </Box>
 
@@ -136,9 +133,7 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData, data,description 
                                     helperText={touched.resiliation && errors.resiliation}
                                 />
                                 {description.resiliation && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.resiliation}
-                                    </Typography>
+                                    <NotesDescription msg={description.resiliation}/>
                                 )}
                             </Box>
 
@@ -157,9 +152,7 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData, data,description 
                                     InputLabelProps={{ shrink: true }}
                                 />
                                 {description.dateRevision && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.dateRevision}
-                                    </Typography>
+                                    <NotesDescription msg={description.dateRevision}/>
                                 )}
                             </Box>
 
@@ -178,9 +171,7 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData, data,description 
                                     InputLabelProps={{ shrink: true }}
                                 />
                                 {description.dateResiliation && (
-                                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5 }}>
-                                        Note: {description.dateResiliation}
-                                    </Typography>
+                                   <NotesDescription msg={description.dateResiliation}/>
                                 )}
 
                             </Box>
