@@ -441,7 +441,7 @@ import { forwardRef, useImperativeHandle, useMemo, useRef, useEffect, useState }
 import {
     Box, TextField, MenuItem, Typography, IconButton,
     Table, TableBody, TableCell, TableContainer, TableHead,
-    TableRow, Paper, Tooltip, useTheme
+    TableRow, Paper, Tooltip, useTheme, Button
 } from "@mui/material";
 import { Formik, FieldArray } from "formik";
 import * as yup from "yup";
@@ -456,12 +456,16 @@ import { useTypeCommission } from "../../../../../customeHooks/useTypeCommission
 import { useTypeEvent } from "../../../../../customeHooks/useTypeEvent.jsx";
 import { useTypeDoc } from "../../../../../customeHooks/useTypeDoc.jsx";
 import {tokens} from "../../../../../theme.js";
+import {DescriptionOutlined} from "@mui/icons-material";
+import {uploadFile} from "../../../../../helpers/saveFile.js";
+import {useTypeDocContrat} from "../../../../../customeHooks/useTypeDocContrat.jsx";
 
 const ConditionsParticulieres = forwardRef(({
                                                 formData,
                                                 updateData,
                                                 commissions,
                                                 contratFonds,
+                                                docContrats,
                                                 handleOpenNoteModal,
                                                 description
                                             }, ref) => {
@@ -471,9 +475,12 @@ const ConditionsParticulieres = forwardRef(({
     const { typeCommission } = useTypeCommission();
     const { typeEvent } = useTypeEvent();
     const { typeDoc } = useTypeDoc();
+    const {typeDocContrat}=useTypeDocContrat();
+
     const [editingRows, setEditingRows] = useState({
         commissions: {},
-        fondGaranti: {}
+        fondGaranti: {},
+        docContrats: {}
     });
 
     const toggleEdit = (arrayName, index) => {
@@ -515,11 +522,28 @@ const ConditionsParticulieres = forwardRef(({
         }));
     };
 
+    const transformDocContratsData = (data) => {
+        if(!data) return [];
+        return (Array.isArray(data) ? data : [data]).map(item => ({
+            id:item?.id,
+            typeDocContrat:item.typeDocContrat || null,
+            docContratDelivDate: item.docContratDelivDate?.split('T')[0] || "",
+            docContratExpireDate:item.docContratExpireDate?.split('T')[0] || "",
+            docContratApprobationDate: item.docContratApprobationDate?.split('T')[0] || "",
+            docContratEffetDate: item.docContratEffetDate?.split('T')[0] || "",
+            docContratRelanceDate: item.docContratRelanceDate?.split('T')[0] || "",
+            docContratScanPath: item.docContratScanPath || "",
+            docContratScanFileName: item.docContratScanFileName || "",
+
+        }));
+    };
     // Memoized initial values
     const initialValues = useMemo(() => ({
         commissions: transformCommissionData(formData.commissions || commissions),
-        fondGaranti: transformFondsData(formData.fondGaranti || contratFonds)
-    }), [formData, commissions, contratFonds]);
+        fondGaranti: transformFondsData(formData.fondGaranti || contratFonds),
+        docContrats:transformDocContratsData(formData.docContrats || docContrats)
+
+    }), [formData, commissions, contratFonds,docContrats]);
 
     // Validation schema
     const validationSchema = useMemo(() => yup.object({
@@ -541,7 +565,19 @@ const ConditionsParticulieres = forwardRef(({
 
             TauxGarantie: yup.number().required("Guarantee rate is required").typeError("Must be a number"),
             TauxReserve: yup.number().required("Reserve rate is required").typeError("Must be a number"),
-        }))
+        })),
+        docContrats: yup.array().of(
+            yup.object({
+                typeDocContrat: yup.object().required("Type document requis"),
+                docContratDelivDate: yup.date().required("Date livraison requise"),
+                docContratExpireDate: yup.date().required("Date expiration requise"),
+                docContratApprobationDate: yup.date().nullable(),
+                docContratEffetDate: yup.date().nullable(),
+                docContratRelanceDate: yup.date().nullable(),
+                docContratScanPath: yup.string().required("Fichier requis"),
+                docContratScanFileName: yup.string().required("Nom fichier requis")
+            })
+        ),
     }), []);
 
     // Form submission handler
@@ -567,11 +603,26 @@ const ConditionsParticulieres = forwardRef(({
             reserveTaux: Number(fond.TauxReserve),
             typeDocRemiseId: { id: fond.typeDocRemiseId.id }
         }));
+        const transformedDocContrats = values.docContrats.map(doc => ({
+            id: doc?.id,
+            typeDocContrat: { id: doc.typeDocContrat.id },
+            docContratDelivDate: doc.docContratDelivDate,
+            docContratExpireDate: doc.docContratExpireDate,
+            docContratApprobationDate: doc.docContratApprobationDate,
+            docContratEffetDate: doc.docContratEffetDate,
+            docContratRelanceDate: doc.docContratRelanceDate,
+            docContratScanPath: doc.docContratScanPath,
+            docContratScanFileName: doc.docContratScanFileName,
+
+
+        }));
+
 
         updateData({
             ...formData,
             commissions: transformedCommissions,
-            fondGaranti: transformedFonds
+            fondGaranti: transformedFonds,
+            docContrats: transformedDocContrats
         });
     };
 
@@ -955,6 +1006,178 @@ const ConditionsParticulieres = forwardRef(({
                                 </Box>
                             )}
                         </FieldArray>
+                        <FieldArray name="docContrats">
+                            {({ push, remove }) => (
+                                <Box mt={4}>
+                                    <Box display="flex" alignItems="center" mb={2}>
+                                        <DescriptionOutlined sx={{ mr: 1 }} />
+                                        <Typography variant="h6">Documents du Contrat</Typography>
+                                        <IconButton
+                                            onClick={() => {
+                                                push({
+                                                    typeDocContrat: null,
+                                                    docContratDelivDate: '',
+                                                    docContratExpireDate: '',
+                                                    docContratApprobationDate: '',
+                                                    docContratEffetDate: '',
+                                                    docContratRelanceDate: '',
+                                                    docContratScanPath: '',
+                                                    docContratScanFileName: ''
+                                                });
+                                                // Set new row to edit mode
+                                                setEditingRows(prev => ({
+                                                    ...prev,
+                                                    docContrats: {
+                                                        ...prev.docContrats,
+                                                        [values.docContrats.length]: true
+                                                    }
+                                                }));
+                                            }}
+                                            color="success"
+                                            sx={{ ml: 2 }}
+                                        >
+                                            <AddIcon />
+                                        </IconButton>
+                                    </Box>
+
+                                    <TableContainer component={Paper}>
+                                        <Table>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell sx={{ minWidth: 200 }}>Type Document</TableCell>
+                                                    <TableCell sx={{ minWidth: 150 }}>Date Livraison</TableCell>
+                                                    <TableCell sx={{ minWidth: 150 }}>Date Expiration</TableCell>
+                                                    <TableCell sx={{ minWidth: 150 }}>Date Approbation</TableCell>
+                                                    <TableCell sx={{ minWidth: 150 }}>Date Effet</TableCell>
+                                                    <TableCell sx={{ minWidth: 150 }}>Date Relance</TableCell>
+                                                    <TableCell sx={{ minWidth: 200 }}>Fichier</TableCell>
+                                                    <TableCell sx={{ minWidth: 100 }}>Actions</TableCell>
+                                                    <TableCell sx={{ minWidth: 200 }}>Notes</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {values.docContrats.map((doc, index) => (
+                                                    <TableRow key={index}>
+                                                        {/* Type Document */}
+                                                        <TableCell>
+                                                            <TextField
+                                                                select
+                                                                fullWidth
+                                                                value={doc.typeDocContrat?.id || ""}
+                                                                onChange={(e) => {
+                                                                    const selected = typeDocContrat.find(t => t.id === e.target.value);
+                                                                    setFieldValue(`docContrats.${index}.typeDocContrat`, selected);
+                                                                }}
+                                                                error={touched.docContrats?.[index]?.typeDocContrat && !!errors.docContrats?.[index]?.typeDocContrat}
+                                                                helperText={touched.docContrats?.[index]?.typeDocContrat && errors.docContrats?.[index]?.typeDocContrat?.message}
+                                                                disabled={!editingRows.docContrats[index]}
+                                                            >
+                                                                <MenuItem value=""><em>Select Document</em></MenuItem>
+                                                                {typeDocContrat?.map(item => (
+                                                                    <MenuItem key={item.id} value={item.id}>
+                                                                        {item.dsg}
+                                                                    </MenuItem>
+                                                                ))}
+                                                            </TextField>
+                                                        </TableCell>
+
+                                                        {/* Date Fields */}
+                                                        {['Deliv', 'Expire', 'Approbation', 'Effet', 'Relance'].map((field) => (
+                                                            <TableCell key={field}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    type="date"
+                                                                    name={`docContrats.${index}.docContrat${field}Date`}
+                                                                    value={doc[`docContrat${field}Date`]}
+                                                                    onChange={handleChange}
+                                                                    InputLabelProps={{ shrink: true }}
+                                                                    error={touched.docContrats?.[index]?.[`docContrat${field}Date`] && !!errors.docContrats?.[index]?.[`docContrat${field}Date`]}
+                                                                    helperText={touched.docContrats?.[index]?.[`docContrat${field}Date`] && errors.docContrats?.[index]?.[`docContrat${field}Date`]}
+                                                                    disabled={!editingRows.docContrats[index]}
+                                                                />
+                                                            </TableCell>
+                                                        ))}
+
+                                                        {/* File Upload */}
+                                                        <TableCell>
+                                                            <Button
+                                                                variant="outlined"
+                                                                component="label"
+                                                                fullWidth
+                                                                disabled={!editingRows.docContrats[index]}
+                                                            >
+                                                                Upload File
+                                                                <input
+                                                                    type="file"
+                                                                    hidden
+                                                                    accept=".pdf,.doc,.docx"
+                                                                    onChange={async (e) => {
+                                                                        const file = e.target.files[0];
+                                                                        if (file) {
+                                                                            try {
+                                                                                const response = await uploadFile(file);
+                                                                                setFieldValue(`docContrats.${index}.docContratScanPath`, response.path);
+                                                                                setFieldValue(`docContrats.${index}.docContratScanFileName`, response.fileName);
+                                                                            } catch (error) {
+                                                                                console.error("Upload failed:", error);
+                                                                            }
+                                                                        }
+                                                                        e.target.value = null; // Reset input
+                                                                    }}
+                                                                />
+                                                            </Button>
+                                                            {doc.docContratScanFileName && (
+                                                                <Typography variant="caption" display="block">
+                                                                    {doc.docContratScanFileName}
+                                                                </Typography>
+                                                            )}
+                                                        </TableCell>
+
+                                                        <TableCell>
+                                                            <Tooltip
+                                                                title={description[`docContrats_${index}`] || "Add note"}
+                                                                arrow
+                                                            >
+                                                                <IconButton
+                                                                    onClick={() => handleOpenNoteModal(`docContrats_${index}`)}
+                                                                    color={description[`docContrats_${index}`] ? colors.greenAccent[700] : "default"}
+                                                                >
+                                                                    <NotesIcon />
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                        </TableCell>
+
+                                                        {/* Notes Column */}
+                                                        <TableCell>
+
+                                                            {description[`docContrats_${index}`] && (
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    sx={{
+                                                                        ml: 1,
+                                                                        maxWidth: '200px',
+                                                                        whiteSpace: 'nowrap',
+                                                                        wordWrap: 'nowrap',
+                                                                        overflow: 'visible',
+                                                                        display: '-webkit-box',
+                                                                        WebkitBoxOrient: 'vertical',
+                                                                        fontSize: "15px",
+                                                                        color: colors.greenAccent[500]
+                                                                    }}
+                                                                >
+                                                                    {description[`docContrats_${index}`]}
+                                                                </Typography>
+                                                            )}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </Box>
+                            )}
+                        </FieldArray>
+
                     </>
                 )}
             </Formik>

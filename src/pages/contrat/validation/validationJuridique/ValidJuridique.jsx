@@ -462,6 +462,7 @@ import { useCommision } from "../../../../customeHooks/useCommision.jsx";
 import { useContratFonds } from "../../../../customeHooks/useContratFonds.jsx";
 import useWebSocket from "../../../../customeHooks/useWebSocket.jsx";
 import EditIcon from "@mui/icons-material/Edit";
+import {useContratDoc} from "../../../../customeHooks/useContratDoc.jsx";
 
 const steps = [
     "Sélectionner la Personne Morale",
@@ -491,6 +492,7 @@ const ValidJuridique = () => {
     const { currentPM, loading: loadingPM } = useSelector((state) => state.personneMorale);
     const { fetchCommission, commisions, loading: commLoading } = useCommision();
     const { fetchContratFonds, contratFonds, loading: fondsLoading } = useContratFonds();
+    const {fetchDocContrat, docContrat, loading: docLoading} = useContratDoc();
 
     const conditionRef = useRef(null);
 
@@ -513,6 +515,9 @@ const ValidJuridique = () => {
             dispatch(getPMById(notification.notificationContratId.adherent));
             fetchCommission(notification?.notificationContratId.id);
             fetchContratFonds(notification?.notificationContratId.id);
+            fetchDocContrat(notification?.notificationContratId.id);
+
+
         }
     }, [dispatch, notification]);
 
@@ -660,6 +665,8 @@ const ValidJuridique = () => {
                                 formData={formData}
                                 commissions={commisions}
                                 contratFonds={contratFonds}
+                                docContrats={docContrat}
+
                                 updateData={updateData}
                                 handleOpenNoteModal={handleOpenNoteModal}
                                 description={description}

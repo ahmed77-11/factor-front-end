@@ -28,6 +28,7 @@ import Header from "../../../components/Header";
 import { Check } from "@mui/icons-material";
 import { useCommision } from "../../../customeHooks/useCommision";
 import { useContratFonds } from "../../../customeHooks/useContratFonds";
+import {useContratDoc} from "../../../customeHooks/useContratDoc.jsx";
 
 const steps = [
     "Sélectionner la Personne Morale",
@@ -55,6 +56,7 @@ const SignerContrat = () => {
 
     const { fetchCommission, commisions, loading: commLoading } = useCommision();
     const { fetchContratFonds, contratFonds, loading: fondsLoading } = useContratFonds();
+    const {fetchDocContrat, docContrat, loading: docLoading} = useContratDoc();
 
     const conditionRef = useRef(null);
 
@@ -71,6 +73,7 @@ const SignerContrat = () => {
                     await dispatch(getPMById(currentContrat.adherent));
                     await fetchCommission(contratId);
                     await fetchContratFonds(contratId);
+                    await fetchDocContrat(contratId);
                 } catch (error) {
                     console.error("Error fetching dependent data:", error);
                 }
@@ -193,6 +196,7 @@ const SignerContrat = () => {
                         formData={formData}
                         commissions={commisions || []}
                         contratFonds={contratFonds || []}
+                        docContrats={docContrat || []}
                         updateData={(data) => dispatch(setFormData(data))}
                         handleOpenNoteModal={handleOpenNoteModal}
                         description={description}

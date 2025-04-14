@@ -1065,6 +1065,7 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                     <TableCell>Relance</TableCell>
                                                     <TableCell>Fichier</TableCell>
                                                     <TableCell>Actions</TableCell>
+                                                    <TableCell>Notes</TableCell> {/* Added Notes column */}
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
@@ -1079,8 +1080,16 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 value={doc.typeDocContrat?.id || ''}
                                                                 onChange={(e) => {
                                                                     const selected = typeDocContrat.find(t => t.id === e.target.value);
-                                                                    setFieldValue(`docContrats.${index}.typeDocContrat`, selected);
+                                                                    handleChangeWithNoteRemoval(
+                                                                        setFieldValue,
+                                                                        `docContrats.${index}.typeDocContrat`,
+                                                                        selected,
+                                                                        index,
+                                                                        'docContrats'
+                                                                    );
                                                                 }}
+                                                                error={touched.docContrats?.[index]?.typeDocContrat && !!errors.docContrats?.[index]?.typeDocContrat}
+                                                                helperText={touched.docContrats?.[index]?.typeDocContrat && errors.docContrats?.[index]?.typeDocContrat?.message}
                                                             >
                                                                 {typeDocContrat.map((item) => (
                                                                     <MenuItem key={item.id} value={item.id}>
@@ -1099,8 +1108,17 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                     type="date"
                                                                     name={`docContrats.${index}.docContrat${field}Date`}
                                                                     value={doc[`docContrat${field}Date`]}
-                                                                    onChange={handleChange}
+                                                                    onChange={(e) => {
+                                                                        handleChange(e);
+                                                                        const noteKey = `docContrats_${index}`;
+                                                                        if (description[noteKey]) {
+                                                                            delete description[noteKey];
+                                                                            updateDescription(description);
+                                                                        }
+                                                                    }}
                                                                     InputLabelProps={{ shrink: true }}
+                                                                    error={touched.docContrats?.[index]?.[`docContrat${field}Date`] && !!errors.docContrats?.[index]?.[`docContrat${field}Date`]}
+                                                                    helperText={touched.docContrats?.[index]?.[`docContrat${field}Date`] && errors.docContrats?.[index]?.[`docContrat${field}Date`]}
                                                                 />
                                                             </TableCell>
                                                         ))}
@@ -1125,6 +1143,13 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                                 const response = await uploadFile(file);
                                                                                 setFieldValue(`docContrats.${index}.docContratScanPath`, response.path);
                                                                                 setFieldValue(`docContrats.${index}.docContratScanFileName`, response.fileName);
+
+                                                                                // Clear note when file changes
+                                                                                const noteKey = `docContrats_${index}`;
+                                                                                if (description[noteKey]) {
+                                                                                    delete description[noteKey];
+                                                                                    updateDescription(description);
+                                                                                }
                                                                             } catch (error) {
                                                                                 console.error("Upload failed:", error);
                                                                             }
@@ -1141,9 +1166,35 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                         </TableCell>
 
                                                         <TableCell>
-                                                            <IconButton onClick={() => remove(index)} color="error">
+                                                            <IconButton
+                                                                onClick={() => remove(index)}
+                                                                color="error"
+                                                                aria-label="Delete document"
+                                                            >
                                                                 <DeleteIcon />
                                                             </IconButton>
+                                                        </TableCell>
+
+                                                        {/* Notes Column */}
+                                                        <TableCell>
+                                                            {description[`docContrats_${index}`] && (
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    sx={{
+                                                                        ml: 1,
+                                                                        maxWidth: '200px',
+                                                                        whiteSpace: 'nowrap',
+                                                                        wordWrap: "break-word",
+                                                                        overflow: 'visible',
+                                                                        display: '-webkit-box',
+                                                                        WebkitBoxOrient: 'vertical',
+                                                                        fontSize: "15px",
+                                                                        color: colors.greenAccent[500]
+                                                                    }}
+                                                                >
+                                                                    {description[`docContrats_${index}`]}
+                                                                </Typography>
+                                                            )}
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
