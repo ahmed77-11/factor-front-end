@@ -18,6 +18,8 @@ import {
     MapOutlined,
 } from "@mui/icons-material";
 import { tokens } from "../../../theme.js";
+import {useSelector} from "react-redux";
+import {roleConverter} from "../../../helpers/roleConverter.js";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
     const theme = useTheme();
@@ -42,6 +44,11 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
 };
 
 const SideBarComponent = () => {
+    const {current}=useSelector(state=>state.user)
+    console.log(current)
+    const containAdmin=current?.roles?.some(role => role === "ROLE_ADMIN");
+    console.log(current.roles)
+    
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -119,16 +126,17 @@ const SideBarComponent = () => {
                                     alt="profil-utilisateur"
                                     width="100px"
                                     height="100px"
-                                    src={"../../assets/user.png"}
+                                    src={"../../assets/userImage.jpeg"}
                                     style={{ cursor: "pointer", borderRadius: "50%" }}
                                 />
                             </Box>
                             <Box textAlign="center">
-                                <Typography variant="h2" color={colors.grey[100]} fontWeight="bold" sx={{ m: "10px 0 0 0" }}>Jean Dupont</Typography>
-                                <Typography variant="h5" color={colors.greenAccent[500]}>VP Administration</Typography>
+                                <Typography variant="h2" color={colors.grey[100]} fontWeight="bold" sx={{ m: "10px 0 0 0" }}>{current?.firstName} {current?.lastName}</Typography>
+                                <Typography variant="h5" color={colors.greenAccent[500]}>{roleConverter(containAdmin?"Administrateur": current.roles[current.roles.length-1])}</Typography>
                             </Box>
                         </Box>
                     )}
+
 
                     <Box paddingLeft={isCollapsed ? undefined : "10%"}>
                         <Item title="Tableau de bord" to="/" icon={<HomeOutlined />} selected={selected} setSelected={setSelected} />
@@ -173,9 +181,11 @@ const SideBarComponent = () => {
                         </SubMenu>
 
                         <SubMenu label="Contrat" icon={<EditOutlined />} style={{ color: colors.grey[100] }} onClick={handleSubMenuOpen}>
-                            <Item title="Redaction contrat" to="/redaction-contrat" icon={<EditOutlined />} selected={selected} setSelected={setSelected} />
-                            <Item title="Validation Juridique" to="/validation-juridique" icon={<CheckOutlined />} selected={selected} setSelected={setSelected} />
-                            <Item title="Signature Du Contrat" to="/signature-contrat" icon={<CheckOutlined />} selected={selected} setSelected={setSelected} />
+                            <Item title="Redaction contrat" to="/ajouter-contrat" icon={<EditOutlined />} selected={selected} setSelected={setSelected} />
+                            <Item title="Modification contrat" to="/list-contrats-modifier" icon={<EditOutlined />} selected={selected} setSelected={setSelected} />
+                            <Item title="Validation Validateur" to="/list-contrats-valider" icon={<CheckOutlined />} selected={selected} setSelected={setSelected} />
+                            <Item title="Validation Juridique" to="/list-contrats-juridique" icon={<CheckOutlined />} selected={selected} setSelected={setSelected} />
+                            <Item title="Signature Du Contrat" to="/list-contrats-signer" icon={<CheckOutlined />} selected={selected} setSelected={setSelected} />
                         </SubMenu>
                     </Box>
                 </Menu>

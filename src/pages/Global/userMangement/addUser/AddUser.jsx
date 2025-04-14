@@ -29,6 +29,10 @@ const availableRoles = [
     { label: "Responsable Commercial", value: "ROLE_RES_COMERCIAL" },
     { label: "Responsable Achat", value: "ROLE_RES_ACHAT" },
     {label: "Responsable Financement", value: "ROLE_RES_FINANCEMENT"},
+    {label:"Responsable Juridique",value:"ROLE_RES_JURIDIQUE"},
+    {label:"Validateur Du Contrat",value:"ROLE_VALIDATEUR"},
+    {label:"Signateur Du Contrat",value:"ROLE_SIGNATAIRE"}
+
 ];
 
 const AddUser = () => {

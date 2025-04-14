@@ -5,32 +5,42 @@ import { forwardRef, useImperativeHandle } from "react";
 import { Box, TextField, MenuItem, Typography } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
+import {useTmm} from "../../../../customeHooks/useTmm.jsx";
 
-const tmmOptions = ["1", "2", "3"]; // Replace with actual options
+
+const formatDate = (date) => date.toISOString().split("T")[0];
 
 const ConditionGenerale3 = forwardRef(({ formData, updateData }, ref) => {
+
+    const {tmms,loading,error}=useTmm();
+    console.log(tmms)
+
+    const defaultDateRevision = formData.dateRevision || formatDate(new Date(new Date().setFullYear(new Date().getFullYear() + 1)));
+
     const initialValues = {
-        tmm: formData.tmm || "Option 1", // Default to "Option 1" or another valid option
+        tmm: formData.tmm || (tmms.length > 0 ? tmms[tmms.length - 1].id : ""),
         tmmText: formData.tmmText || "",
-        resiliation: formData.resiliation || "",
-        dateRevision: formData.dateRevision || "",
-        dateResiliation: formData.dateResiliation || "",
+        // resiliation: formData.resiliation || "",
+        dateRevision:defaultDateRevision || "",
+        // dateResiliation: formData.dateResiliation || "",
     };
 
     const validationSchema = yup.object().shape({
         tmm: yup.string().required("Veuillez sélectionner une option pour TMM"),
-        tmmText: yup.string().required("Veuillez entrer un texte pour TMM Texte"),
-        resiliation: yup
-            .string()
-            .required("Veuillez entrer une valeur pour Résiliation"),
+        tmmText:  yup.string()
+            .matches(/^\d+([,.]\d{2})?$/, "Le nombre doit être un entier ou avoir exactement 2 décimales (virgule ou point)")
+        .required("Champ requis"),
+        // resiliation: yup
+        //     .string()
+        //     .required("Veuillez entrer une valeur pour Résiliation"),
         dateRevision: yup
             .date()
-            .max(new Date(), "La date de révision ne peut pas être dans le futur")
+
             .required("Veuillez entrer une date valide pour Date de révision"),
-        dateResiliation: yup
-            .date()
-            .max(new Date(), "La date de résiliation ne peut pas être dans le futur")
-            .required("Veuillez entrer une date valide pour Date de résiliation"),
+        // dateResiliation: yup
+        //     .date()
+        //     .max(new Date(), "La date de résiliation ne peut pas être dans le futur")
+        //     .required("Veuillez entrer une date valide pour Date de résiliation"),
     });
 
     return (
@@ -68,7 +78,7 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData }, ref) => {
                         <form onSubmit={handleSubmit}>
                             {/* TMM field (select) */}
                             <Box mb={2}>
-                                <Typography>TMM</Typography>
+                                <Typography>TMM Date</Typography>
                                 <TextField
                                     select
                                     fullWidth
@@ -78,18 +88,25 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData }, ref) => {
                                     onBlur={handleBlur}
                                     error={Boolean(touched.tmm && errors.tmm)}
                                     helperText={touched.tmm && errors.tmm}
+                                    disabled={true}
                                 >
-                                    {tmmOptions.map((option) => (
-                                        <MenuItem key={option} value={option}>
-                                            {option}
-                                        </MenuItem>
-                                    ))}
+                                    {tmms.map((tmm, index) => {
+                                        const isLastItem = index === tmms.length - 1;
+                                        return (
+                                            <MenuItem
+                                                key={tmm.id}
+                                                value={tmm.id}
+                                            >
+                                                {tmm.aaaaMm}
+                                            </MenuItem>
+                                        );
+                                    })}
                                 </TextField>
                             </Box>
 
                             {/* TMM Texte field */}
                             <Box mb={2}>
-                                <Typography>TMM Texte</Typography>
+                                <Typography>TMM</Typography>
                                 <TextField
                                     fullWidth
                                     name="tmmText"
@@ -102,18 +119,18 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData }, ref) => {
                             </Box>
 
                             {/* Résiliation */}
-                            <Box mb={2}>
-                                <Typography>Résiliation</Typography>
-                                <TextField
-                                    fullWidth
-                                    name="resiliation"
-                                    value={values.resiliation}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    error={Boolean(touched.resiliation && errors.resiliation)}
-                                    helperText={touched.resiliation && errors.resiliation}
-                                />
-                            </Box>
+                            {/*<Box mb={2}>*/}
+                            {/*    <Typography>Résiliation</Typography>*/}
+                            {/*    <TextField*/}
+                            {/*        fullWidth*/}
+                            {/*        name="resiliation"*/}
+                            {/*        value={values.resiliation}*/}
+                            {/*        onChange={handleChange}*/}
+                            {/*        onBlur={handleBlur}*/}
+                            {/*        error={Boolean(touched.resiliation && errors.resiliation)}*/}
+                            {/*        helperText={touched.resiliation && errors.resiliation}*/}
+                            {/*    />*/}
+                            {/*</Box>*/}
 
                             {/* Date révision */}
                             <Box mb={2}>
@@ -132,20 +149,20 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData }, ref) => {
                             </Box>
 
                             {/* Date résiliation */}
-                            <Box mb={2}>
-                                <Typography>Date résiliation</Typography>
-                                <TextField
-                                    fullWidth
-                                    name="dateResiliation"
-                                    type="date"
-                                    value={values.dateResiliation}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    error={Boolean(touched.dateResiliation && errors.dateResiliation)}
-                                    helperText={touched.dateResiliation && errors.dateResiliation}
-                                    InputLabelProps={{ shrink: true }}
-                                />
-                            </Box>
+                            {/*<Box mb={2}>*/}
+                            {/*    <Typography>Date résiliation</Typography>*/}
+                            {/*    <TextField*/}
+                            {/*        fullWidth*/}
+                            {/*        name="dateResiliation"*/}
+                            {/*        type="date"*/}
+                            {/*        value={values.dateResiliation}*/}
+                            {/*        onChange={handleChange}*/}
+                            {/*        onBlur={handleBlur}*/}
+                            {/*        error={Boolean(touched.dateResiliation && errors.dateResiliation)}*/}
+                            {/*        helperText={touched.dateResiliation && errors.dateResiliation}*/}
+                            {/*        InputLabelProps={{ shrink: true }}*/}
+                            {/*    />*/}
+                            {/*</Box>*/}
                         </form>
                     );
                 }}

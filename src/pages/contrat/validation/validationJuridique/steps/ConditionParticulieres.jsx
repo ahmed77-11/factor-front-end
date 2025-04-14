@@ -511,7 +511,7 @@ const ConditionsParticulieres = forwardRef(({
             id: item?.id,
             TauxGarantie: item.garantieTaux || "",
             TauxReserve: item.reserveTaux || "",
-            typeDocRemiseId: item.typeDocRemiseId || 1
+            typeDocRemiseId: item.typeDocRemiseId || null
         }));
     };
 
@@ -531,12 +531,14 @@ const ConditionsParticulieres = forwardRef(({
             Minorant: yup.number().required("Minimum is required").typeError("Must be a number"),
             Majorant: yup.number().required("Maximum is required").typeError("Must be a number"),
             ValidDateDeb: yup.date().required("Start date is required").typeError("Invalid date"),
-            ValidDateFin: yup.date().required("End date is required").typeError("Invalid date"),
+            ValidDateFin: yup.date().typeError("Invalid date"),
             CommA: yup.number().required("Commission A is required").typeError("Must be a number"),
             CommX: yup.number().required("Commission X is required").typeError("Must be a number"),
             CommB: yup.number().required("Commission B is required").typeError("Must be a number"),
         })),
         fondGaranti: yup.array().of(yup.object({
+            typeDocRemiseId: yup.object().required("Type Document requis"),
+
             TauxGarantie: yup.number().required("Guarantee rate is required").typeError("Must be a number"),
             TauxReserve: yup.number().required("Reserve rate is required").typeError("Must be a number"),
         }))
@@ -563,7 +565,7 @@ const ConditionsParticulieres = forwardRef(({
             id: fond?.id,
             garantieTaux: Number(fond.TauxGarantie),
             reserveTaux: Number(fond.TauxReserve),
-            typeDocRemiseId: { id: 1 }
+            typeDocRemiseId: { id: fond.typeDocRemiseId.id }
         }));
 
         updateData({
@@ -640,19 +642,19 @@ const ConditionsParticulieres = forwardRef(({
                                         <Table>
                                             <TableHead>
                                                 <TableRow>
-                                                    <TableCell>Type Événement</TableCell>
-                                                    <TableCell>Type Document</TableCell>
-                                                    <TableCell>Type Commission</TableCell>
-                                                    <TableCell>Périodicité</TableCell>
-                                                    <TableCell>Minorant</TableCell>
-                                                    <TableCell>Majorant</TableCell>
-                                                    <TableCell>Commission A</TableCell>
-                                                    <TableCell>Commission X</TableCell>
-                                                    <TableCell>Commission B</TableCell>
-                                                    <TableCell>Valid From</TableCell>
-                                                    <TableCell>Valid To</TableCell>
-                                                    <TableCell>Actions</TableCell>
-                                                    <TableCell>Notes</TableCell>
+                                                    <TableCell sx={{ minWidth: 160 }}>Type Événement</TableCell>
+                                                    <TableCell sx={{ minWidth: 160 }}>Type Document</TableCell>
+                                                    <TableCell sx={{ minWidth: 160 }}>Type Commission</TableCell>
+                                                    <TableCell sx={{ minWidth: 120 }}>Périodicité</TableCell>
+                                                    <TableCell sx={{ minWidth: 100 }}>Minorant</TableCell>
+                                                    <TableCell sx={{ minWidth: 100 }}>Majorant</TableCell>
+                                                    <TableCell sx={{ minWidth: 120 }}>Commission A</TableCell>
+                                                    <TableCell sx={{ minWidth: 120 }}>Commission X</TableCell>
+                                                    <TableCell sx={{ minWidth: 120 }}>Commission B</TableCell>
+                                                    <TableCell sx={{ minWidth: 140 }}>Valid From</TableCell>
+                                                    <TableCell sx={{ minWidth: 140 }}>Valid To</TableCell>
+                                                    <TableCell sx={{ minWidth: 100 }}>Actions</TableCell>
+                                                    <TableCell sx={{ minWidth: 200 }}>Notes</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
@@ -826,10 +828,10 @@ const ConditionsParticulieres = forwardRef(({
                                 <Box mt={4}>
                                     <Box display="flex" alignItems="center" mb={2}>
                                         <CreditCardIcon sx={{ mr: 1 }} />
-                                        <Typography variant="h6">Fonds de Garantie</Typography>
+                                        <Typography variant="h6">Fonds de Garantie et Reserver</Typography>
                                         <IconButton
                                             onClick={() => {
-                                                push({ TauxGarantie: "", TauxReserve: "" });
+                                                push({typeDocRemiseId:null, TauxGarantie: "", TauxReserve: "" });
                                                 // Set new row to edit mode
                                                 setEditingRows(prev => ({
                                                     ...prev,
@@ -852,15 +854,37 @@ const ConditionsParticulieres = forwardRef(({
                                         <Table>
                                             <TableHead>
                                                 <TableRow>
-                                                    <TableCell>Taux Garantie (%)</TableCell>
-                                                    <TableCell>Taux Réserve (%)</TableCell>
-                                                    <TableCell>Actions</TableCell>
-                                                    <TableCell>Notes</TableCell>
+                                                    <TableCell sx={{minWidth:200}}>Type Document à Remise</TableCell>
+                                                    <TableCell sx={{ minWidth: 200 }}>Taux Fonds Garantie (%)</TableCell>
+<TableCell sx={{ minWidth: 200 }}>Taux Fonds Réserve (%)</TableCell>
+                                                    <TableCell sx={{ minWidth: 100 }}>Actions</TableCell>
+                                                    <TableCell sx={{ minWidth: 200 }}>Notes</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
                                                 {values.fondGaranti.map((frais, index) => (
                                                     <TableRow key={index}>
+                                                        <TableCell>
+                                                            <TextField
+                                                                select
+                                                                fullWidth
+                                                                value={frais.typeDocRemiseId?.id || ""}
+                                                                onChange={(e) => {
+                                                                    const selected = typeDoc.find(td => td.id === e.target.value);
+                                                                    setFieldValue(`fondGaranti.${index}.typeDocRemiseId`, selected);
+                                                                }}
+                                                                error={touched.fondGaranti?.[index]?.typeDocRemiseId && !!errors.fondGaranti?.[index]?.typeDocRemiseId}
+                                                                helperText={touched.fondGaranti?.[index]?.typeDocRemiseId && errors.fondGaranti?.[index]?.typeDocRemiseId?.message}
+                                                                disabled={!editingRows.fondGaranti[index]}
+                                                            >
+                                                                <MenuItem value=""><em>Select Document</em></MenuItem>
+                                                                {typeDoc?.map(item => (
+                                                                    <MenuItem key={item.id} value={item.id}>
+                                                                        {item.dsg}
+                                                                    </MenuItem>
+                                                                ))}
+                                                            </TextField>
+                                                        </TableCell>
                                                         <TableCell>
                                                             <TextField
                                                                 fullWidth

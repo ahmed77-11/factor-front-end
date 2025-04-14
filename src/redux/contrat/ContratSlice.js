@@ -62,6 +62,18 @@ const contratSlice = createSlice({
             state.loading = false;
             state.error = action.payload;
         },
+        signerContratStart: (state) => {
+            state.loading = true;
+        },
+        signerContratSuccess: (state, action) => {
+            state.contrats = state.contrats.map((contrat) => contrat.id === action.payload.id ? action.payload : contrat);
+            state.loading = false;
+            state.error = null;
+        },
+        signerContratFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
     }
 });
 
@@ -116,5 +128,41 @@ export const updateContratAsync = (contratData,navigate,taskId) => async (dispat
     }
 }
 
-export const { fetchContrats, fetchContratsSuccess, fetchContratsFailure,addContratStart,addContratSuccess,addContratFailure ,updateContratStart,updateContratSuccess,updateContratFailure,getContratByIdStart,getContratByIdSuccess,getContratByIdFailure} = contratSlice.actions;
+
+export const fetchContratsAsyncByStatus= (status) => async (dispatch) => {
+    dispatch(fetchContrats());
+    try{
+        const res=await axios.get("http://localhost:8083/factoring/contrat/api/all-contrats-"+status,{
+            withCredentials:true
+        });
+        if(res.status!==200){
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(fetchContratsSuccess(res.data));
+    }catch (e){
+        console.log(e);
+        dispatch(fetchContratsFailure(e.message));
+
+    }
+}
+
+export const signerContratAsync = (contratId,navigate) => async (dispatch) => {
+    try{
+        dispatch(signerContratStart() )
+        const res=await axios.post("http://localhost:8083/factoring/contrat/api/signer-contrat/"+contratId,null,{
+            withCredentials:true,
+        });
+        if(res.status!==200){
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(signerContratSuccess(res.data));
+        navigate("/");
+    }catch (e) {
+        console.log(e);
+        dispatch(signerContratFailure(e.message));
+
+    }
+}
+
+export const { fetchContrats, fetchContratsSuccess, fetchContratsFailure,addContratStart,addContratSuccess,addContratFailure ,updateContratStart,updateContratSuccess,updateContratFailure,getContratByIdStart,getContratByIdSuccess,getContratByIdFailure,signerContratStart,signerContratSuccess,signerContratFailure} = contratSlice.actions;
 export default contratSlice.reducer;

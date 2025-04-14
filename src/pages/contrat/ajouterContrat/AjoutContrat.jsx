@@ -64,7 +64,7 @@ const AjoutContrat = () => {
     };
 
     const handleCreateAdherent = () => {
-        navigate("/ajout-pm", { state: { returnTo: "/ajout-contrat" } });
+        navigate("/ajouter-pm", { state: { returnTo: "/ajout-contrat" } });
     };
 
     const handleNext = async () => {
@@ -157,15 +157,31 @@ const AjoutContrat = () => {
             contratFonds: Array.isArray(formData.fondGaranti) ? formData.fondGaranti.map(fond => ({
                 garantieTaux: parseField(fond?.TauxGarantie, 'number'),
                 reserveTaux: parseField(fond?.TauxReserve, 'number'),
-                typeDocRemiseId:{id:1}
+                typeDocRemiseId: fond.TypeDocRemise
 
             })) : [],
 
+            docContrats: Array.isArray(formData.docContrats) ? formData.docContrats.map(doc => ({
+                typeDocContrat:doc.typeDocContrat,
+                docContratDelivDate: parseField(doc?.docContratDelivDate, 'string'),
+                docContratExpireDate:parseField(doc?.docContratExpireDate, 'string'),
+                docContratApprobationDate: parseField(doc?.docContratApprobationDate, 'string'),
+                docContratEffetDate: parseField(doc?.docContratEffetDate, 'string'),
+                docContratRelanceDate:parseField(doc?.docContratRelanceDate, 'string'),
+                docContratScanPath: parseField(doc?.docContratScanPath, 'string'),
+                docContratScanFileName: parseField(doc?.docContratScanFileName, 'string'),
+            })) : [],
+
+
+
+
+
+
             tmm: parseField(formData.tmm, 'number'),
             contratTmm: parseField(formData.tmmText, 'number'),
-            contratResiliationTexte: parseField(formData.resiliation, 'string'),
+            // contratResiliationTexte: parseField(formData.resiliation, 'string'),
             contratRevisionDate: parseField(formData.dateRevision, 'string'),
-            contratResiliationDate: parseField(formData.dateResiliation, 'string'),
+            // contratResiliationDate: parseField(formData.dateResiliation, 'string'),
 
             typeFactoring: formData.typeFactoring || null,
             contratBoolRecours: formData.typeContrat !== undefined ? parseField(formData.typeContrat, 'boolean') : null,
@@ -187,7 +203,8 @@ const AjoutContrat = () => {
         console.log("Parsed Form Fields:", formFields);
 
         // Dispatch the action after parsing the fields
-        dispatch(addContratAsync(formFields, useNavigate));
+        dispatch(addContratAsync(formFields, navigate));
+
     };
 
 

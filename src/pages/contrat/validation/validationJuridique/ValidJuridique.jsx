@@ -526,6 +526,7 @@ const ValidJuridique = () => {
     const handleTaskEvent = (decision) => {
         const descriptionStr=JSON.stringify(description)
         sendTaskAction({"taskId":notification.notificationTaskId,"actionType":"COMPLETE","variables":{"token":current.token,"reviewDecision":decision,"juristeId":current.id,"notes":descriptionStr}}); // Mark as read in real-time
+        navigate("/")
     };
     const handlePMSelection = () => {
         if (currentPM) {
@@ -553,10 +554,19 @@ const ValidJuridique = () => {
     };
 
     const handleSaveNote = () => {
-        setDescription(prev => ({
-            ...prev,
-            [activeField]: tempNote
-        }));
+        setDescription(prev => {
+            if (tempNote.trim() !== "") {
+                return {
+                    ...prev,
+                    [activeField]: tempNote
+                };
+            } else {
+                // Remove the key from the object
+                const { [activeField]: _, ...rest } = prev;
+                return rest;
+            }
+        });
+
         handleCloseNoteModal();
     };
 
@@ -577,6 +587,12 @@ const ValidJuridique = () => {
     const handleSubmit = () => {
         // ... existing submit logic (keep original implementation)
     };
+
+
+    function isEmpty(obj) {
+        console.log(Object.keys(obj).length === 0 && obj.constructor === Object)
+        return Object.keys(obj).length === 0 && obj.constructor === Object;
+    }
 
     const renderStepContent = (step) => {
         switch (step) {
@@ -728,10 +744,11 @@ const ValidJuridique = () => {
                     <>
                         <Button
                             variant="contained"
+
                             color="primary"
                             sx={{ backgroundColor: colors.greenAccent[700] }}
                             onClick={()=>handleTaskEvent("accept")}
-                            disabled={loading || loadingPM}
+                            disabled={loading || loadingPM || !isEmpty(description)}
                         >
                             Valider
                         </Button>

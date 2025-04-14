@@ -36,7 +36,7 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData }, ref) => {
             .typeError("Le type de contrat est requis")
             .required("Le type de contrat est requis"),
         comiteRisque: yup.string().required("Le comité de risque est requis"),
-        comiteDerogation: yup.string().required("Le comité dérogation est requis"),
+        comiteDerogation: yup.string(),
     });
 
     return (

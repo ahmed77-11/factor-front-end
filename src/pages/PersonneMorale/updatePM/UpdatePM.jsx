@@ -1,14 +1,15 @@
-import {useState, useEffect} from "react";
-import {Box, Button, TextField, Typography, Card, CardContent, MenuItem, useTheme} from "@mui/material";
-import {Formik} from "formik";
+import { useState, useEffect } from "react";
+import { Box, Button, TextField, Typography, Card, CardContent, MenuItem, useTheme } from "@mui/material";
+import { Formik } from "formik";
 import * as yup from "yup";
 import Header from "../../../components/Header.jsx";
-import {useNavigate, useParams} from "react-router-dom";
-import {useDispatch, useSelector} from "react-redux";
-import {deletePM, getPMById, updatePM} from "../../../redux/personne/PersonneMoraleSlice.js";
-import {useTypePieceId} from "../../../customeHooks/useTypePieceId.jsx";
-import {tokens} from "../../../theme.js"; // Custom hook for type pieces
+import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { getPMById, updatePM } from "../../../redux/personne/PersonneMoraleSlice.js";
+import { useTypePieceId } from "../../../customeHooks/useTypePieceId.jsx";
+import { tokens } from "../../../theme.js";
 
+// Validation schema
 const validationSchema = yup.object().shape({
     numeroPieceIdentite: yup.string().required("Le numéro de pièce d'identité est requis"),
     raisonSocial: yup.string().required("La raison sociale est requise"),
@@ -21,16 +22,24 @@ const validationSchema = yup.object().shape({
         .matches(/^\d{8}$/, "Le numéro de téléphone doit comporter 8 chiffres"),
     typePieceId: yup.string().required("Le type de pièce d'identité est requis"),
     matriculeFiscal: yup.string().required("Le matricule fiscal est requis"),
+    indviduRoles: yup.array().min(1, "Au moins un rôle doit être sélectionné").required("Les rôles sont requis"),
 });
 
 const UpdatePM = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const navigate = useNavigate();
-    const {id} = useParams();
+    const { id } = useParams();
     const dispatch = useDispatch();
-    const {typePieceId, loading: loadingTypes, error: errorTypes} = useTypePieceId();
-    const {currentPM, loadingPM, errorPM} = useSelector((state) => state.personneMorale);
+    const { typePieceId, loading: loadingTypes, error: errorTypes } = useTypePieceId();
+    const { currentPM, loadingPM, errorPM } = useSelector((state) => state.personneMorale);
+
+    // Define all possible role options including "CONTACT"
+    const roleOptions = [
+        "ACHETEUR",
+        "FOURNISSEUR",
+        "CONTACT"
+    ];
 
     const [initialValues, setInitialValues] = useState({
         numeroPieceIdentite: "",
@@ -41,19 +50,22 @@ const UpdatePM = () => {
         email: "",
         telNo: "",
         typePieceId: "",
-        matriculeFiscal:""// pre-filled based on the selected type
+        matriculeFiscal: "",
+        indviduRoles: [] // Note lowercase 'i' to match API
     });
 
+    // Fetch PM data
     useEffect(() => {
         if (id) {
             dispatch(getPMById(id));
         }
     }, [dispatch, id]);
 
+    // Update initial values when currentPM is fetched
     useEffect(() => {
         if (currentPM) {
             setInitialValues({
-                typePieceId: currentPM.typePieceIdentite.id, // assuming currentPM contains the type piece object
+                typePieceId: currentPM.typePieceIdentite.id,
                 numeroPieceIdentite: currentPM.numeroPieceIdentite,
                 raisonSocial: currentPM.raisonSocial,
                 sigle: currentPM.sigle,
@@ -61,28 +73,29 @@ const UpdatePM = () => {
                 ville: currentPM.ville,
                 email: currentPM.email,
                 telNo: currentPM.telNo,
-                matriculeFiscal: currentPM.matriculeFiscal
+                matriculeFiscal: currentPM.matriculeFiscal,
+                // Use direct array from API (note lowercase 'i')
+                indviduRoles: currentPM.indviduRoles || []
             });
         }
     }, [currentPM]);
 
+    // Handle form submit
     const handleFormSubmit = (values) => {
-        // Lookup the full type piece object
         const selectedType = typePieceId.find((item) => item.id === Number(values.typePieceId));
-        // Merge full type piece object into payload
         const payload = {
             ...values,
             typePieceIdentite: selectedType,
         };
 
+        console.log(payload)
         dispatch(updatePM(id, payload, navigate));
     };
-
 
     return (
         <Box m="20px" display="flex" flexDirection="column">
             {loadingPM && <Typography>Chargement...</Typography>}
-            <Header title="Personne Morale" subtitle="Modifier"/>
+            <Header title="Personne Morale" subtitle="Modifier" />
 
             <Card sx={{
                 width: "100%", maxWidth: "1200px", boxShadow: 5, borderRadius: 3, p: 3,
@@ -95,10 +108,10 @@ const UpdatePM = () => {
                         validationSchema={validationSchema}
                         onSubmit={handleFormSubmit}
                     >
-                        {({values, errors, touched, handleBlur, handleChange, handleSubmit}) => (
+                        {({ values, errors, touched, handleBlur, handleChange, handleSubmit }) => (
                             <form onSubmit={handleSubmit}>
                                 <Box display="flex" flexDirection="column" gap="20px">
-                                    {/* Render fields */}
+                                    {/* TYPE PIECE IDENTITE */}
                                     <Box key="typePieceId">
                                         <Typography variant="subtitle1" fontWeight="bold">
                                             TYPE PIECE IDENTITE
@@ -113,7 +126,7 @@ const UpdatePM = () => {
                                             onChange={handleChange}
                                             error={!!touched.typePieceId && !!errors.typePieceId}
                                             helperText={touched.typePieceId && errors.typePieceId}
-                                            disabled // Disable the field so users can't change it
+                                            disabled
                                         >
                                             {loadingTypes ? (
                                                 <MenuItem value="">Chargement...</MenuItem>
@@ -129,9 +142,37 @@ const UpdatePM = () => {
                                         </TextField>
                                     </Box>
 
-                                    {/* Loop through remaining fields */}
+                                    {/* indviduRoles (Multi-Select) */}
+                                    <Box>
+                                        <Typography variant="subtitle1" fontWeight="bold">
+                                            RÔLES
+                                        </Typography>
+                                        <TextField
+                                            select
+                                            fullWidth
+                                            SelectProps={{
+                                                multiple: true,
+                                                renderValue: (selected) => selected.join(', '),
+                                            }}
+                                            variant="outlined"
+                                            name="indviduRoles" // Match API field name
+                                            value={values.indviduRoles}
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                            error={!!touched.indviduRoles && !!errors.indviduRoles}
+                                            helperText={touched.indviduRoles && errors.indviduRoles}
+                                        >
+                                            {roleOptions.map((role) => (
+                                                <MenuItem key={role} value={role}>
+                                                    {role}
+                                                </MenuItem>
+                                            ))}
+                                        </TextField>
+                                    </Box>
+
+                                    {/* Other Fields */}
                                     {Object.keys(initialValues)
-                                        .filter((field) => field !== "typePieceId") // Don't render "typePieceId" again
+                                        .filter((field) => field !== "typePieceId" && field !== "indviduRoles")
                                         .map((field) => (
                                             <Box key={field}>
                                                 <Typography variant="subtitle1" fontWeight="bold">
@@ -148,28 +189,28 @@ const UpdatePM = () => {
                                                     name={field}
                                                     error={!!touched[field] && !!errors[field]}
                                                     helperText={touched[field] && errors[field]}
-                                                    disabled={field === "numeroPieceIdentite"} // Disable only this field
+                                                    disabled={field === "numeroPieceIdentite"}
                                                 />
                                             </Box>
                                         ))}
 
-                                    {/* Submit and Archive buttons */}
+                                    {/* Submit button */}
                                     <Box display="flex" justifyContent="center" gap="10px" mt="10px">
                                         <Button
                                             type="submit"
                                             color="secondary"
                                             variant="contained"
                                             size="large"
-                                            sx={{borderRadius: 2, backgroundColor: colors.greenAccent[500], color: colors.grey[100]}}
+                                            sx={{ borderRadius: 2, backgroundColor: colors.greenAccent[500], color: colors.grey[100] }}
                                         >
                                             Soumettre
                                         </Button>
-
                                     </Box>
                                 </Box>
                             </form>
                         )}
                     </Formik>
+
                     {errorPM && <Typography color="error">{errorPM}</Typography>}
                 </CardContent>
             </Card>

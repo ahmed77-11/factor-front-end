@@ -35,6 +35,7 @@ const NotificationPanel = () => {
             taskId: notification?.taskId || notification.notificationTaskId,
             notificationType: notification.payload?.eventType || notification.notificationType,
             read: notification.notificationRead ?? false, // Default to false if undefined
+            util:notification.notificationBoolUtil ?? false,
         };
     };
 
@@ -54,12 +55,15 @@ const NotificationPanel = () => {
                 )
         );
 
-        // Sort notifications (newest first)
-        uniqueNotifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        // ❗ Filter to only show util === false
+        const filteredNotifications = uniqueNotifications.filter((n) => !n.util);
 
-        setAllNotifications(uniqueNotifications);
-        console.log(uniqueNotifications);
+        // Sort notifications (newest first)
+        filteredNotifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+        setAllNotifications(filteredNotifications);
     }, [fetchedNotifications, socketNotifications]);
+
 
     const handleNotificationClick = async (notification) => {
 

@@ -8,8 +8,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import { Formik } from "formik";
 import * as yup from "yup";
 import { useDispatch } from "react-redux";
-import { setFormData } from "../../../../../redux/formSteperSlice/FormSlice.js";
-import NotesDescription from "../../../../../helpers/NotesDescription.jsx";
+import { setFormData } from "../../../../redux/formSteperSlice/FormSlice.js";
+import NotesDescription from "../../../../helpers/NotesDescription.jsx";
 import { useTmm } from "../../../../customeHooks/useTmm.jsx"; // Assuming useTmm is available
 
 const iconStyle = {
@@ -40,18 +40,18 @@ const ConditionGenerale3 = forwardRef(({ formData, updateData, data, handleOpenN
     }, [tmms, formData?.tmm]);
 
     const initialValues = {
-        tmm: formData?.tmm || data?.notificationContratId?.tmm?.toString() || "",
-        tmmText: formData?.tmmText || data?.notificationContratId?.contratTmm?.toString() || "",
-        resiliation: formData?.resiliation || data?.notificationContratId?.contratResiliationTexte || "",
-        dateRevision: formData?.dateRevision || data?.notificationContratId?.contratRevisionDate?.split('T')[0] || "",
-        dateResiliation: formData?.dateResiliation || data?.notificationContratId?.contratResiliationDate?.split('T')[0] || "",
+        tmm: formData?.tmm || data?.tmm?.toString() || "",
+        tmmText: formData?.tmmText || data?.contratTmm?.toString() || "",
+        resiliation: formData?.resiliation || data?.contratResiliationTexte || "",
+        dateRevision: formData?.dateRevision || data?.contratRevisionDate?.split('T')[0] || "",
+        dateResiliation: formData?.dateResiliation || data?.contratResiliationDate?.split('T')[0] || "",
     };
 
     const validationSchema = yup.object().shape({
         tmm: yup.string().required("Veuillez sélectionner une option pour TMM"),
         tmmText: yup.string()
             .matches(/^\d+([,.]\d{2})?$/, "Le nombre doit être un entier ou avoir exactement 2 décimales (virgule ou point)")
-        .required("Champ requis"),
+            .required("Champ requis"),
         resiliation: yup.string(),
         dateRevision: yup
             .date()

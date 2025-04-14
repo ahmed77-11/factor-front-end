@@ -53,8 +53,8 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
         limiteFinAuto: yup.string().required("La limite fin auto est requise"),
         finMarge: yup.string().required("La fin de marge est requise"),
         margeRet: yup.string().required("La marge ret est requise"),
-        scannerPath: yup.string().required("Le chemin du scanner est requis"),
-        nomFichierScanner: yup.string().required("Le nom du fichier scanner est requis"),
+        scannerPath: yup.string(),
+        nomFichierScanner: yup.string(),
         dateAcceptationRemise: yup.string().required("La date d'acceptation de remise est requise"),
         exigenceLittrage: yup.string().required("L'exigence de littrage est requise"),
     });
@@ -393,7 +393,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                             {/* Fin marge */}
                             <Box mb={2}>
                                 <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography>Fin marge (%)</Typography>
+                                    <Typography>marge De Financement (%)</Typography>
                                     <IconButton
                                         onClick={() => handleOpenNoteModal('finMarge')}
                                         size="small"
@@ -420,7 +420,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                             {/* Marge ret */}
                             <Box mb={2}>
                                 <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography>Marge ret (%)</Typography>
+                                    <Typography>Marge Intéret du retard (%)</Typography>
                                     <IconButton
                                         onClick={() => handleOpenNoteModal('margeRet')}
                                         size="small"

@@ -14,7 +14,8 @@ const contratOptions = [
 ];
 
 // eslint-disable-next-line ,
-const ConditionGenerale1 = forwardRef(({ formData, updateData, data ,description}, ref) => {
+const ConditionGenerale1 = forwardRef(({ formData, updateData, data ,description,updateDescription}, ref) => {
+    console.log(description.length);
     const { typeFactorings, loading, error } = useTypeFactoring();
     const dispatch = useDispatch();
 
@@ -36,7 +37,7 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data ,description
             .typeError("Le type de contrat est requis")
             .required("Le type de contrat est requis"),
         comiteRisque: yup.string().required("Le comité de risque est requis"),
-        comiteDerogation: yup.string().required("Le comité de dérogation est requis"),
+        comiteDerogation: yup.string(),
     });
 
     return (
@@ -72,7 +73,14 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data ,description
                                     fullWidth
                                     name="NumContrat"
                                     value={values.NumContrat}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.NumContrat) {
+                                           
+                                            delete description.NumContrat;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     disabled
                                     error={Boolean(touched.NumContrat && errors.NumContrat)}
@@ -94,6 +102,11 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data ,description
                                         const selectedId = e.target.value;
                                         const selectedFactoring = typeFactorings.find((item) => item.id === selectedId);
                                         setFieldValue("typeFactoring", selectedFactoring || null);
+                                        if (description.typeFactoring) {
+                                           
+                                            delete description.typeFactoring;
+                                            updateDescription(description);
+                                        }
                                     }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.typeFactoring && errors.typeFactoring)}
@@ -129,6 +142,11 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data ,description
                                     onChange={(e) => {
                                         const value = e.target.value === "true";
                                         setFieldValue("typeContrat", value);
+                                        if (description.typeContrat) {
+                                           
+                                            delete description.typeContrat;
+                                            updateDescription(description);
+                                        }
                                     }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.typeContrat && errors.typeContrat)}
@@ -153,7 +171,14 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data ,description
                                     fullWidth
                                     name="comiteRisque"
                                     value={values.comiteRisque}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.comiteRisque) {
+                                           
+                                            delete description.comiteRisque;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.comiteRisque && errors.comiteRisque)}
                                     helperText={touched.comiteRisque && errors.comiteRisque}
@@ -170,7 +195,14 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data ,description
                                     fullWidth
                                     name="comiteDerogation"
                                     value={values.comiteDerogation}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.comiteDerogation) {
+                                           
+                                            delete description.comiteDerogation;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.comiteDerogation && errors.comiteDerogation)}
                                     helperText={touched.comiteDerogation && errors.comiteDerogation}

@@ -1,31 +1,43 @@
 // /* eslint-disable react/prop-types */
 // /* eslint-disable react/display-name */
 //
-// import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
+// import { forwardRef, useImperativeHandle, useMemo, useRef, useEffect, useState } from "react";
 // import {
 //     Box, TextField, MenuItem, Typography, IconButton,
 //     Table, TableBody, TableCell, TableContainer, TableHead,
-//     TableRow, Paper, useTheme
+//     TableRow, Paper
 // } from "@mui/material";
 // import { Formik, FieldArray } from "formik";
 // import * as yup from "yup";
 // import AddIcon from "@mui/icons-material/Add";
 // import DeleteIcon from "@mui/icons-material/Delete";
+// import EditIcon from "@mui/icons-material/Edit";
+// import SaveIcon from "@mui/icons-material/Save";
 // import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 // import CreditCardIcon from "@mui/icons-material/CreditCard";
-// import { useTypeCommission } from "../../../../customeHooks/useTypeCommission.jsx";
-// import { useTypeEvent } from "../../../../customeHooks/useTypeEvent.jsx";
-// import { useTypeDoc } from "../../../../customeHooks/useTypeDoc.jsx";
-// import {tokens} from "../../../../theme.js";
+// import { useTypeCommission } from "../../../../../customeHooks/useTypeCommission.jsx";
+// import { useTypeEvent } from "../../../../../customeHooks/useTypeEvent.jsx";
+// import { useTypeDoc } from "../../../../../customeHooks/useTypeDoc.jsx";
 //
-//
-// const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions, contratFonds,description,updateDescription }, ref) => {
-//     const theme = useTheme();
-//     const colors = tokens(theme.palette.mode);
+// const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions, contratFonds }, ref) => {
 //     const formikRef = useRef();
 //     const { typeCommission } = useTypeCommission();
 //     const { typeEvent } = useTypeEvent();
 //     const { typeDoc } = useTypeDoc();
+//     const [editingRows, setEditingRows] = useState({
+//         commissions: {},
+//         fondGaranti: {}
+//     });
+//
+//     const toggleEdit = (arrayName, index) => {
+//         setEditingRows(prev => ({
+//             ...prev,
+//             [arrayName]: {
+//                 ...prev[arrayName],
+//                 [index]: !prev[arrayName][index]
+//             }
+//         }));
+//     };
 //
 //     // Transform API data to form structure
 //     const transformCommissionData = (data) => {
@@ -52,8 +64,7 @@
 //             id: item?.id,
 //             TauxGarantie: item.garantieTaux || "",
 //             TauxReserve: item.reserveTaux || "",
-//             typeDocRemiseId: item.typeDocRemiseId || 1 // Keep full object
-//
+//             typeDocRemiseId: item.typeDocRemiseId || 1
 //         }));
 //     };
 //
@@ -71,19 +82,9 @@
 //             TypeCommission: yup.object().required("Commission type is required"),
 //             Periodicite: yup.string().required("Periodicity is required"),
 //             Minorant: yup.number().required("Minimum is required").typeError("Must be a number"),
-//             Majorant: yup.number()
-//                 .typeError("Doit être un nombre")
-//                 .required("Majorant requis")
-//                 .test(
-//                     'is-greater',
-//                     'Le majorant doit être supérieur au minorant',
-//                     function(value) {
-//                         const minorant = this.parent.Minorant || 0;
-//                         return value > minorant;
-//                     }
-//                 ),
+//             Majorant: yup.number().required("Maximum is required").typeError("Must be a number"),
 //             ValidDateDeb: yup.date().required("Start date is required").typeError("Invalid date"),
-//             ValidDateFin: yup.date().typeError("Invalid date"),
+//             ValidDateFin: yup.date().required("End date is required").typeError("Invalid date"),
 //             CommA: yup.number().required("Commission A is required").typeError("Must be a number"),
 //             CommX: yup.number().required("Commission X is required").typeError("Must be a number"),
 //             CommB: yup.number().required("Commission B is required").typeError("Must be a number"),
@@ -97,7 +98,7 @@
 //     // Form submission handler
 //     const handleSubmit = (values) => {
 //         const transformedCommissions = values.commissions.map(commission => ({
-//             typeEvent: { id: commission.TypeEvent.id }, // Send as object
+//             typeEvent: { id: commission.TypeEvent.id },
 //             typeDocRemise: { id: commission.TypeDocRemise.id },
 //             typeComm: { id: commission.TypeCommission.id },
 //             periodicite: commission.Periodicite,
@@ -111,20 +112,17 @@
 //             validDateFin: commission.ValidDateFin
 //         }));
 //
-//
 //         const transformedFonds = values.fondGaranti.map(fond => ({
 //             id: fond?.id,
 //             garantieTaux: Number(fond.TauxGarantie),
 //             reserveTaux: Number(fond.TauxReserve),
-//             typeDocRemiseId: { id: 1 } // Send as object
+//             typeDocRemiseId: { id: 1 }
 //         }));
 //
-//         console.log("Transformed commissions:", transformedCommissions);
-//         console.log("Transformed fonds:", transformedFonds);
 //         updateData({
 //             ...formData,
 //             commissions: transformedCommissions,
-//             fondGaranti:transformedFonds
+//             fondGaranti: transformedFonds
 //         });
 //     };
 //
@@ -161,19 +159,29 @@
 //                                         <AttachMoneyIcon sx={{ mr: 1 }} />
 //                                         <Typography variant="h6">Commissions</Typography>
 //                                         <IconButton
-//                                             onClick={() => push({
-//                                                 TypeEvent: null,
-//                                                 TypeDocRemise: null,
-//                                                 TypeCommission: null,
-//                                                 Periodicite: "",
-//                                                 Minorant: "",
-//                                                 CommA: "",
-//                                                 CommX: "",
-//                                                 CommB: "",
-//                                                 Majorant: "",
-//                                                 ValidDateDeb: "",
-//                                                 ValidDateFin: "",
-//                                             })}
+//                                             onClick={() => {
+//                                                 push({
+//                                                     TypeEvent: null,
+//                                                     TypeDocRemise: null,
+//                                                     TypeCommission: null,
+//                                                     Periodicite: "",
+//                                                     Minorant: "",
+//                                                     CommA: "",
+//                                                     CommX: "",
+//                                                     CommB: "",
+//                                                     Majorant: "",
+//                                                     ValidDateDeb: "",
+//                                                     ValidDateFin: "",
+//                                                 });
+//                                                 // Set new row to edit mode
+//                                                 setEditingRows(prev => ({
+//                                                     ...prev,
+//                                                     commissions: {
+//                                                         ...prev.commissions,
+//                                                         [values.commissions.length]: true
+//                                                     }
+//                                                 }));
+//                                             }}
 //                                             color="success"
 //                                             sx={{ ml: 2 }}
 //                                         >
@@ -185,19 +193,18 @@
 //                                         <Table>
 //                                             <TableHead>
 //                                                 <TableRow>
-//                                                     <TableCell sx={{ minWidth: 160 }}>Type Événement</TableCell>
-//                                                     <TableCell sx={{ minWidth: 160 }}>Type Document</TableCell>
-//                                                     <TableCell sx={{ minWidth: 160 }}>Type Commission</TableCell>
-//                                                     <TableCell sx={{ minWidth: 120 }}>Périodicité</TableCell>
-//                                                     <TableCell sx={{ minWidth: 100 }}>Minorant</TableCell>
-//                                                     <TableCell sx={{ minWidth: 100 }}>Majorant</TableCell>
-//                                                     <TableCell sx={{ minWidth: 120 }}>Commission A</TableCell>
-//                                                     <TableCell sx={{ minWidth: 120 }}>Commission X</TableCell>
-//                                                     <TableCell sx={{ minWidth: 120 }}>Commission B</TableCell>
-//                                                     <TableCell sx={{ minWidth: 140 }}>Valid From</TableCell>
-//                                                     <TableCell sx={{ minWidth: 140 }}>Valid To</TableCell>
-//                                                     <TableCell sx={{ minWidth: 100 }}>Actions</TableCell>
-//                                                     <TableCell sx={{ minWidth: 200 }}>Notes</TableCell>
+//                                                     <TableCell>Type Événement</TableCell>
+//                                                     <TableCell>Type Document</TableCell>
+//                                                     <TableCell>Type Commission</TableCell>
+//                                                     <TableCell>Périodicité</TableCell>
+//                                                     <TableCell>Minorant</TableCell>
+//                                                     <TableCell>Majorant</TableCell>
+//                                                     <TableCell>Commission A</TableCell>
+//                                                     <TableCell>Commission X</TableCell>
+//                                                     <TableCell>Commission B</TableCell>
+//                                                     <TableCell>Valid From</TableCell>
+//                                                     <TableCell>Valid To</TableCell>
+//                                                     <TableCell>Actions</TableCell>
 //                                                 </TableRow>
 //                                             </TableHead>
 //                                             <TableBody>
@@ -215,6 +222,7 @@
 //                                                                 }}
 //                                                                 error={touched.commissions?.[index]?.TypeEvent && !!errors.commissions?.[index]?.TypeEvent}
 //                                                                 helperText={touched.commissions?.[index]?.TypeEvent && errors.commissions?.[index]?.TypeEvent?.message}
+//                                                                 disabled={!editingRows.commissions[index]}
 //                                                             >
 //                                                                 <MenuItem value=""><em>Select Event</em></MenuItem>
 //                                                                 {typeEvent?.map(item => (
@@ -237,6 +245,7 @@
 //                                                                 }}
 //                                                                 error={touched.commissions?.[index]?.TypeDocRemise && !!errors.commissions?.[index]?.TypeDocRemise}
 //                                                                 helperText={touched.commissions?.[index]?.TypeDocRemise && errors.commissions?.[index]?.TypeDocRemise?.message}
+//                                                                 disabled={!editingRows.commissions[index]}
 //                                                             >
 //                                                                 <MenuItem value=""><em>Select Document</em></MenuItem>
 //                                                                 {typeDoc?.map(item => (
@@ -259,6 +268,7 @@
 //                                                                 }}
 //                                                                 error={touched.commissions?.[index]?.TypeCommission && !!errors.commissions?.[index]?.TypeCommission}
 //                                                                 helperText={touched.commissions?.[index]?.TypeCommission && errors.commissions?.[index]?.TypeCommission?.message}
+//                                                                 disabled={!editingRows.commissions[index]}
 //                                                             >
 //                                                                 <MenuItem value=""><em>Select Commission</em></MenuItem>
 //                                                                 {typeCommission?.map(item => (
@@ -279,6 +289,7 @@
 //                                                                 onChange={handleChange}
 //                                                                 error={touched.commissions?.[index]?.Periodicite && !!errors.commissions?.[index]?.Periodicite}
 //                                                                 helperText={touched.commissions?.[index]?.Periodicite && errors.commissions?.[index]?.Periodicite}
+//                                                                 disabled={!editingRows.commissions[index]}
 //                                                             />
 //                                                         </TableCell>
 //
@@ -293,6 +304,7 @@
 //                                                                     onChange={handleChange}
 //                                                                     error={touched.commissions?.[index]?.[field] && !!errors.commissions?.[index]?.[field]}
 //                                                                     helperText={touched.commissions?.[index]?.[field] && errors.commissions?.[index]?.[field]}
+//                                                                     disabled={!editingRows.commissions[index]}
 //                                                                 />
 //                                                             </TableCell>
 //                                                         ))}
@@ -309,38 +321,20 @@
 //                                                                     InputLabelProps={{ shrink: true }}
 //                                                                     error={touched.commissions?.[index]?.[field] && !!errors.commissions?.[index]?.[field]}
 //                                                                     helperText={touched.commissions?.[index]?.[field] && errors.commissions?.[index]?.[field]}
+//                                                                     disabled={!editingRows.commissions[index]}
 //                                                                 />
 //                                                             </TableCell>
 //                                                         ))}
 //
 //                                                         <TableCell>
 //                                                             <IconButton
-//                                                                 onClick={() => remove(index)}
-//                                                                 color="error"
-//                                                                 aria-label="Delete commission"
+//                                                                 onClick={() => toggleEdit('commissions', index)}
+//                                                                 color={editingRows.commissions[index] ? "primary" : "default"}
+//                                                                 aria-label={editingRows.commissions[index] ? "Save" : "Edit"}
 //                                                             >
-//                                                                 <DeleteIcon />
+//                                                                 {editingRows.commissions[index] ? <SaveIcon /> : <EditIcon />}
 //                                                             </IconButton>
-//                                                         </TableCell>
-//                                                         <TableCell>
-//                                                             {description[`commissions_${index}`] && (
-//                                                                 <Typography
-//                                                                     variant="body2"
-//                                                                     sx={{
-//                                                                         ml: 1,
-//                                                                         maxWidth: '200px',
-//                                                                         whiteSpace: 'nowrap',
-//                                                                         wordWrap: "break-word",
-//                                                                         overflow: 'visible',
-//                                                                         display: '-webkit-box',
-//                                                                         WebkitBoxOrient: 'vertical',
-//                                                                         fontSize:"15px",
-//                                                                         color:colors.greenAccent[500]
-//                                                                     }}
-//                                                                 >
-//                                                                     {description[`commissions_${index}`]}
-//                                                                 </Typography>
-//                                                             )}
+//
 //                                                         </TableCell>
 //                                                     </TableRow>
 //                                                 ))}
@@ -357,10 +351,19 @@
 //                                 <Box mt={4}>
 //                                     <Box display="flex" alignItems="center" mb={2}>
 //                                         <CreditCardIcon sx={{ mr: 1 }} />
-//                                         <Typography variant="h6">Fonds de Garantie et Reserver</Typography>
-//
+//                                         <Typography variant="h6">Fonds de Garantie</Typography>
 //                                         <IconButton
-//                                             onClick={() => push({ TauxGarantie: "", TauxReserve: "" })}
+//                                             onClick={() => {
+//                                                 push({ TauxGarantie: "", TauxReserve: "" });
+//                                                 // Set new row to edit mode
+//                                                 setEditingRows(prev => ({
+//                                                     ...prev,
+//                                                     fondGaranti: {
+//                                                         ...prev.fondGaranti,
+//                                                         [values.fondGaranti.length]: true
+//                                                     }
+//                                                 }));
+//                                             }}
 //                                             color="success"
 //                                             sx={{ ml: 2 }}
 //                                             aria-label="Add guarantee fund"
@@ -373,10 +376,9 @@
 //                                         <Table>
 //                                             <TableHead>
 //                                                 <TableRow>
-//                                                   <TableCell sx={{ minWidth: 200 }}>Taux Fonds Garantie (%)</TableCell>
-// <TableCell sx={{ minWidth: 200 }}>Taux Fonds Réserve (%)</TableCell>
-//                                                     <TableCell sx={{ minWidth: 100 }}>Actions</TableCell>
-//                                                     <TableCell sx={{ minWidth: 200 }}>Notes</TableCell>
+//                                                     <TableCell>Taux Garantie (%)</TableCell>
+//                                                     <TableCell>Taux Réserve (%)</TableCell>
+//                                                     <TableCell>Actions</TableCell>
 //                                                 </TableRow>
 //                                             </TableHead>
 //                                             <TableBody>
@@ -391,6 +393,7 @@
 //                                                                 onChange={handleChange}
 //                                                                 error={touched.fondGaranti?.[index]?.TauxGarantie && !!errors.fondGaranti?.[index]?.TauxGarantie}
 //                                                                 helperText={touched.fondGaranti?.[index]?.TauxGarantie && errors.fondGaranti?.[index]?.TauxGarantie}
+//                                                                 disabled={!editingRows.fondGaranti[index]}
 //                                                             />
 //                                                         </TableCell>
 //                                                         <TableCell>
@@ -402,37 +405,18 @@
 //                                                                 onChange={handleChange}
 //                                                                 error={touched.fondGaranti?.[index]?.TauxReserve && !!errors.fondGaranti?.[index]?.TauxReserve}
 //                                                                 helperText={touched.fondGaranti?.[index]?.TauxReserve && errors.fondGaranti?.[index]?.TauxReserve}
+//                                                                 disabled={!editingRows.fondGaranti[index]}
 //                                                             />
 //                                                         </TableCell>
 //                                                         <TableCell>
 //                                                             <IconButton
-//                                                                 onClick={() => remove(index)}
-//                                                                 color="error"
-//                                                                 aria-label="Delete guarantee fund"
+//                                                                 onClick={() => toggleEdit('fondGaranti', index)}
+//                                                                 color={editingRows.fondGaranti[index] ? "primary" : "default"}
+//                                                                 aria-label={editingRows.fondGaranti[index] ? "Save" : "Edit"}
 //                                                             >
-//                                                                 <DeleteIcon />
+//                                                                 {editingRows.fondGaranti[index] ? <SaveIcon /> : <EditIcon />}
 //                                                             </IconButton>
-//                                                         </TableCell>
-//                                                         <TableCell>
-//                                                             {description[`fondGaranti_${index}`] && (
-//                                                                 <Typography
-//                                                                     variant="body2"
-//                                                                     sx={{
-//                                                                         ml: 1,
-//                                                                         maxWidth: '200px',
-//                                                                         whiteSpace: 'nowrap',
-//                                                                         wordWrap: 'nowrap',
-//                                                                         overflow: 'visible',
-//                                                                         display: '-webkit-box',
-//                                                                         WebkitBoxOrient: 'vertical',
-//                                                                         fontSize:"15px",
-//                                                                         color:colors.greenAccent[500]
-//                                                                     }}
-//                                                                 >
-//                                                                     {description[`fondGaranti_${index}`]}
-//                                                                 </Typography>
-//                                                             )
-//                                                             }
+//
 //                                                         </TableCell>
 //                                                     </TableRow>
 //                                                 ))}
@@ -450,39 +434,57 @@
 // });
 //
 // export default ConditionsParticulieres;
-import {DescriptionOutlined} from "@mui/icons-material";
+/* eslint-disable react/prop-types */
+/* eslint-disable react/display-name */
 
-{/* eslint-disable react/prop-types */}
-{/* eslint-disable react/display-name */}
-
-import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useRef, useEffect, useState } from "react";
 import {
     Box, TextField, MenuItem, Typography, IconButton,
     Table, TableBody, TableCell, TableContainer, TableHead,
-    TableRow, Paper, useTheme, Button
+    TableRow, Paper, Tooltip, useTheme
 } from "@mui/material";
 import { Formik, FieldArray } from "formik";
 import * as yup from "yup";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from "@mui/icons-material/Save";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
+import NotesIcon from "@mui/icons-material/Notes";
 import { useTypeCommission } from "../../../../customeHooks/useTypeCommission.jsx";
 import { useTypeEvent } from "../../../../customeHooks/useTypeEvent.jsx";
 import { useTypeDoc } from "../../../../customeHooks/useTypeDoc.jsx";
-import { tokens } from "../../../../theme.js";
-import {uploadFile} from "../../../../helpers/saveFile.js";
-import {useTypeDocContrat} from "../../../../customeHooks/useTypeDocContrat.jsx";
+import {tokens} from "../../../../theme.js";
 
-const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions, contratFonds, docContrats,description, updateDescription }, ref) => {
+const ConditionsParticulieres = forwardRef(({
+                                                formData,
+                                                updateData,
+                                                commissions,
+                                                contratFonds,
+                                                handleOpenNoteModal,
+                                                description
+                                            }, ref) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const formikRef = useRef();
     const { typeCommission } = useTypeCommission();
     const { typeEvent } = useTypeEvent();
     const { typeDoc } = useTypeDoc();
-    const {typeDocContrat}=useTypeDocContrat();
+    const [editingRows, setEditingRows] = useState({
+        commissions: {},
+        fondGaranti: {}
+    });
 
+    const toggleEdit = (arrayName, index) => {
+        setEditingRows(prev => ({
+            ...prev,
+            [arrayName]: {
+                ...prev[arrayName],
+                [index]: !prev[arrayName][index]
+            }
+        }));
+    };
 
     // Transform API data to form structure
     const transformCommissionData = (data) => {
@@ -513,27 +515,11 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
         }));
     };
 
-    const transformDocContratsData = (data) => {
-        if(!data) return [];
-        return (Array.isArray(data) ? data : [data]).map(item => ({
-            id:item?.id,
-            typeDocContrat:item.typeDocContrat || null,
-            docContratDelivDate: item.docContratDelivDate?.split('T')[0] || "",
-            docContratExpireDate:item.docContratExpireDate?.split('T')[0] || "",
-            docContratApprobationDate: item.docContratApprobationDate?.split('T')[0] || "",
-            docContratEffetDate: item.docContratEffetDate?.split('T')[0] || "",
-            docContratRelanceDate: item.docContratRelanceDate?.split('T')[0] || "",
-            docContratScanPath: item.docContratScanPath || "",
-            docContratScanFileName: item.docContratScanFileName || "",
-
-        }));
-    }
     // Memoized initial values
     const initialValues = useMemo(() => ({
         commissions: transformCommissionData(formData.commissions || commissions),
-        fondGaranti: transformFondsData(formData.fondGaranti || contratFonds),
-        docContrats:transformDocContratsData(formData.docContrats || docContrats)
-    }), [formData, commissions, contratFonds,docContrats]);
+        fondGaranti: transformFondsData(formData.fondGaranti || contratFonds)
+    }), [formData, commissions, contratFonds]);
 
     // Validation schema
     const validationSchema = useMemo(() => yup.object({
@@ -541,19 +527,9 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
             TypeEvent: yup.object().required("Event type is required"),
             TypeDocRemise: yup.object().required("Document type is required"),
             TypeCommission: yup.object().required("Commission type is required"),
-            Periodicite: yup.string().required("Periodicity is required"),
+            Periodicite: yup.string(),
             Minorant: yup.number().required("Minimum is required").typeError("Must be a number"),
-            Majorant: yup.number()
-                .typeError("Doit être un nombre")
-                .required("Majorant requis")
-                .test(
-                    'is-greater',
-                    'Le majorant doit être supérieur au minorant',
-                    function(value) {
-                        const minorant = this.parent.Minorant || 0;
-                        return value > minorant;
-                    }
-                ),
+            Majorant: yup.number().required("Maximum is required").typeError("Must be a number"),
             ValidDateDeb: yup.date().required("Start date is required").typeError("Invalid date"),
             ValidDateFin: yup.date().typeError("Invalid date"),
             CommA: yup.number().required("Commission A is required").typeError("Must be a number"),
@@ -564,19 +540,7 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
             typeDocRemiseId: yup.object().required("Type Document requis"),
             TauxGarantie: yup.number().required("Guarantee rate is required").typeError("Must be a number"),
             TauxReserve: yup.number().required("Reserve rate is required").typeError("Must be a number"),
-        })),
-        docContrats: yup.array().of(
-            yup.object({
-                typeDocContrat: yup.object().required("Type document requis"),
-                docContratDelivDate: yup.date().required("Date livraison requise"),
-                docContratExpireDate: yup.date().required("Date expiration requise"),
-                docContratApprobationDate: yup.date().nullable(),
-                docContratEffetDate: yup.date().nullable(),
-                docContratRelanceDate: yup.date().nullable(),
-                docContratScanPath: yup.string().required("Fichier requis"),
-                docContratScanFileName: yup.string().required("Nom fichier requis")
-            })
-        ),
+        }))
     }), []);
 
     // Form submission handler
@@ -600,38 +564,15 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
             id: fond?.id,
             garantieTaux: Number(fond.TauxGarantie),
             reserveTaux: Number(fond.TauxReserve),
-            typeDocRemiseId:{ id: fond.typeDocRemiseId.id },
-        }));
+            typeDocRemiseId: { id: fond.typeDocRemiseId.id }
 
-        const transformedDocContrats = values.docContrats.map(doc => ({
-            id: doc?.id,
-            typeDocContrat: { id: doc.typeDocContrat.id },
-            docContratDelivDate: doc.docContratDelivDate,
-            docContratExpireDate: doc.docContratExpireDate,
-            docContratApprobationDate: doc.docContratApprobationDate,
-            docContratEffetDate: doc.docContratEffetDate,
-            docContratRelanceDate: doc.docContratRelanceDate,
-            docContratScanPath: doc.docContratScanPath,
-            docContratScanFileName: doc.docContratScanFileName,
+    }));
 
-
-        }));
         updateData({
             ...formData,
             commissions: transformedCommissions,
-            fondGaranti: transformedFonds,
-            docContrats:transformedDocContrats
+            fondGaranti: transformedFonds
         });
-    };
-
-    // Handle field changes with note removal
-    const handleChangeWithNoteRemoval = (setFieldFn, fieldName, value, index, prefix) => {
-        setFieldFn(fieldName, value);
-        const noteKey = `${prefix}_${index}`;
-        if (description[noteKey]) {
-            delete description[noteKey];
-            updateDescription?.(description);
-        }
     };
 
     // Expose form submission to parent
@@ -667,19 +608,29 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                         <AttachMoneyIcon sx={{ mr: 1 }} />
                                         <Typography variant="h6">Commissions</Typography>
                                         <IconButton
-                                            onClick={() => push({
-                                                TypeEvent: null,
-                                                TypeDocRemise: null,
-                                                TypeCommission: null,
-                                                Periodicite: "",
-                                                Minorant: "",
-                                                CommA: "",
-                                                CommX: "",
-                                                CommB: "",
-                                                Majorant: "",
-                                                ValidDateDeb: "",
-                                                ValidDateFin: "",
-                                            })}
+                                            onClick={() => {
+                                                push({
+                                                    TypeEvent: null,
+                                                    TypeDocRemise: null,
+                                                    TypeCommission: null,
+                                                    Periodicite: "",
+                                                    Minorant: "",
+                                                    CommA: "",
+                                                    CommX: "",
+                                                    CommB: "",
+                                                    Majorant: "",
+                                                    ValidDateDeb: "",
+                                                    ValidDateFin: "",
+                                                });
+                                                // Set new row to edit mode
+                                                setEditingRows(prev => ({
+                                                    ...prev,
+                                                    commissions: {
+                                                        ...prev.commissions,
+                                                        [values.commissions.length]: true
+                                                    }
+                                                }));
+                                            }}
                                             color="success"
                                             sx={{ ml: 2 }}
                                         >
@@ -717,16 +668,11 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 value={commission.TypeEvent?.id || ""}
                                                                 onChange={(e) => {
                                                                     const selected = typeEvent.find(te => te.id === e.target.value);
-                                                                    handleChangeWithNoteRemoval(
-                                                                        setFieldValue,
-                                                                        `commissions.${index}.TypeEvent`,
-                                                                        selected,
-                                                                        index,
-                                                                        'commissions'
-                                                                    );
+                                                                    setFieldValue(`commissions.${index}.TypeEvent`, selected);
                                                                 }}
                                                                 error={touched.commissions?.[index]?.TypeEvent && !!errors.commissions?.[index]?.TypeEvent}
                                                                 helperText={touched.commissions?.[index]?.TypeEvent && errors.commissions?.[index]?.TypeEvent?.message}
+                                                                disabled={!editingRows.commissions[index]}
                                                             >
                                                                 <MenuItem value=""><em>Select Event</em></MenuItem>
                                                                 {typeEvent?.map(item => (
@@ -745,16 +691,11 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 value={commission.TypeDocRemise?.id || ""}
                                                                 onChange={(e) => {
                                                                     const selected = typeDoc.find(td => td.id === e.target.value);
-                                                                    handleChangeWithNoteRemoval(
-                                                                        setFieldValue,
-                                                                        `commissions.${index}.TypeDocRemise`,
-                                                                        selected,
-                                                                        index,
-                                                                        'commissions'
-                                                                    );
+                                                                    setFieldValue(`commissions.${index}.TypeDocRemise`, selected);
                                                                 }}
                                                                 error={touched.commissions?.[index]?.TypeDocRemise && !!errors.commissions?.[index]?.TypeDocRemise}
                                                                 helperText={touched.commissions?.[index]?.TypeDocRemise && errors.commissions?.[index]?.TypeDocRemise?.message}
+                                                                disabled={!editingRows.commissions[index]}
                                                             >
                                                                 <MenuItem value=""><em>Select Document</em></MenuItem>
                                                                 {typeDoc?.map(item => (
@@ -773,16 +714,11 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 value={commission.TypeCommission?.id || ""}
                                                                 onChange={(e) => {
                                                                     const selected = typeCommission.find(tc => tc.id === e.target.value);
-                                                                    handleChangeWithNoteRemoval(
-                                                                        setFieldValue,
-                                                                        `commissions.${index}.TypeCommission`,
-                                                                        selected,
-                                                                        index,
-                                                                        'commissions'
-                                                                    );
+                                                                    setFieldValue(`commissions.${index}.TypeCommission`, selected);
                                                                 }}
                                                                 error={touched.commissions?.[index]?.TypeCommission && !!errors.commissions?.[index]?.TypeCommission}
                                                                 helperText={touched.commissions?.[index]?.TypeCommission && errors.commissions?.[index]?.TypeCommission?.message}
+                                                                disabled={!editingRows.commissions[index]}
                                                             >
                                                                 <MenuItem value=""><em>Select Commission</em></MenuItem>
                                                                 {typeCommission?.map(item => (
@@ -796,21 +732,14 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                         {/* Periodicité */}
                                                         <TableCell>
                                                             <TextField
-                                                                type="number"
+                                                                type={"number"}
                                                                 fullWidth
                                                                 name={`commissions.${index}.Periodicite`}
                                                                 value={commission.Periodicite}
-                                                                onChange={(e) => {
-                                                                    handleChange(e);
-                                                                    const noteKey = `commissions_${index}`;
-                                                                    if (description[noteKey]) {
-
-                                                                        delete description[noteKey];
-                                                                        updateDescription(description);
-                                                                    }
-                                                                }}
+                                                                onChange={handleChange}
                                                                 error={touched.commissions?.[index]?.Periodicite && !!errors.commissions?.[index]?.Periodicite}
                                                                 helperText={touched.commissions?.[index]?.Periodicite && errors.commissions?.[index]?.Periodicite}
+                                                                disabled={!editingRows.commissions[index]}
                                                             />
                                                         </TableCell>
 
@@ -822,17 +751,10 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                     type="number"
                                                                     name={`commissions.${index}.${field}`}
                                                                     value={commission[field]}
-                                                                    onChange={(e) => {
-                                                                        handleChange(e);
-                                                                        const noteKey = `commissions_${index}`;
-                                                                        if (description[noteKey]) {
-                                                                            
-                                                                            delete description[noteKey];
-                                                                            updateDescription(description);
-                                                                        }
-                                                                    }}
+                                                                    onChange={handleChange}
                                                                     error={touched.commissions?.[index]?.[field] && !!errors.commissions?.[index]?.[field]}
                                                                     helperText={touched.commissions?.[index]?.[field] && errors.commissions?.[index]?.[field]}
+                                                                    disabled={!editingRows.commissions[index]}
                                                                 />
                                                             </TableCell>
                                                         ))}
@@ -845,29 +767,30 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                     type="date"
                                                                     name={`commissions.${index}.${field}`}
                                                                     value={commission[field]}
-                                                                    onChange={(e) => {
-                                                                        handleChange(e);
-                                                                        const noteKey = `commissions_${index}`;
-                                                                        if (description[noteKey]) {
-                                                                            delete description[noteKey];
-                                                                            updateDescription(description);
-                                                                        }
-                                                                    }}
+                                                                    onChange={handleChange}
                                                                     InputLabelProps={{ shrink: true }}
                                                                     error={touched.commissions?.[index]?.[field] && !!errors.commissions?.[index]?.[field]}
                                                                     helperText={touched.commissions?.[index]?.[field] && errors.commissions?.[index]?.[field]}
+                                                                    disabled={!editingRows.commissions[index]}
                                                                 />
                                                             </TableCell>
                                                         ))}
 
+
+
                                                         <TableCell>
-                                                            <IconButton
-                                                                onClick={() => remove(index)}
-                                                                color="error"
-                                                                aria-label="Delete commission"
+                                                            <Tooltip
+                                                                title={description[`commissions_${index}`] || "Add note"}
+                                                                arrow
                                                             >
-                                                                <DeleteIcon />
-                                                            </IconButton>
+                                                                <IconButton
+                                                                    onClick={() => handleOpenNoteModal(`commissions_${index}`)}
+                                                                    color={description[`commissions_${index}`] ? colors.greenAccent[700] : "default"}
+                                                                >
+                                                                    <NotesIcon />
+                                                                </IconButton>
+
+                                                            </Tooltip>
                                                         </TableCell>
                                                         <TableCell>
                                                             {description[`commissions_${index}`] && (
@@ -875,14 +798,15 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                     variant="body2"
                                                                     sx={{
                                                                         ml: 1,
-                                                                        maxWidth: '200px',
+                                                                        maxWidth: '500px',
                                                                         whiteSpace: 'nowrap',
-                                                                        wordWrap: "break-word",
+                                                                        wordWrap: 'nowrap',
                                                                         overflow: 'visible',
                                                                         display: '-webkit-box',
                                                                         WebkitBoxOrient: 'vertical',
-                                                                        fontSize: "15px",
-                                                                        color: colors.greenAccent[500]
+                                                                        fontSize:"15px",
+
+                                                                        color:colors.greenAccent[500]
                                                                     }}
                                                                 >
                                                                     {description[`commissions_${index}`]}
@@ -905,23 +829,35 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                     <Box display="flex" alignItems="center" mb={2}>
                                         <CreditCardIcon sx={{ mr: 1 }} />
                                         <Typography variant="h6">Fonds de Garantie et Reserver</Typography>
+
                                         <IconButton
-                                            onClick={() => push({ TypeDocRemiseId: null,TauxGarantie: "", TauxReserve: "" })}
+                                            onClick={() => {
+                                                push({ typeDocRemiseId:null,TauxGarantie: "", TauxReserve: "" });
+                                                // Set new row to edit mode
+                                                setEditingRows(prev => ({
+                                                    ...prev,
+                                                    fondGaranti: {
+                                                        ...prev.fondGaranti,
+                                                        [values.fondGaranti.length]: true
+                                                    }
+                                                }));
+                                            }}
                                             color="success"
                                             sx={{ ml: 2 }}
                                             aria-label="Add guarantee fund"
                                         >
                                             <AddIcon />
                                         </IconButton>
+
                                     </Box>
 
                                     <TableContainer component={Paper}>
                                         <Table>
                                             <TableHead>
                                                 <TableRow>
-                                                    <TableCell sx={{ minWidth: 200 }}>Type Document à Remise</TableCell>
+                                                    <TableCell sx={{minWidth:200}}>Type Document à Remise</TableCell>
                                                     <TableCell sx={{ minWidth: 200 }}>Taux Fonds Garantie (%)</TableCell>
-                                                    <TableCell sx={{ minWidth: 200 }}>Taux Fonds Réserve (%)</TableCell>
+<TableCell sx={{ minWidth: 200 }}>Taux Fonds Réserve (%)</TableCell>
                                                     <TableCell sx={{ minWidth: 100 }}>Actions</TableCell>
                                                     <TableCell sx={{ minWidth: 200 }}>Notes</TableCell>
                                                 </TableRow>
@@ -935,17 +871,12 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 fullWidth
                                                                 value={frais.typeDocRemiseId?.id || ""}
                                                                 onChange={(e) => {
-                                                                    const selected = typeDoc.find(td => td?.id === e.target.value);
-                                                                    handleChangeWithNoteRemoval(
-                                                                        setFieldValue,
-                                                                        `fondGaranti.${index}.typeDocRemiseId`,
-                                                                        selected,
-                                                                        index,
-                                                                        'fondGaranti'
-                                                                    );
+                                                                    const selected = typeDoc.find(td => td.id === e.target.value);
+                                                                    setFieldValue(`fondGaranti.${index}.typeDocRemiseId`, selected);
                                                                 }}
                                                                 error={touched.fondGaranti?.[index]?.typeDocRemiseId && !!errors.fondGaranti?.[index]?.typeDocRemiseId}
                                                                 helperText={touched.fondGaranti?.[index]?.typeDocRemiseId && errors.fondGaranti?.[index]?.typeDocRemiseId?.message}
+                                                                disabled={!editingRows.fondGaranti[index]}
                                                             >
                                                                 <MenuItem value=""><em>Select Document</em></MenuItem>
                                                                 {typeDoc?.map(item => (
@@ -961,16 +892,10 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 type="number"
                                                                 name={`fondGaranti.${index}.TauxGarantie`}
                                                                 value={frais.TauxGarantie}
-                                                                onChange={(e) => {
-                                                                    handleChange(e);
-                                                                    const noteKey = `fondGaranti_${index}`;
-                                                                    if (description[noteKey]) {
-                                                                        delete description[noteKey];
-                                                                        updateDescription(description);
-                                                                    }
-                                                                }}
+                                                                onChange={handleChange}
                                                                 error={touched.fondGaranti?.[index]?.TauxGarantie && !!errors.fondGaranti?.[index]?.TauxGarantie}
                                                                 helperText={touched.fondGaranti?.[index]?.TauxGarantie && errors.fondGaranti?.[index]?.TauxGarantie}
+                                                                disabled={!editingRows.fondGaranti[index]}
                                                             />
                                                         </TableCell>
                                                         <TableCell>
@@ -979,27 +904,27 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 type="number"
                                                                 name={`fondGaranti.${index}.TauxReserve`}
                                                                 value={frais.TauxReserve}
-                                                                onChange={(e) => {
-                                                                    handleChange(e);
-                                                                    const noteKey = `fondGaranti_${index}`;
-                                                                    if (description[noteKey]) {
-
-                                                                        delete description[noteKey];
-                                                                        updateDescription(description);
-                                                                    }
-                                                                }}
+                                                                onChange={handleChange}
                                                                 error={touched.fondGaranti?.[index]?.TauxReserve && !!errors.fondGaranti?.[index]?.TauxReserve}
                                                                 helperText={touched.fondGaranti?.[index]?.TauxReserve && errors.fondGaranti?.[index]?.TauxReserve}
+                                                                disabled={!editingRows.fondGaranti[index]}
                                                             />
                                                         </TableCell>
+
                                                         <TableCell>
-                                                            <IconButton
-                                                                onClick={() => remove(index)}
-                                                                color="error"
-                                                                aria-label="Delete guarantee fund"
+                                                            <Tooltip
+                                                                title={description[`fondGaranti_${index}`] || "Add note"}
+                                                                arrow
                                                             >
-                                                                <DeleteIcon />
-                                                            </IconButton>
+                                                                <IconButton
+                                                                    onClick={() => handleOpenNoteModal(`fondGaranti_${index}`)}
+                                                                    color={description[`fondGaranti_${index}`] ? colors.greenAccent[700] : "default"}
+                                                                >
+                                                                    <NotesIcon />
+                                                                </IconButton>
+
+                                                            </Tooltip>
+
                                                         </TableCell>
                                                         <TableCell>
                                                             {description[`fondGaranti_${index}`] && (
@@ -1013,13 +938,15 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                         overflow: 'visible',
                                                                         display: '-webkit-box',
                                                                         WebkitBoxOrient: 'vertical',
-                                                                        fontSize: "15px",
-                                                                        color: colors.greenAccent[500]
+                                                                        fontSize:"15px",
+                                                                        color:colors.greenAccent[500]
+
                                                                     }}
                                                                 >
                                                                     {description[`fondGaranti_${index}`]}
                                                                 </Typography>
-                                                            )}
+                                                            )
+                                                            }
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
@@ -1029,131 +956,6 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                 </Box>
                             )}
                         </FieldArray>
-                        <FieldArray name="docContrats">
-                            {({ push, remove }) => (
-                                <Box mt={4}>
-                                    <Box display="flex" alignItems="center" mb={2}>
-                                        <DescriptionOutlined sx={{ mr: 1 }} />
-                                        <Typography variant="h6">Documents du Contrat</Typography>
-                                        <IconButton
-                                            onClick={() => push({
-                                                typeDocContrat: null,
-                                                docContratDelivDate: '',
-                                                docContratExpireDate: '',
-                                                docContratApprobationDate: '',
-                                                docContratEffetDate: '',
-                                                docContratRelanceDate: '',
-                                                docContratScanPath: '',
-                                                docContratScanFileName: ''
-                                            })}
-                                            color="success"
-                                            sx={{ ml: 2 }}
-                                        >
-                                            <AddIcon />
-                                        </IconButton>
-                                    </Box>
-
-                                    <TableContainer component={Paper} sx={{ backgroundColor: colors.grey[700] }}>
-                                        <Table>
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell>Type Document</TableCell>
-                                                    <TableCell>Livraison</TableCell>
-                                                    <TableCell>Expiration</TableCell>
-                                                    <TableCell>Approbation</TableCell>
-                                                    <TableCell>Effet</TableCell>
-                                                    <TableCell>Relance</TableCell>
-                                                    <TableCell>Fichier</TableCell>
-                                                    <TableCell>Actions</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {values.docContrats.map((doc, index) => (
-                                                    <TableRow key={index}>
-                                                        {/* Type Document */}
-                                                        <TableCell>
-                                                            <TextField
-                                                                select
-                                                                fullWidth
-                                                                size="small"
-                                                                value={doc.typeDocContrat?.id || ''}
-                                                                onChange={(e) => {
-                                                                    const selected = typeDocContrat.find(t => t.id === e.target.value);
-                                                                    setFieldValue(`docContrats.${index}.typeDocContrat`, selected);
-                                                                }}
-                                                            >
-                                                                {typeDocContrat.map((item) => (
-                                                                    <MenuItem key={item.id} value={item.id}>
-                                                                        {item.dsg}
-                                                                    </MenuItem>
-                                                                ))}
-                                                            </TextField>
-                                                        </TableCell>
-
-                                                        {/* Dates */}
-                                                        {['Deliv', 'Expire', 'Approbation', 'Effet', 'Relance'].map((field) => (
-                                                            <TableCell key={field}>
-                                                                <TextField
-                                                                    fullWidth
-                                                                    size="small"
-                                                                    type="date"
-                                                                    name={`docContrats.${index}.docContrat${field}Date`}
-                                                                    value={doc[`docContrat${field}Date`]}
-                                                                    onChange={handleChange}
-                                                                    InputLabelProps={{ shrink: true }}
-                                                                />
-                                                            </TableCell>
-                                                        ))}
-
-                                                        {/* Fichier */}
-                                                        <TableCell>
-                                                            <Button
-                                                                variant="outlined"
-                                                                component="label"
-                                                                fullWidth
-                                                                size="small"
-                                                            >
-                                                                Upload File
-                                                                <input
-                                                                    type="file"
-                                                                    hidden
-                                                                    accept=".pdf,.doc,.docx"
-                                                                    onChange={async (e) => {
-                                                                        const file = e.target.files[0];
-                                                                        if (file) {
-                                                                            try {
-                                                                                const response = await uploadFile(file);
-                                                                                setFieldValue(`docContrats.${index}.docContratScanPath`, response.path);
-                                                                                setFieldValue(`docContrats.${index}.docContratScanFileName`, response.fileName);
-                                                                            } catch (error) {
-                                                                                console.error("Upload failed:", error);
-                                                                            }
-                                                                        }
-                                                                        e.target.value = null; // Reset input
-                                                                    }}
-                                                                />
-                                                            </Button>
-                                                            {doc.docContratScanFileName && (
-                                                                <Typography variant="caption" display="block">
-                                                                    {doc.docContratScanFileName}
-                                                                </Typography>
-                                                            )}
-                                                        </TableCell>
-
-                                                        <TableCell>
-                                                            <IconButton onClick={() => remove(index)} color="error">
-                                                                <DeleteIcon />
-                                                            </IconButton>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                </Box>
-                            )}
-                        </FieldArray>
-
                     </>
                 )}
             </Formik>

@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { forwardRef, useImperativeHandle } from "react";
+import {forwardRef, useEffect, useImperativeHandle} from "react";
 import { Box, TextField, MenuItem, Typography } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
@@ -11,7 +11,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
 
     const initialValues = {
         devise: formData.devise || null,
-        previsionChiffreTotal: formData.previsionChiffreTotal || "",
+        previsionChiffreTotal:formData.previsionChiffreExport|| "",
         previsionChiffreLocal: formData.previsionChiffreLocal || "",
         previsionChiffreExport: formData.previsionChiffreExport || "",
         nombreAcheteur: formData.nombreAcheteur || "",
@@ -23,8 +23,8 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
         limiteFinAuto: formData.limiteFinAuto || "",
         finMarge: formData.finMarge || "",
         margeRet: formData.margeRet || "",
-        scannerPath: formData.scannerPath || "",
-        nomFichierScanner: formData.nomFichierScanner || "",
+        // scannerPath: formData.scannerPath || "",
+        // nomFichierScanner: formData.nomFichierScanner || "",
         dateAcceptationRemise: formData.dateAcceptationRemise || "",
         exigenceLittrage: formData.exigenceLittrage || "",
     };
@@ -43,11 +43,14 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
         limiteFinAuto: yup.string().required("Champ requis"),
         finMarge: yup.string().required("Champ requis"),
         margeRet: yup.string().required("Champ requis"),
-        scannerPath: yup.string().required("Champ requis"),
-        nomFichierScanner: yup.string().required("Champ requis"),
+        // scannerPath: yup.string().required("Champ requis"),
+        // nomFichierScanner: yup.string().required("Champ requis"),
         dateAcceptationRemise: yup.string().required("Champ requis"),
         exigenceLittrage: yup.string().required("L'exigence de littrage est requise"),
     });
+
+
+
 
     return (
         <Box width="100%" maxWidth="800px" p={3}>
@@ -70,6 +73,21 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
                       submitForm,
                       validateForm,
                   }) => {
+                    useEffect(() => {
+                        const local = parseFloat(values.previsionChiffreLocal) || 0;
+                        const exportVal = parseFloat(values.previsionChiffreExport) || 0;
+                        const total = local + exportVal;
+
+                        // Avoid unnecessary updates
+                        if (parseFloat(values.previsionChiffreTotal) !== total) {
+                            handleChange ({
+                                target: {
+                                    name: "previsionChiffreTotal",
+                                    value: total.toString(),
+                                }
+                            });
+                        }
+                    }, [values.previsionChiffreLocal, values.previsionChiffreExport]);
                     useImperativeHandle(ref, () => ({
                         async submit() {
                             await submitForm();
@@ -115,7 +133,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
                             </Box>
                             <Box mb={2}>
                                 <Typography>Prévision chiffre total</Typography>
-                                <TextField fullWidth name="previsionChiffreTotal" value={values.previsionChiffreTotal} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.previsionChiffreTotal && errors.previsionChiffreTotal)} helperText={touched.previsionChiffreTotal && errors.previsionChiffreTotal} />
+                                <TextField disabled fullWidth name="previsionChiffreTotal" value={values.previsionChiffreTotal} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.previsionChiffreTotal && errors.previsionChiffreTotal)} helperText={touched.previsionChiffreTotal && errors.previsionChiffreTotal} />
                             </Box>
                             <Box mb={2}>
                                 <Typography>Prévision chiffre local</Typography>
@@ -154,21 +172,21 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
                                 <TextField fullWidth name="limiteFinAuto" value={values.limiteFinAuto} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.limiteFinAuto && errors.limiteFinAuto)} helperText={touched.limiteFinAuto && errors.limiteFinAuto} />
                             </Box>
                             <Box mb={2}>
-                                <Typography>Fin de Marge</Typography>
+                                <Typography>marge De Financement (%)</Typography>
                                 <TextField fullWidth name="finMarge" value={values.finMarge} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.finMarge && errors.finMarge)} helperText={touched.finMarge && errors.finMarge} />
                             </Box>
                             <Box mb={2}>
-                                <Typography>Marge Ret</Typography>
+                                <Typography>Marge Intéret du retard (%)</Typography>
                                 <TextField fullWidth name="margeRet" value={values.margeRet} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.margeRet && errors.margeRet)} helperText={touched.margeRet && errors.margeRet} />
                             </Box>
-                            <Box mb={2}>
-                                <Typography>Scanner Path</Typography>
-                                <TextField fullWidth name="scannerPath" value={values.scannerPath} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.scannerPath && errors.scannerPath)} helperText={touched.scannerPath && errors.scannerPath} />
-                            </Box>
-                            <Box mb={2}>
-                                <Typography>Nom du fichier de Scanner</Typography>
-                                <TextField fullWidth name="nomFichierScanner" value={values.nomFichierScanner} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.nomFichierScanner && errors.nomFichierScanner)} helperText={touched.nomFichierScanner && errors.nomFichierScanner} />
-                            </Box>
+                            {/*<Box mb={2}>*/}
+                            {/*    <Typography>Scanner Path</Typography>*/}
+                            {/*    <TextField fullWidth name="scannerPath" value={values.scannerPath} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.scannerPath && errors.scannerPath)} helperText={touched.scannerPath && errors.scannerPath} />*/}
+                            {/*</Box>*/}
+                            {/*<Box mb={2}>*/}
+                            {/*    <Typography>Nom du fichier de Scanner</Typography>*/}
+                            {/*    <TextField fullWidth name="nomFichierScanner" value={values.nomFichierScanner} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.nomFichierScanner && errors.nomFichierScanner)} helperText={touched.nomFichierScanner && errors.nomFichierScanner} />*/}
+                            {/*</Box>*/}
                             <Box mb={2}>
                                 <Typography>Date d'acceptation de remise</Typography>
                                 <TextField fullWidth name="dateAcceptationRemise" value={values.dateAcceptationRemise} onChange={handleChange} onBlur={handleBlur} type="date" InputLabelProps={{ shrink: true }} error={Boolean(touched.dateAcceptationRemise && errors.dateAcceptationRemise)} helperText={touched.dateAcceptationRemise && errors.dateAcceptationRemise} />

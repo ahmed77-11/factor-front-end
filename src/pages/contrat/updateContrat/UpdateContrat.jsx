@@ -2,7 +2,7 @@ import { Box, Button, Step, StepLabel, Stepper, TextField, Typography, CircularP
 import { tokens } from "../../../theme.js";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useRef } from "react";
+import {useEffect, useRef, useState} from "react";
 import {addContratAsync, updateContratAsync} from "../../../redux/contrat/ContratSlice.js";
 import { getPMById } from "../../../redux/personne/PersonneMoraleSlice.js";
 import { nextStep, previousStep, setFormData } from "../../../redux/formSteperSlice/FormSlice.js";
@@ -15,6 +15,8 @@ import { Check } from "@mui/icons-material";
 import { useNotification } from "../../../customeHooks/useNotification.jsx";
 import {useCommision} from "../../../customeHooks/useCommision.jsx";
 import {useContratFonds} from "../../../customeHooks/useContratFonds.jsx";
+import {getNotesForStep} from "../../../helpers/getNotesForStep.js";
+import {useContratDoc} from "../../../customeHooks/useContratDoc.jsx";
 
 const steps = [
     "Sélectionner la Personne Morale",
@@ -38,8 +40,12 @@ const UpdateContrat = () => {
     const { currentPM, loading: loadingPM } = useSelector((state) => state.personneMorale);
     const {fetchCommission, commisions, loading: commLoading} = useCommision();
     const {fetchContratFonds, contratFonds, loading: fondsLoading} = useContratFonds();
+    const {fetchDocContrat, docContrat, loading: docLoading} = useContratDoc();
 
     const conditionRef = useRef(null);
+    const [notes,setNotes] = useState("{}");
+
+
 
 
 
@@ -65,6 +71,12 @@ const UpdateContrat = () => {
                 dispatch(getPMById(notification.contrat.adherent));
                 fetchCommission(notification?.contrat.id)
                 fetchContratFonds(notification?.contrat.id);
+                fetchDocContrat(notification?.contrat.id);
+            }
+            if(notification?.notesContent){
+                setNotes(JSON.parse(notification?.notesContent));
+            }else{
+                setNotes("{}");
             }
 
         // Safely check for notification and its contrat property
@@ -79,7 +91,7 @@ const UpdateContrat = () => {
 
 
 
-    console.log(commisions,contratFonds)
+    console.log(commisions,contratFonds,docContrat)
 
 
     const handlePMSelection = () => {
@@ -104,6 +116,14 @@ const UpdateContrat = () => {
             if (!valid) return;
         }
 
+
+
+
+        const currentStepNotes=getNotesForStep(activeStep,notes);
+        if(currentStepNotes.length> 0){
+            alert("Vous devez d'abord valider les notes avant de passer à l'étape suivante.");
+            return;
+        }
         // If we're on the last step, submit the form and do not advance further.
         if (activeStep === 5) {
             handleSubmit();
@@ -204,6 +224,7 @@ const UpdateContrat = () => {
             //         })),
             commissions:formData.commissions,
             contratFonds:formData.fondGaranti,
+            docContrats:formData.docContrats,
 
             tmm: parseField(formData.tmm, 'number'),
             contratTmm: parseField(formData.tmmText, 'number'),
@@ -268,6 +289,7 @@ const UpdateContrat = () => {
             </Box>
         );
     }
+    console.log("///////",notes)
 
     const renderStepContent = (step) => {
         switch (step) {
@@ -286,34 +308,27 @@ const UpdateContrat = () => {
                             margin="normal"
                             disabled
                         />
-                        <TextField
-                            fullWidth
-                            label="Validation Note"
-                            multiline
-                            rows={4}
-                            margin="normal"
-                            variant="outlined"
-                            onChange={(e) => dispatch(setFormData({ notesContent: e.target.value }))}
-                            value={notification?.notesContent || ""}
-                        />
+
                     </Box>
                 );
             case 1:
                 return (
                     <ConditionGenerale1
                         data={notification}
-                        description={JSON.parse( notification?.notesContent)}
+                        description={notes}
+                        updateNotes={setNotes}
                         ref={conditionRef}
                         formData={formData}
                         updateData={(data) => dispatch(setFormData(data))}
+
                     />
                 );
             case 2:
                 return (
                     <ConditionGenerale2
                         data={notification}
-                        description={JSON.parse( notification?.notesContent)}
-
+                        description={notes}
+                        updateNotes={setNotes}
                         ref={conditionRef}
                         formData={formData}
                         updateData={(data) => dispatch(setFormData(data))}
@@ -323,7 +338,8 @@ const UpdateContrat = () => {
                 return (
                     <ConditionGenerale3
                         data={notification}
-                        description={JSON.parse( notification?.notesContent)}
+                        description={notes}
+                        updateNotes={setNotes}
                         ref={conditionRef}
                         formData={formData}
                         updateData={(data) => dispatch(setFormData(data))}
@@ -340,11 +356,12 @@ const UpdateContrat = () => {
                         ) : (
                             <ConditionParticulieres
                                 ref={conditionRef}
-                                description={JSON.parse( notification?.notesContent)}
-
+                                description={notes}
+                                updateNotes={setNotes}
                                 formData={formData}
                                 commissions={commisions}
                                 contratFonds={contratFonds}
+                                docContrats={docContrat}
                                 updateData={updateData}
                             />
                         )}

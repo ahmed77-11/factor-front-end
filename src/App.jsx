@@ -23,6 +23,11 @@ import UpdateContrat from "./pages/contrat/updateContrat/UpdateContrat.jsx";
 import ValidValidateur from "./pages/contrat/validation/validationValidateur/ValidValidateur.jsx";
 import ValidJuridique from "./pages/contrat/validation/validationJuridique/ValidJuridique.jsx";
 import AdherAchet from "./pages/relations/adherAchat/AdherAchat.jsx";
+import ListValider from "./pages/contrat/listContrat/listValider/ListValider.jsx";
+import ListModification from "./pages/contrat/listContrat/listModification/ListModification.jsx";
+import ListJuridique from "./pages/contrat/listContrat/listJuridique/ListJuridique.jsx";
+import ListSigner from "./pages/contrat/listContrat/listSigner/ListSigner.jsx";
+import SignerContrat from "./pages/contrat/signerContrat/SignerContrat.jsx";
 
 
 function App() {
@@ -60,7 +65,13 @@ function App() {
                       <Route path={"/validation-validateur/:notificationId"} element={<ValidValidateur/>}/>
                       <Route path={"/notification"} element={<NotificationPanel/>}/>
                       <Route path={"/update-contrat/:notificationId"} element={<UpdateContrat/>}/>
+                      <Route path={"/signer-contrat/:contratId"} element={<SignerContrat/>}/>
+
                       <Route path={"/ajouter-acheteurs"} element={<AdherAchet/>}/>
+                      <Route path={"/list-contrats-valider"} element={<ListValider/>}/>
+                      <Route path={"/list-contrats-juridique"} element={<ListJuridique/>}/>
+                      <Route path={"/list-contrats-modifier"} element={<ListModification/>}/>
+                      <Route path={"/list-contrats-signer"} element={<ListSigner/>}/>
                   </Route>
               </Route>
           </Routes>

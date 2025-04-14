@@ -13,7 +13,7 @@ const contratOptions = [
     { label: "non", value: false },
 ];
 
-const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description }, ref) => {
+const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description,updateDescription }, ref) => {
     const { devises, loading, error } = useDevise();
     const dispatch = useDispatch();
 
@@ -32,8 +32,8 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
         limiteFinAuto: formData?.limiteFinAuto || data?.contrat?.contratLimiteFinAuto?.toString() || "",
         finMarge: formData?.finMarge || data?.contrat?.contratMargeFin?.toString() || "",
         margeRet: formData?.margeRet || data?.contrat?.contratMargeRet?.toString() || "",
-        scannerPath: formData?.scannerPath || data?.contrat?.contratScanPath || "",
-        nomFichierScanner: formData?.nomFichierScanner || data?.contrat?.contratScanFileName || "",
+        // scannerPath: formData?.scannerPath || data?.contrat?.contratScanPath || "",
+        // nomFichierScanner: formData?.nomFichierScanner || data?.contrat?.contratScanFileName || "",
         dateAcceptationRemise: formData?.dateAcceptationRemise || data?.contrat?.contratAcceptRemiseDate?.split('T')[0] || "",
         exigenceLittrage: formData?.exigenceLittrage || data?.contrat?.contratBoolLettrage?.toString() || "",
     };
@@ -53,8 +53,8 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
         limiteFinAuto: yup.string().required("La limite fin auto est requise"),
         finMarge: yup.string().required("La fin de marge est requise"),
         margeRet: yup.string().required("La marge ret est requise"),
-        scannerPath: yup.string().required("Le chemin du scanner est requis"),
-        nomFichierScanner: yup.string().required("Le nom du fichier scanner est requis"),
+        // scannerPath: yup.string(),
+        // nomFichierScanner: yup.string(),
         dateAcceptationRemise: yup.string().required("La date d'acceptation de remise est requise"),
         exigenceLittrage: yup.string().required("L'exigence de littrage est requise"),
     });
@@ -98,6 +98,11 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                                         const selectedId = e.target.value;
                                         const selectedDevise = devises.find((item) => item.id === selectedId);
                                         setFieldValue("devise", selectedDevise || null);
+                                        if (description.devise) {
+                                           
+                                            delete description.devise;
+                                            updateDescription(description);
+                                        }
                                     }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.devise && errors.devise)}
@@ -128,7 +133,14 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                                     fullWidth
                                     name="previsionChiffreTotal"
                                     value={values.previsionChiffreTotal}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.previsionChiffreTotal) {
+                                           
+                                            delete description.previsionChiffreTotal;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.previsionChiffreTotal && errors.previsionChiffreTotal)}
                                     helperText={touched.previsionChiffreTotal && errors.previsionChiffreTotal}
@@ -145,7 +157,14 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                                     fullWidth
                                     name="previsionChiffreLocal"
                                     value={values.previsionChiffreLocal}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.previsionChiffreLocal) {
+                                           
+                                            delete description.previsionChiffreLocal;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.previsionChiffreLocal && errors.previsionChiffreLocal)}
                                     helperText={touched.previsionChiffreLocal && errors.previsionChiffreLocal}
@@ -162,7 +181,14 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                                     fullWidth
                                     name="previsionChiffreExport"
                                     value={values.previsionChiffreExport}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.previsionChiffreExport) {
+                                           
+                                            delete description.previsionChiffreExport;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.previsionChiffreExport && errors.previsionChiffreExport)}
                                     helperText={touched.previsionChiffreExport && errors.previsionChiffreExport}
@@ -179,7 +205,14 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                                     fullWidth
                                     name="nombreAcheteur"
                                     value={values.nombreAcheteur}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.nombreAcheteur) {
+                                           
+                                            delete description.nombreAcheteur;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.nombreAcheteur && errors.nombreAcheteur)}
                                     helperText={touched.nombreAcheteur && errors.nombreAcheteur}
@@ -196,7 +229,14 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                                     fullWidth
                                     name="nombreRemise"
                                     value={values.nombreRemise}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.nombreRemise) {
+                                           
+                                            delete description.nombreRemise;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.nombreRemise && errors.nombreRemise)}
                                     helperText={touched.nombreRemise && errors.nombreRemise}
@@ -213,7 +253,14 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                                     fullWidth
                                     name="nombreDocumentRemise"
                                     value={values.nombreDocumentRemise}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.nombreDocumentRemise) {
+                                           
+                                            delete description.nombreDocumentRemise;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.nombreDocumentRemise && errors.nombreDocumentRemise)}
                                     helperText={touched.nombreDocumentRemise && errors.nombreDocumentRemise}
@@ -230,7 +277,14 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                                     fullWidth
                                     name="tauxConcentration"
                                     value={values.tauxConcentration}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.tauxConcentration) {
+                                           
+                                            delete description.tauxConcentration;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.tauxConcentration && errors.tauxConcentration)}
                                     helperText={touched.tauxConcentration && errors.tauxConcentration}
@@ -247,7 +301,14 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                                     fullWidth
                                     name="nombreAvoir"
                                     value={values.nombreAvoir}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.nombreAvoir) {
+                                           
+                                            delete description.nombreAvoir;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.nombreAvoir && errors.nombreAvoir)}
                                     helperText={touched.nombreAvoir && errors.nombreAvoir}
@@ -264,7 +325,14 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                                     fullWidth
                                     name="dureeMaxPaiement"
                                     value={values.dureeMaxPaiement}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.dureeMaxPaiement) {
+                                           
+                                            delete description.dureeMaxPaiement;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.dureeMaxPaiement && errors.dureeMaxPaiement)}
                                     helperText={touched.dureeMaxPaiement && errors.dureeMaxPaiement}
@@ -281,7 +349,14 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                                     fullWidth
                                     name="limiteFinAuto"
                                     value={values.limiteFinAuto}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.limiteFinAuto) {
+                                           
+                                            delete description.limiteFinAuto;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.limiteFinAuto && errors.limiteFinAuto)}
                                     helperText={touched.limiteFinAuto && errors.limiteFinAuto}
@@ -293,12 +368,19 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
 
                             {/* Fin marge */}
                             <Box mb={2}>
-                                <Typography>Fin marge (%)</Typography>
+                                <Typography>marge De Financement (%)</Typography>
                                 <TextField
                                     fullWidth
                                     name="finMarge"
                                     value={values.finMarge}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.finMarge) {
+                                           
+                                            delete description.finMarge;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.finMarge && errors.finMarge)}
                                     helperText={touched.finMarge && errors.finMarge}
@@ -310,12 +392,19 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
 
                             {/* Marge ret */}
                             <Box mb={2}>
-                                <Typography>Marge ret (%)</Typography>
+                                <Typography>Marge Intéret du retard (%)</Typography>
                                 <TextField
                                     fullWidth
                                     name="margeRet"
                                     value={values.margeRet}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.margeRet) {
+                                           
+                                            delete description.margeRet;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.margeRet && errors.margeRet)}
                                     helperText={touched.margeRet && errors.margeRet}
@@ -326,40 +415,40 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                             </Box>
 
                             {/* Scanner path */}
-                            <Box mb={2}>
-                                <Typography>Scanner path</Typography>
-                                <TextField
-                                    fullWidth
-                                    name="scannerPath"
-                                    value={values.scannerPath}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    error={Boolean(touched.scannerPath && errors.scannerPath)}
-                                    helperText={touched.scannerPath && errors.scannerPath}
-                                    disabled
-                                />
-                                {description.scannerPath && (
-                                    <NotesDescription msg={description.scannerPath} />
-                                )}
-                            </Box>
+                            {/*<Box mb={2}>*/}
+                            {/*    <Typography>Scanner path</Typography>*/}
+                            {/*    <TextField*/}
+                            {/*        fullWidth*/}
+                            {/*        name="scannerPath"*/}
+                            {/*        value={values.scannerPath}*/}
+                            {/*        onChange={handleChange}*/}
+                            {/*        onBlur={handleBlur}*/}
+                            {/*        error={Boolean(touched.scannerPath && errors.scannerPath)}*/}
+                            {/*        helperText={touched.scannerPath && errors.scannerPath}*/}
+                            {/*        disabled*/}
+                            {/*    />*/}
+                            {/*    {description.scannerPath && (*/}
+                            {/*        <NotesDescription msg={description.scannerPath} />*/}
+                            {/*    )}*/}
+                            {/*</Box>*/}
 
-                            {/* Nom fichier scanner */}
-                            <Box mb={2}>
-                                <Typography>Nom fichier scanner</Typography>
-                                <TextField
-                                    fullWidth
-                                    name="nomFichierScanner"
-                                    value={values.nomFichierScanner}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    error={Boolean(touched.nomFichierScanner && errors.nomFichierScanner)}
-                                    helperText={touched.nomFichierScanner && errors.nomFichierScanner}
-                                    disabled
-                                />
-                                {description.nomFichierScanner && (
-                                    <NotesDescription msg={description.nomFichierScanner} />
-                                )}
-                            </Box>
+                            {/*/!* Nom fichier scanner *!/*/}
+                            {/*<Box mb={2}>*/}
+                            {/*    <Typography>Nom fichier scanner</Typography>*/}
+                            {/*    <TextField*/}
+                            {/*        fullWidth*/}
+                            {/*        name="nomFichierScanner"*/}
+                            {/*        value={values.nomFichierScanner}*/}
+                            {/*        onChange={handleChange}*/}
+                            {/*        onBlur={handleBlur}*/}
+                            {/*        error={Boolean(touched.nomFichierScanner && errors.nomFichierScanner)}*/}
+                            {/*        helperText={touched.nomFichierScanner && errors.nomFichierScanner}*/}
+                            {/*        disabled*/}
+                            {/*    />*/}
+                            {/*    {description.nomFichierScanner && (*/}
+                            {/*        <NotesDescription msg={description.nomFichierScanner} />*/}
+                            {/*    )}*/}
+                            {/*</Box>*/}
 
                             {/* Date acceptation remise */}
                             <Box mb={2}>
@@ -369,7 +458,14 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                                     type="date"
                                     name="dateAcceptationRemise"
                                     value={values.dateAcceptationRemise}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.dateAcceptationRemise) {
+                                           
+                                            delete description.dateAcceptationRemise;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.dateAcceptationRemise && errors.dateAcceptationRemise)}
                                     helperText={touched.dateAcceptationRemise && errors.dateAcceptationRemise}
@@ -390,7 +486,14 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description 
                                     fullWidth
                                     name="exigenceLittrage"
                                     value={values.exigenceLittrage}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.exigenceLittrage) {
+                                           
+                                            delete description.exigenceLittrage;
+                                            updateDescription(description);
+                                        }
+                                    }}
                                     onBlur={handleBlur}
                                     error={Boolean(touched.exigenceLittrage && errors.exigenceLittrage)}
                                     helperText={touched.exigenceLittrage && errors.exigenceLittrage}
