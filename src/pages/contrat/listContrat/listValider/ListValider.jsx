@@ -10,7 +10,7 @@ import { localeText, tokens } from "../../../../theme";
 import { useNavigate } from "react-router-dom";
 import CustomNoRowsOverlay from "../../../../helpers/CustomNoRowsOverlay.jsx";
 
-const ListValider = () => {
+const ListFValider = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const dispatch = useDispatch();
@@ -197,4 +197,4 @@ const ListValider = () => {
     );
 };
 
-export default ListValider;
+export default ListFValider;

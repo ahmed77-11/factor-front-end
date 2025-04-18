@@ -878,7 +878,7 @@ const ConditionsParticulieres = forwardRef(({
                                 <Box mt={4}>
                                     <Box display="flex" alignItems="center" mb={2}>
                                         <CreditCardIcon sx={{ mr: 1 }} />
-                                        <Typography variant="h6">Fonds de Garantie et Reserver</Typography>
+                                        <Typography variant="h6">Fonds de Garantie et Réserve</Typography>
 
                                         <IconButton
                                             onClick={() => {
@@ -1127,9 +1127,17 @@ const ConditionsParticulieres = forwardRef(({
                                                                 />
                                                             </Button>
                                                             {doc.docContratScanFileName && (
-                                                                <Typography variant="caption" display="block">
-                                                                    {doc.docContratScanFileName}
-                                                                </Typography>
+                                                                <Button
+                                                                    variant="outlined"
+                                                                    fullWidth
+                                                                    size="small"
+                                                                    sx={{ mt: 2 }}
+                                                                    color="primary"
+                                                                    href={`http://localhost:8083/factoring/contrat/uploads/${doc.docContratScanFileName}`}
+                                                                    target="_blank"
+                                                                >
+                                                                    Ouvrir Le Fichier
+                                                                </Button>
                                                             )}
                                                         </TableCell>
 

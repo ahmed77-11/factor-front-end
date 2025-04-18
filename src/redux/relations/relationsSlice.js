@@ -39,6 +39,18 @@ const relationsSlice = createSlice({
             state.loading = false;
             state.error = action.payload;
         },
+        fetchPerAcheteurByIdStart: (state) => {
+            state.loading = true;
+            state.currentAcheteur = null;
+        },
+        fetchPerAcheteurByIdSuccess: (state, action) => {
+            state.loading = false;
+            state.currentAcheteur = action.payload;
+        },
+        fetchPerAcheteurByIdFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
         allRelationsStart: (state) => {
             state.loading = true;
         },
@@ -77,7 +89,10 @@ export const {
     allRelationsFailure,
     addRelationStart,
     addRelationSuccess,
-    addRelationFailure
+    addRelationFailure,
+    fetchPerAcheteurByIdStart,
+    fetchPerAcheteurByIdSuccess,
+    fetchPerAcheteurByIdFailure,
 } = relationsSlice.actions;
 
 
@@ -151,5 +166,21 @@ export const fetchRelationsAsync=(adherId)=>async (dispatch) => {
         dispatch(allRelationsSuccess(response.data));
     } catch (error) {
         dispatch(allRelationsFailure(error.message));
+    }
+}
+export const fetchPerAcheteurByIdAsync=(id)=>async (dispatch) => {
+    dispatch(fetchPerAcheteurByIdStart());
+    try {
+        const response = await axios.get(
+            `http://localhost:8081/factoring/api/per-acheteur/acheteur/${id}`,
+            { withCredentials: true }
+        );
+        if (response.status!==200) {
+            throw new Error("Une erreur s'est produite");
+        }
+
+        dispatch(fetchPerAcheteurByIdSuccess(response.data));
+    } catch (error) {
+        dispatch(fetchPerAcheteurByIdFailure(error.message));
     }
 }

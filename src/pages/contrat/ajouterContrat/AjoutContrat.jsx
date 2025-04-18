@@ -123,7 +123,7 @@ const AjoutContrat = () => {
             contratPrevChiffreTotal: parseField(formData.previsionChiffreTotal, 'number'),
             contratPrevChiffreLocal: parseField(formData.previsionChiffreLocal, 'number'),
             contratPrevChiffreExport: parseField(formData.previsionChiffreExport, 'number'),
-            contratPrevAchet: parseField(formData.nombreAcheteur, 'number'),
+            contratPrevNbrAchet: parseField(formData.nombreAcheteur, 'number'),
             contratPrevNbrRemise: parseField(formData.nombreRemise, 'number'),
             contratPrevNbrDocRemise: parseField(formData.nombreDocumentRemise, 'number'),
             contratTauxConcentration: parseField(formData.tauxConcentration, 'number'),

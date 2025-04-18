@@ -7,6 +7,7 @@ import pmReducer from "./personne/PersonneMoraleSlice.js";
 import formReducer from "./formSteperSlice/FormSlice";
 import contratReducer from "./contrat/ContratSlice";
 import relationsReducer from "./relations/RelationsSlice";
+import factureReducer from "./facture/FactureSlice.js";
 import {persistReducer,persistStore} from "redux-persist";
 import {createTransform} from "redux-persist";
 
@@ -50,6 +51,7 @@ const rootReducer = combineReducers({
     form:formReducer,
     contrat:contratReducer,
     relations:relationsReducer,
+    facture:factureReducer,
 });
 
 const persistConfig = {

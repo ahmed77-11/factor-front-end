@@ -79,11 +79,6 @@ const AdherAchet = () => {
     };
 
     // Soumettre la liste des acheteurs
-    const handleSubmit = () => {
-        console.log("Adhérent sélectionné:", selectedAdherent);
-        console.log("Liste des acheteurs:", acheteursList);
-        alert("Données soumises avec succès !");
-    };
 
     return (
         <Box
@@ -232,11 +227,7 @@ const AdherAchet = () => {
                             </TableBody>
                         </Table>
                     </TableContainer>
-                    <Box display="flex" justifyContent="center" width="100%" mt={2}>
-                        <Button onClick={handleSubmit} variant="contained" color="success" sx={{ width: "50%" }}>
-                            Soumettre
-                        </Button>
-                    </Box>
+
                 </Grid>
             </Grid>
         </Box>

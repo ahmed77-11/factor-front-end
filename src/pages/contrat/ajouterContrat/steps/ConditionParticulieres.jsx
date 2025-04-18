@@ -30,6 +30,7 @@ import {useTypeDocContrat} from "../../../../customeHooks/useTypeDocContrat.jsx"
 import axios from "axios";
 import {DescriptionOutlined} from "@mui/icons-material";
 import {uploadFile} from "../../../../helpers/saveFile.js";
+import {Link} from "react-router-dom";
 
 const periodicites = ["par mois", "par 4 mois", "par an"];
 
@@ -96,7 +97,8 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                             const minorant = this.parent.Minorant || 0;
                             return value > minorant;
                         }
-                    ),                ValidDateDeb: yup.date().required("Date début requise"),
+                    ),
+                ValidDateDeb: yup.date().required("Date début requise"),
                 ValidDateFin: yup.date().typeError("Invalid date"),
                 CommA: yup.number().required("Commission A requise"),
                 CommX: yup.number().required("Commission X requise"),
@@ -150,6 +152,15 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                             return Object.keys(formErrors).length === 0;
                         },
                     }));
+
+                    // Helper function to check if a value is already used in a specific table field
+                    const isValueUsedInTable = (tableValues, fieldName, value, currentIndex) => {
+                        if (!value || !value.id) return false;
+                        return tableValues.some((item, idx) =>
+                            idx !== currentIndex &&
+                            item[fieldName]?.id === value.id
+                        );
+                    };
 
                     return (
                         <form onSubmit={handleSubmit}>
@@ -220,11 +231,19 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                     helperText={touched.commissions?.[index]?.TypeEvent && errors.commissions?.[index]?.TypeEvent}
                                                                     sx={{ minWidth: 180 }}
                                                                 >
-                                                                    {typeEvent.map((item) => (
-                                                                        <MenuItem key={item.id} value={item.id}>
-                                                                            {item.dsg}
-                                                                        </MenuItem>
-                                                                    ))}
+                                                                    {typeEvent
+                                                                        .filter(item => {
+                                                                            // Allow current selection
+                                                                            if (commission.TypeEvent?.id === item.id) return true;
+
+                                                                            // Filter out already selected in this table
+                                                                            return !isValueUsedInTable(values.commissions, 'TypeEvent', item, index);
+                                                                        })
+                                                                        .map((item) => (
+                                                                            <MenuItem key={item.id} value={item.id}>
+                                                                                {item.dsg}
+                                                                            </MenuItem>
+                                                                        ))}
                                                                 </TextField>
                                                             </TableCell>
 
@@ -242,11 +261,19 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                     error={touched.commissions?.[index]?.TypeDocRemise && !!errors.commissions?.[index]?.TypeDocRemise}
                                                                     sx={{ minWidth: 180 }}
                                                                 >
-                                                                    {typeDoc.map((item) => (
-                                                                        <MenuItem key={item.id} value={item.id}>
-                                                                            {item.dsg}
-                                                                        </MenuItem>
-                                                                    ))}
+                                                                    {typeDoc
+                                                                        .filter(item => {
+                                                                            // Allow current selection
+                                                                            if (commission.TypeDocRemise?.id === item.id) return true;
+
+                                                                            // Filter out already selected in this table
+                                                                            return !isValueUsedInTable(values.commissions, 'TypeDocRemise', item, index);
+                                                                        })
+                                                                        .map((item) => (
+                                                                            <MenuItem key={item.id} value={item.id}>
+                                                                                {item.dsg}
+                                                                            </MenuItem>
+                                                                        ))}
                                                                 </TextField>
                                                             </TableCell>
 
@@ -264,18 +291,25 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                     error={touched.commissions?.[index]?.TypeCommission && !!errors.commissions?.[index]?.TypeCommission}
                                                                     sx={{ minWidth: 180 }}
                                                                 >
-                                                                    {typeCommission.map((item) => (
-                                                                        <MenuItem key={item.id} value={item.id}>
-                                                                            {item.dsg}
-                                                                        </MenuItem>
-                                                                    ))}
+                                                                    {typeCommission
+                                                                        .filter(item => {
+                                                                            // Allow current selection
+                                                                            if (commission.TypeCommission?.id === item.id) return true;
+
+                                                                            // Filter out already selected in this table
+                                                                            return !isValueUsedInTable(values.commissions, 'TypeCommission', item, index);
+                                                                        })
+                                                                        .map((item) => (
+                                                                            <MenuItem key={item.id} value={item.id}>
+                                                                                {item.dsg}
+                                                                            </MenuItem>
+                                                                        ))}
                                                                 </TextField>
                                                             </TableCell>
 
                                                             {/* Periodicite */}
                                                             <TableCell>
                                                                 <TextField
-
                                                                     fullWidth
                                                                     size="small"
                                                                     name={`commissions.${index}.Periodicite`}
@@ -283,7 +317,7 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                     onChange={handleChange}
                                                                     error={touched.commissions?.[index]?.Periodicite && !!errors.commissions?.[index]?.Periodicite}
                                                                     sx={{ minWidth: 120 }}
-                                                               />
+                                                                />
                                                             </TableCell>
 
                                                             {/* Numeric Fields */}
@@ -339,10 +373,10 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                     <Box mt={4}>
                                         <Box display="flex" alignItems="center" mb={2}>
                                             <CreditCardIcon sx={{ mr: 1 }} />
-                                            <Typography variant="h6">Fonds de Garantie et Reserver</Typography>
+                                            <Typography variant="h6">Fonds de Garantie et Réserve</Typography>
 
                                             <IconButton
-                                                onClick={() => push({ TauxGarantie: "", TauxReserve: "" })}
+                                                onClick={() => push({ TypeDocRemise: "", TauxGarantie: "", TauxReserve: "" })}
                                                 color="success"
                                                 sx={{ ml: 2 }}
                                             >
@@ -379,11 +413,19 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                     error={touched.fondGaranti?.[index]?.TypeDocRemise && !!errors.fondGaranti?.[index]?.TypeDocRemise}
                                                                     sx={{ minWidth: 180 }}
                                                                 >
-                                                                    {typeDoc.map((item) => (
-                                                                        <MenuItem key={item.id} value={item.id}>
-                                                                            {item.dsg}
-                                                                        </MenuItem>
-                                                                    ))}
+                                                                    {typeDoc
+                                                                        .filter(item => {
+                                                                            // Allow current selection
+                                                                            if (frais.TypeDocRemise?.id === item.id) return true;
+
+                                                                            // Filter out already selected in this table
+                                                                            return !isValueUsedInTable(values.fondGaranti, 'TypeDocRemise', item, index);
+                                                                        })
+                                                                        .map((item) => (
+                                                                            <MenuItem key={item.id} value={item.id}>
+                                                                                {item.dsg}
+                                                                            </MenuItem>
+                                                                        ))}
                                                                 </TextField>
                                                             </TableCell>
                                                             <TableCell>
@@ -476,11 +518,19 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                         setFieldValue(`docContrats.${index}.typeDocContrat`, selected);
                                                                     }}
                                                                 >
-                                                                    {typeDocContrat.map((item) => (
-                                                                        <MenuItem key={item.id} value={item.id}>
-                                                                            {item.dsg}
-                                                                        </MenuItem>
-                                                                    ))}
+                                                                    {typeDocContrat
+                                                                        .filter(item => {
+                                                                            // Allow current selection
+                                                                            if (doc.typeDocContrat?.id === item.id) return true;
+
+                                                                            // Filter out already selected in this table
+                                                                            return !isValueUsedInTable(values.docContrats, 'typeDocContrat', item, index);
+                                                                        })
+                                                                        .map((item) => (
+                                                                            <MenuItem key={item.id} value={item.id}>
+                                                                                {item.dsg}
+                                                                            </MenuItem>
+                                                                        ))}
                                                                 </TextField>
                                                             </TableCell>
 
@@ -528,9 +578,17 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                     />
                                                                 </Button>
                                                                 {doc.docContratScanFileName && (
-                                                                    <Typography variant="caption" display="block">
-                                                                        {doc.docContratScanFileName}
-                                                                    </Typography>
+                                                                    <Button
+                                                                        variant="outlined"
+                                                                        fullWidth
+                                                                        size="small"
+                                                                        sx={{ mt: 2 }}
+                                                                        color="primary"
+                                                                        href={`http://localhost:8083/factoring/contrat/uploads/${doc.docContratScanFileName}`}
+                                                                        target="_blank"
+                                                                    >
+                                                                        Ouvrir Le Fichier
+                                                                    </Button>
                                                                 )}
                                                             </TableCell>
 

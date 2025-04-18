@@ -41,9 +41,29 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description,
     // Validation schema
     const validationSchema = yup.object().shape({
         devise: yup.object().required("La devise est requise"),
-        previsionChiffreTotal: yup.string().required("Le chiffre total prévisionnel est requis"),
-        previsionChiffreLocal: yup.string().required("Le chiffre local prévisionnel est requis"),
-        previsionChiffreExport: yup.string().required("Le chiffre export prévisionnel est requis"),
+        previsionChiffreLocal: yup
+            .number()
+            .typeError("Valeur invalide")
+            .required("Champ requis"),
+        previsionChiffreExport: yup
+            .number()
+            .typeError("Valeur invalide")
+            .required("Champ requis"),
+        previsionChiffreTotal: yup
+            .number()
+            .typeError("Valeur invalide")
+            .required("Champ requis")
+            .test(
+                "is-total-correct",
+                "Le total doit être égal à la somme du local et de l’export",
+                function (value) {
+                    const { previsionChiffreLocal, previsionChiffreExport } = this.parent;
+                    return (
+                        value ===
+                        (Number(previsionChiffreLocal) + Number(previsionChiffreExport))
+                    );
+                }
+            ),
         nombreAcheteur: yup.string().required("Le nombre d'acheteur est requis"),
         nombreRemise: yup.string().required("Le nombre de remise est requis"),
         nombreDocumentRemise: yup.string().required("Le nombre de document de remise est requis"),
@@ -228,6 +248,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description,
                                 <TextField
                                     fullWidth
                                     name="nombreRemise"
+                                    disabled={values.nombreAcheteur<1}
                                     value={values.nombreRemise}
                                     onChange={(e) => {
                                         handleChange(e);
@@ -251,6 +272,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description,
                                 <Typography>Nombre document remise</Typography>
                                 <TextField
                                     fullWidth
+
                                     name="nombreDocumentRemise"
                                     value={values.nombreDocumentRemise}
                                     onChange={(e) => {

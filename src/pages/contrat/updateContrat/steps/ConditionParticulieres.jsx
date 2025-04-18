@@ -357,7 +357,7 @@
 //                                 <Box mt={4}>
 //                                     <Box display="flex" alignItems="center" mb={2}>
 //                                         <CreditCardIcon sx={{ mr: 1 }} />
-//                                         <Typography variant="h6">Fonds de Garantie et Reserver</Typography>
+//                                         <Typography variant="h6">Fonds de Garantie et Réserve</Typography>
 //
 //                                         <IconButton
 //                                             onClick={() => push({ TauxGarantie: "", TauxReserve: "" })}
@@ -729,11 +729,17 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 helperText={touched.commissions?.[index]?.TypeEvent && errors.commissions?.[index]?.TypeEvent?.message}
                                                             >
                                                                 <MenuItem value=""><em>Select Event</em></MenuItem>
-                                                                {typeEvent?.map(item => (
-                                                                    <MenuItem key={item.id} value={item.id}>
-                                                                        {item.dsg}
-                                                                    </MenuItem>
-                                                                ))}
+                                                                {typeEvent?.map(item => {
+                                                                    const isDisabled = [
+                                                                        ...values.commissions.filter((_, i) => i !== index).map(c => c.typeEvent?.id),
+                                                                        ...(commissions || []).map(c => c.typeEvent?.id)
+                                                                    ].includes(item.id);
+                                                                    return (
+                                                                        <MenuItem key={item.id} value={item.id} disabled={isDisabled}>
+                                                                            {item.dsg}
+                                                                        </MenuItem>
+                                                                    );
+                                                                })}
                                                             </TextField>
                                                         </TableCell>
 
@@ -757,11 +763,17 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 helperText={touched.commissions?.[index]?.TypeDocRemise && errors.commissions?.[index]?.TypeDocRemise?.message}
                                                             >
                                                                 <MenuItem value=""><em>Select Document</em></MenuItem>
-                                                                {typeDoc?.map(item => (
-                                                                    <MenuItem key={item.id} value={item.id}>
-                                                                        {item.dsg}
-                                                                    </MenuItem>
-                                                                ))}
+                                                                {typeDoc?.map(item => {
+                                                                    const isDisabled = [
+                                                                        ...values.commissions.filter((_, i) => i !== index).map(c => c.typeDocRemise?.id),
+                                                                        ...(commissions || []).map(c => c.typeDocRemise?.id)
+                                                                    ].includes(item.id);
+                                                                    return (
+                                                                        <MenuItem key={item.id} value={item.id} disabled={isDisabled}>
+                                                                            {item.dsg}
+                                                                        </MenuItem>
+                                                                    );
+                                                                })}
                                                             </TextField>
                                                         </TableCell>
 
@@ -785,11 +797,17 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 helperText={touched.commissions?.[index]?.TypeCommission && errors.commissions?.[index]?.TypeCommission?.message}
                                                             >
                                                                 <MenuItem value=""><em>Select Commission</em></MenuItem>
-                                                                {typeCommission?.map(item => (
-                                                                    <MenuItem key={item.id} value={item.id}>
-                                                                        {item.dsg}
-                                                                    </MenuItem>
-                                                                ))}
+                                                                {typeCommission?.map(item => {
+                                                                    const isDisabled = [
+                                                                        ...values.commissions.filter((_, i) => i !== index).map(c => c.typeComm?.id),
+                                                                        ...(commissions || []).map(c => c.typeComm?.id)
+                                                                    ].includes(item.id);
+                                                                    return (
+                                                                        <MenuItem key={item.id} value={item.id} disabled={isDisabled}>
+                                                                            {item.dsg}
+                                                                        </MenuItem>
+                                                                    );
+                                                                })}
                                                             </TextField>
                                                         </TableCell>
 
@@ -904,7 +922,7 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                 <Box mt={4}>
                                     <Box display="flex" alignItems="center" mb={2}>
                                         <CreditCardIcon sx={{ mr: 1 }} />
-                                        <Typography variant="h6">Fonds de Garantie et Reserver</Typography>
+                                        <Typography variant="h6">Fonds de Garantie et Réserve</Typography>
                                         <IconButton
                                             onClick={() => push({ TypeDocRemiseId: null,TauxGarantie: "", TauxReserve: "" })}
                                             color="success"
@@ -948,11 +966,17 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 helperText={touched.fondGaranti?.[index]?.typeDocRemiseId && errors.fondGaranti?.[index]?.typeDocRemiseId?.message}
                                                             >
                                                                 <MenuItem value=""><em>Select Document</em></MenuItem>
-                                                                {typeDoc?.map(item => (
-                                                                    <MenuItem key={item.id} value={item.id}>
-                                                                        {item.dsg}
-                                                                    </MenuItem>
-                                                                ))}
+                                                                {typeDoc?.map(item => {
+                                                                    const isDisabled = [
+                                                                        ...values.fondGaranti.filter((_, i) => i !== index).map(f => f.typeDocRemiseId?.id),
+                                                                        ...(contratFonds || []).map(f => f.typeDocRemiseId)
+                                                                    ].includes(item.id);
+                                                                    return (
+                                                                        <MenuItem key={item.id} value={item.id} disabled={isDisabled}>
+                                                                            {item.dsg}
+                                                                        </MenuItem>
+                                                                    );
+                                                                })}
                                                             </TextField>
                                                         </TableCell>
                                                         <TableCell>
@@ -1091,11 +1115,18 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 error={touched.docContrats?.[index]?.typeDocContrat && !!errors.docContrats?.[index]?.typeDocContrat}
                                                                 helperText={touched.docContrats?.[index]?.typeDocContrat && errors.docContrats?.[index]?.typeDocContrat?.message}
                                                             >
-                                                                {typeDocContrat.map((item) => (
-                                                                    <MenuItem key={item.id} value={item.id}>
-                                                                        {item.dsg}
-                                                                    </MenuItem>
-                                                                ))}
+                                                                {typeDocContrat.map((item) => {
+                                                                    const isDisabled = [
+                                                                        ...values.docContrats.filter((_, i) => i !== index).map(d => d.typeDocContrat?.id),
+                                                                        ...(docContrats || []).map(d => d.typeDocContrat?.id)
+                                                                    ].includes(item.id);
+
+                                                                    return (
+                                                                        <MenuItem key={item.id} value={item.id} disabled={isDisabled}>
+                                                                            {item.dsg}
+                                                                        </MenuItem>
+                                                                    );
+                                                                })}
                                                             </TextField>
                                                         </TableCell>
 
@@ -1159,11 +1190,18 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData, commissions,
                                                                 />
                                                             </Button>
                                                             {doc.docContratScanFileName && (
-                                                                <Typography variant="caption" display="block">
-                                                                    {doc.docContratScanFileName}
-                                                                </Typography>
-                                                            )}
-                                                        </TableCell>
+                                                                <Button
+                                                                    variant="outlined"
+                                                                    fullWidth
+                                                                    size="small"
+                                                                    sx={{ mt: 2 }}
+                                                                    color="primary"
+                                                                    href={`http://localhost:8083/factoring/contrat/uploads/${doc.docContratScanFileName}`}
+                                                                    target="_blank"
+                                                                >
+                                                                    Ouvrir Le Fichier
+                                                                </Button>
+                                                            )}                                                        </TableCell>
 
                                                         <TableCell>
                                                             <IconButton

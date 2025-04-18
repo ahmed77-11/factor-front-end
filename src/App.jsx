@@ -28,6 +28,11 @@ import ListModification from "./pages/contrat/listContrat/listModification/ListM
 import ListJuridique from "./pages/contrat/listContrat/listJuridique/ListJuridique.jsx";
 import ListSigner from "./pages/contrat/listContrat/listSigner/ListSigner.jsx";
 import SignerContrat from "./pages/contrat/signerContrat/SignerContrat.jsx";
+import Facture from "./pages/facture/addFacture/Facture.jsx";
+import EditBordereau from "./pages/facture/editFacture/EditFacture.jsx";
+import ListNonValider from "./pages/facture/listFacture/ListNonValider.jsx";
+import ListFValider from "./pages/facture/listFactureValider/ListValider.jsx";
+import ValidateFacture from "./pages/facture/validateFacture.jsx";
 
 
 function App() {
@@ -72,6 +77,13 @@ function App() {
                       <Route path={"/list-contrats-juridique"} element={<ListJuridique/>}/>
                       <Route path={"/list-contrats-modifier"} element={<ListModification/>}/>
                       <Route path={"/list-contrats-signer"} element={<ListSigner/>}/>
+                          <Route path={"/ajouter-facture"} element={<Facture/>}/>
+                      <Route path="/modifier-facture/:id" element={<EditBordereau />} />
+                      <Route path="/valider-facture/:id" element={<ValidateFacture />} />
+                      <Route path={"/factures-non-valider"} element={<ListNonValider/>}/>s
+                      <Route path={"/factures"} element={<ListFValider/>}/>
+
+
                   </Route>
               </Route>
           </Routes>

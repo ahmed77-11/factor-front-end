@@ -31,9 +31,29 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
 
     const validationSchema = yup.object().shape({
         devise: yup.object().required("La devise est requise"),
-        previsionChiffreTotal: yup.string().required("Champ requis"),
-        previsionChiffreLocal: yup.string().required("Champ requis"),
-        previsionChiffreExport: yup.string().required("Champ requis"),
+        previsionChiffreLocal: yup
+            .number()
+            .typeError("Valeur invalide")
+            .required("Champ requis"),
+        previsionChiffreExport: yup
+            .number()
+            .typeError("Valeur invalide")
+            .required("Champ requis"),
+        previsionChiffreTotal: yup
+            .number()
+            .typeError("Valeur invalide")
+            .required("Champ requis")
+            .test(
+                "is-total-correct",
+                "Le total doit être égal à la somme du local et de l’export",
+                function (value) {
+                    const { previsionChiffreLocal, previsionChiffreExport } = this.parent;
+                    return (
+                        value ===
+                        (Number(previsionChiffreLocal) + Number(previsionChiffreExport))
+                    );
+                }
+            ),
         nombreAcheteur: yup.string().required("Champ requis"),
         nombreRemise: yup.string().required("Champ requis"),
         nombreDocumentRemise: yup.string().required("Champ requis"),
@@ -73,21 +93,21 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
                       submitForm,
                       validateForm,
                   }) => {
-                    useEffect(() => {
-                        const local = parseFloat(values.previsionChiffreLocal) || 0;
-                        const exportVal = parseFloat(values.previsionChiffreExport) || 0;
-                        const total = local + exportVal;
-
-                        // Avoid unnecessary updates
-                        if (parseFloat(values.previsionChiffreTotal) !== total) {
-                            handleChange ({
-                                target: {
-                                    name: "previsionChiffreTotal",
-                                    value: total.toString(),
-                                }
-                            });
-                        }
-                    }, [values.previsionChiffreLocal, values.previsionChiffreExport]);
+                    // useEffect(() => {
+                    //     const local = parseFloat(values.previsionChiffreLocal) || 0;
+                    //     const exportVal = parseFloat(values.previsionChiffreExport) || 0;
+                    //     const total = local + exportVal;
+                    //
+                    //     // Avoid unnecessary updates
+                    //     if (parseFloat(values.previsionChiffreTotal) !== total) {
+                    //         handleChange ({
+                    //             target: {
+                    //                 name: "previsionChiffreTotal",
+                    //                 value: total.toString(),
+                    //             }
+                    //         });
+                    //     }
+                    // }, [values.previsionChiffreLocal, values.previsionChiffreExport]);
                     useImperativeHandle(ref, () => ({
                         async submit() {
                             await submitForm();
@@ -133,7 +153,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
                             </Box>
                             <Box mb={2}>
                                 <Typography>Prévision chiffre total</Typography>
-                                <TextField disabled fullWidth name="previsionChiffreTotal" value={values.previsionChiffreTotal} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.previsionChiffreTotal && errors.previsionChiffreTotal)} helperText={touched.previsionChiffreTotal && errors.previsionChiffreTotal} />
+                                <TextField fullWidth name="previsionChiffreTotal" value={values.previsionChiffreTotal} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.previsionChiffreTotal && errors.previsionChiffreTotal)} helperText={touched.previsionChiffreTotal && errors.previsionChiffreTotal} />
                             </Box>
                             <Box mb={2}>
                                 <Typography>Prévision chiffre local</Typography>
@@ -149,7 +169,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
                             </Box>
                             <Box mb={2}>
                                 <Typography>Nombre Remise</Typography>
-                                <TextField fullWidth name="nombreRemise" value={values.nombreRemise} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.nombreRemise && errors.nombreRemise)} helperText={touched.nombreRemise && errors.nombreRemise} />
+                                <TextField  disabled={values.nombreAcheteur<1} fullWidth name="nombreRemise" value={values.nombreRemise} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.nombreRemise && errors.nombreRemise)} helperText={touched.nombreRemise && errors.nombreRemise} />
                             </Box>
                             <Box mb={2}>
                                 <Typography>Nombre document de remise</Typography>

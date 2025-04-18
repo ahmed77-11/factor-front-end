@@ -38,6 +38,19 @@ const contratSlice = createSlice({
             state.loading = false;
             state.error = action.payload;
         },
+        getByAdherentStart: (state) => {
+            state.loading = true;
+            state.currentContrat = null;
+        },
+        getByAdherentSuccess: (state, action) => {
+            state.loading = false;
+            state.error = null;
+            state.currentContrat = action.payload;
+        },
+        getByAdherentFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
         addContratStart: (state) => {
             state.loading = true;
         },
@@ -91,6 +104,23 @@ export const fetchContratByIdAsync = (id) => async (dispatch) => {
         console.log(error);
         dispatch(getContratByIdFailure(error.message));
     }
+}
+
+export const fetchContratByAdherentIdAsync = (id) => async (dispatch) => {
+    try {
+        dispatch(getByAdherentStart());
+        const res = await axios.get(`http://localhost:8083/factoring/contrat/api/find-by-adherent/${id}`, {
+            withCredentials: true,
+        });
+        if (res.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(getByAdherentSuccess(res.data));
+    } catch (error) {
+        console.log(error);
+        dispatch(getByAdherentFailure(error.message));
+    }
+
 }
 
 export const addContratAsync = (contratData,navigate) => async (dispatch) => {
@@ -164,5 +194,5 @@ export const signerContratAsync = (contratId,navigate) => async (dispatch) => {
     }
 }
 
-export const { fetchContrats, fetchContratsSuccess, fetchContratsFailure,addContratStart,addContratSuccess,addContratFailure ,updateContratStart,updateContratSuccess,updateContratFailure,getContratByIdStart,getContratByIdSuccess,getContratByIdFailure,signerContratStart,signerContratSuccess,signerContratFailure} = contratSlice.actions;
+export const { fetchContrats, fetchContratsSuccess, fetchContratsFailure,addContratStart,addContratSuccess,addContratFailure ,updateContratStart,updateContratSuccess,updateContratFailure,getContratByIdStart,getContratByIdSuccess,getContratByIdFailure,signerContratStart,signerContratSuccess,signerContratFailure,getByAdherentStart,getByAdherentSuccess,getByAdherentFailure} = contratSlice.actions;
 export default contratSlice.reducer;

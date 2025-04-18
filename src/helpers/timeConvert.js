@@ -23,3 +23,9 @@ export const timeAgo = (timestamp) => {
     }
     return Math.floor(seconds) + " second" + (seconds !== 1 ? "s" : "") + " ago";
 };
+export const formatDate = (date) => {
+    if (!date) return '';
+    if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}$/)) return date;
+    const d = new Date(date);
+    return d.toISOString().split('T')[0];
+};
