@@ -5,7 +5,7 @@ import {
     TextField, Button, Card, CardContent, Typography,
     Grid, MenuItem, Select, FormControl,
     Box, Table, TableBody, TableCell, TableHead,
-    TableRow, Paper, Autocomplete, TableContainer
+    TableRow, Paper, Autocomplete, TableContainer, InputAdornment
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAdherentsAsync, fetchRelationsAsync } from "../../../redux/relations/relationsSlice.js";
@@ -190,9 +190,13 @@ const SaisieBordereau = () => {
         };
     }
 
-    const totalMontant = formik.values.docRemises.reduce((sum, doc) => sum + Number(doc.montantBrut || 0), 0);
-    const amountsMatch = Math.abs(totalMontant - Number(formik.values.bordRemiseMontantBrut)) <= 0.001;
-    const remainingAmount = Number(formik.values.bordRemiseMontantBrut) - totalMontant;
+    const addedAmount = formik.values.docRemises.reduce(
+        (sum, doc) => sum + Number(doc.montantBrut || 0),
+        0
+    );
+
+    const targetAmount = Number(formik.values.bordRemiseMontantBrut);
+    const isComplete = Math.abs(addedAmount - targetAmount) <= 0.001;
 
     const updateDocument = (index, field, value) => {
         formik.setFieldValue(`docRemises[${index}].${field}`, value);
@@ -231,6 +235,8 @@ const SaisieBordereau = () => {
     const validerParDeuxiemeAgent = () => {
         setValidation2(true);
     };
+
+
 
     return (
         <Box p={4} maxWidth="1200px" margin="auto">
@@ -364,20 +370,21 @@ const SaisieBordereau = () => {
                             <Grid item xs={2}>
                                 <TextField
                                     fullWidth
-                                    label="Reste à ajouter"
-                                    value={remainingAmount.toFixed(2)}
+                                    label="Montant ajouté"
+                                    value={addedAmount.toFixed(2)}
                                     disabled
                                     InputProps={{
                                         readOnly: true,
                                         style: {
-                                            color: remainingAmount > 0 ? 'red' : 'green',
+                                            color: isComplete ? 'green' : 'red',
                                             fontWeight: 'bold'
                                         }
                                     }}
-                                    helperText={remainingAmount > 0 ?
-                                        "Ajouter ce montant dans les documents" :
-                                        "Montant total atteint"}
+                                    helperText={isComplete ?
+                                        "Montant total atteint" :
+                                        `Encore ${ (targetAmount - addedAmount).toFixed(2) } à ajouter`}
                                 />
+
                             </Grid>
                         </Grid>
                     </CardContent>
@@ -397,7 +404,18 @@ const SaisieBordereau = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {formik.values.docRemises.map((doc, index) => (
+                            {formik.values.docRemises.map((doc, index) => {
+                                function calculateDays() {
+                                    try {
+                                        const startDate = new Date(formik.values.bordRemiseFactorDate1v);
+                                        const endDate = new Date(doc.echeanceFirst);
+                                        const diffTime = endDate - startDate;
+                                        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    } catch {
+                                        return '';
+                                    }
+                                }
+                                return (
                                 <TableRow key={index}>
                                     <TableCell>
                                         <TextField value={index + 1} disabled size="medium" />
@@ -475,30 +493,51 @@ const SaisieBordereau = () => {
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        <TextField
-                                            fullWidth
-                                            type="date"
-                                            value={doc.echeanceFirst}
-                                            onChange={(e) => updateDocument(index, "echeanceFirst", e.target.value)}
-                                            sx={{ width: '150px' }}
-                                            error={formik.touched.docRemises?.[index]?.echeanceFirst && Boolean(formik.errors.docRemises?.[index]?.echeanceFirst)}
-                                            helperText={formik.touched.docRemises?.[index]?.echeanceFirst && formik.errors.docRemises?.[index]?.echeanceFirst}
-                                            InputLabelProps={{ shrink: true }}
-                                            inputProps={{ min: formatDate(new Date()) }}
+                                        <Autocomplete
+                                            freeSolo
+                                            options={[90, 120, 180]}
+                                            value={calculateDays()}
+                                            onChange={(event, newValue) => {
+                                                const days = parseInt(newValue, 10);
+                                                if (!isNaN(days)) {
+                                                    const startDate = new Date(formik.values.bordRemiseFactorDate1v);
+                                                    const newDate = new Date(startDate);
+                                                    newDate.setDate(startDate.getDate() + days);
+                                                    updateDocument(index, "echeanceFirst", formatDate(newDate));
+                                                }
+                                            }}
+                                            renderInput={(params) => (
+                                                <TextField
+                                                    {...params}
+                                                    label="Jours jusqu'à échéance"
+                                                    error={formik.touched.docRemises?.[index]?.echeanceFirst && Boolean(formik.errors.docRemises?.[index]?.echeanceFirst)}
+                                                    helperText={formik.touched.docRemises?.[index]?.echeanceFirst && formik.errors.docRemises?.[index]?.echeanceFirst}
+                                                    InputProps={{
+                                                        ...params.InputProps,
+                                                        endAdornment: (
+                                                            <>
+                                                                {params.InputProps.endAdornment}
+                                                                <InputAdornment position="end">jours</InputAdornment>
+                                                            </>
+                                                        )
+                                                    }}
+                                                />
+                                            )}
                                         />
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                         </TableBody>
                     </Table>
                 </TableContainer>
+
 
                 <Box textAlign="center" mt={2}>
                     <Button
                         type="submit"
                         variant="contained"
                         color="primary"
-                        disabled={!formik.values.contrat || !formik.values.devise || !amountsMatch}
+                        disabled={!formik.values.contrat || !formik.values.devise || !isComplete}
                         onClick={validation1 ? undefined : handleValidation}
                     >
                         ✅ VALIDER

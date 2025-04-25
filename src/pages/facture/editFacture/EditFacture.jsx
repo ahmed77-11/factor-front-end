@@ -7,11 +7,12 @@ import {formatDate} from "../../../helpers/timeConvert.js";
 import * as Yup from "yup";
 import {getPMById} from "../../../redux/personne/PersonneMoraleSlice.js";
 import {
+    Autocomplete,
     Box, Button,
     Card,
     CardContent, Checkbox,
     FormControl,
-    Grid,
+    Grid, InputAdornment,
     InputLabel,
     MenuItem, Paper,
     Select, Table, TableBody, TableCell,
@@ -452,7 +453,18 @@ const EditFacture = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {formik.values.docRemises.map((doc, index) => (
+                            {formik.values.docRemises.map((doc, index) => {
+                                function calculateDays() {
+                                    try {
+                                        const startDate = new Date(formik.values.bordRemiseFactorDate1v);
+                                        const endDate = new Date(doc.echeanceFirst);
+                                        const diffTime = endDate - startDate;
+                                        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    } catch {
+                                        return '';
+                                    }
+                                }
+                                return (
                                 <TableRow key={index}>
                                     <TableCell>
                                         <TextField value={index + 1} disabled size="medium"/>
@@ -552,16 +564,36 @@ const EditFacture = () => {
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        <TextField
-                                            fullWidth
-                                            type="date"
-                                            value={doc.echeanceFirst}
-                                            onChange={(e) => updateDocument(index, "echeanceFirst", e.target.value)}
-                                            sx={{width: '150px'}}
-                                            InputLabelProps={{shrink: true}}
-                                            error={formik.touched.docRemises?.[index]?.echeanceFirst && Boolean(formik.errors.docRemises?.[index]?.echeanceFirst)}
-                                            helperText={formik.touched.docRemises?.[index]?.echeanceFirst && formik.errors.docRemises?.[index]?.echeanceFirst}
-                                            inputProps={{min: formatDate(new Date())}}
+                                        <Autocomplete
+                                            freeSolo
+                                            options={[90, 120, 180]}
+                                            value={calculateDays()}
+                                            onChange={(event, newValue) => {
+                                                const days = parseInt(newValue, 10);
+                                                if (!isNaN(days)) {
+                                                    const startDate = new Date(formik.values.bordRemiseFactorDate1v);
+                                                    const newDate = new Date(startDate);
+                                                    newDate.setDate(startDate.getDate() + days);
+                                                    updateDocument(index, "echeanceFirst", formatDate(newDate));
+                                                }
+                                            }}
+                                            renderInput={(params) => (
+                                                <TextField
+                                                    {...params}
+                                                    label="Jours jusqu'à échéance"
+                                                    error={formik.touched.docRemises?.[index]?.echeanceFirst && Boolean(formik.errors.docRemises?.[index]?.echeanceFirst)}
+                                                    helperText={formik.touched.docRemises?.[index]?.echeanceFirst && formik.errors.docRemises?.[index]?.echeanceFirst}
+                                                    InputProps={{
+                                                        ...params.InputProps,
+                                                        endAdornment: (
+                                                            <>
+                                                                {params.InputProps.endAdornment}
+                                                                <InputAdornment position="end">jours</InputAdornment>
+                                                            </>
+                                                        )
+                                                    }}
+                                                />
+                                            )}
                                         />
                                     </TableCell>
                                     <TableCell>
@@ -577,7 +609,7 @@ const EditFacture = () => {
                                         />
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                         </TableBody>
                     </Table>
                 </TableContainer>

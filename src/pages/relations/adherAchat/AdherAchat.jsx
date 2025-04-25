@@ -1,20 +1,16 @@
-import { useEffect, useState } from "react";
+import {useEffect, useMemo, useState} from "react";
 import {
+    Autocomplete,
     Box,
-    Typography,
-    IconButton,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
     Button,
-    Grid,
+    Card,
+    CardContent,
+    Grid, IconButton,
+    TextField, Typography,
+    useTheme
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { Autocomplete, TextField } from "@mui/material";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import { Delete as DeleteIcon } from "@mui/icons-material";
 import Header from "../../../components/Header.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -23,213 +19,385 @@ import {
     fetchAdherentsAsync,
     fetchRelationsAsync
 } from "../../../redux/relations/relationsSlice.js";
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { localeText, tokens } from "../../../theme.js";
+import DeletePopup from "../../../components/DeletePopup.jsx";
+
+const validationSchema = Yup.object().shape({
+    adherent: Yup.object().required('Adhérent requis'),
+    acheteur: Yup.object().required('Acheteur requis'),
+    delaiMaxPai: Yup.number()
+        .min(0, 'Doit être positif')
+        .required('Délai requis'),
+    limiteAchat: Yup.number().min(0, 'Doit être positif').required('Limite requise'),
+    limiteCouverture: Yup.number().min(0, 'Doit être positif').required('Limite requise'),
+    effetDate: Yup.date().required('Date effet requise'),
+    comiteRisqueTexte: Yup.string().required('Comite du Risque est requise'),
+    comiteDerogTexte: Yup.string().required('Comite du Derogation est requise'),
+
+    infoLibre: Yup.string().max(255, 'Max 255 caractères')
+});
 
 const AdherAchet = () => {
-    const [selectedAdherent, setSelectedAdherent] = useState(null);
-    const [selectedAcheteur, setSelectedAcheteur] = useState(null);
-    const [acheteursList, setAcheteursList] = useState([]);
     const dispatch = useDispatch();
-    const { adherents, acheteurs,relations, loading, error } = useSelector((state) => state.relations);
+    const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
+    const { adherents, acheteurs, relations,loading,error } = useSelector((state) => state.relations);
+    const [openDelete, setOpenDelete] = useState(false);
+    const [selectedId, setSelectedId] = useState(null);
 
-    // When the component mounts, fetch adherents and acheteurs
+    const formik = useFormik({
+        initialValues: {
+            adherent: null,
+            acheteur: null,
+            delaiMaxPai: 0,
+            limiteAchat: 0,
+            limiteCouverture: 0,
+            effetDate: '',
+            comiteRisqueTexte: '',
+            comiteDerogTexte: '',
+            infoLibre: ''
+        },
+        validationSchema,
+        onSubmit: async (values) => {
+            const relationPayload = {
+                ...values,
+                adherentId: values.adherent.id,
+                acheteurPhysiqueId: values.acheteur.nom ? values.acheteur.id : null,
+                acheteurMoraleId: values.acheteur.raisonSocial ? values.acheteur.id : null
+            };
+
+            await dispatch(addRelationAsync(relationPayload));
+            dispatch(fetchRelationsAsync(values.adherent.id));
+            formik.resetForm();
+        }
+    });
+
     useEffect(() => {
         dispatch(fetchAdherentsAsync());
-    }, [dispatch]);
-
-    useEffect(() => {
         dispatch(fetchAcheteursAsync());
     }, [dispatch]);
 
     useEffect(() => {
-        if(selectedAdherent) {
-            dispatch(fetchRelationsAsync(selectedAdherent.id));
+        if (formik.values.adherent?.id) {
+            dispatch(fetchRelationsAsync(formik.values.adherent.id));
         }
-    }, [dispatch, selectedAdherent]);
+    }, [dispatch, formik.values.adherent]);
 
-    // Merge pps and pms from acheteurs payload if needed
-    const acheteursOptions = acheteurs
-        ? [...(acheteurs.pps || []), ...(acheteurs.pms || [])]
-        : [];
-
-    console.log(relations)
-
-    // Ajouter un acheteur à la liste
-    const handleAddAcheteur = async () => {
-        if (!selectedAcheteur) return;
-
-        // Dispatch addRelationAsync based on the acheteur type.
-        if (selectedAcheteur.raisonSocial) {
-            // It is a personne morale (pms)
-            await dispatch(addRelationAsync(selectedAdherent.id, null, selectedAcheteur.id));
-        } else if (selectedAcheteur.nom && selectedAcheteur.prenom) {
-            // It is a personne physique (pps)
-            await dispatch(addRelationAsync(selectedAdherent.id, selectedAcheteur.id, null));
+    const associatedAcheteurIds = useMemo(() => {
+        const ids = new Set();
+        if (formik.values.adherent?.id) {
+            relations?.forEach(relation => {
+                if (relation.acheteurPhysique) {
+                    ids.add(relation.acheteurPhysique?.id);
+                }
+                if (relation.acheteurMoraleId) {
+                    ids.add(relation.acheteurMorale?.id);
+                }
+            });
         }
+        return ids;
+    }, [relations, formik.values.adherent]);
 
-        // Clear the selectedAcheteur (and optionally add it to a local list if required)
-        setSelectedAcheteur(null);
+    // Filter out already associated acheteurs
+    const acheteursOptions = useMemo(() => {
+        const pps = acheteurs?.pps || [];
+        const pms = acheteurs?.pms || [];
+        return [...pps, ...pms].filter(acheteur =>
+            !associatedAcheteurIds.has(acheteur.id)
+        );
+    }, [acheteurs?.pps, acheteurs?.pms, associatedAcheteurIds]);
 
-        // Re-fetch the relations for the selected adherent after adding new relation
-        dispatch(fetchRelationsAsync(selectedAdherent.id));
+    console.log(acheteursOptions)
+
+    const handleDeleteClick = (id) => {
+        setSelectedId(id);
+        setOpenDelete(true);
     };
 
-    // Supprimer un acheteur
-    const handleRemoveAcheteur = (index) => {
-        setAcheteursList(acheteursList.filter((_, i) => i !== index));
+    const handleConfirmDelete = async () => {
+        // await dispatch(deleteRelationAsync(selectedId));
+        setOpenDelete(false);
+        if (formik.values.adherent?.id) {
+            dispatch(fetchRelationsAsync(formik.values.adherent.id));
+        }
     };
 
-    // Soumettre la liste des acheteurs
+    const columns = [
+        {
+            field: "pieceIdentite",
+            headerName: "Pièce Identité",
+            flex: 1,
+            renderCell: (params) => {
+                const acheteur = params.row.acheteurPhysique || params.row.acheteurMorale;
+                return `${acheteur.typePieceIdentite?.dsg} ${acheteur.numeroPieceIdentite}`;
+            }
+        },
+        {
+            field: "nomRaisonSociale",
+            headerName: "Nom/Raison Sociale",
+            flex: 1,
+            renderCell: (params) => {
+                return params.row.acheteurPhysique
+                    ? `${params.row.acheteurPhysique.nom} ${params.row.acheteurPhysique.prenom}`
+                    : params.row.acheteurMorale.raisonSocial;
+            }
+        },
+        {
+            field: "adresse",
+            headerName: "Adresse",
+            flex: 1,
+            renderCell: (params) => {
+                const acheteur = params.row.acheteurPhysique || params.row.acheteurMorale;
+                return acheteur.adresse;
+            }
+        },
+        {
+            field: "delaiMaxPai",
+            headerName: "Délai Paiement (jours)",
+            flex: 1,
+        },
+        {
+            field: "limiteAchat",
+            headerName: "Limite Achat",
+            flex: 1,
+        },
+        {
+            field: "limiteCouverture",
+            headerName: "Limite Couverture",
+            flex: 1,
+        },
+        {
+            field: "effetDate",
+            headerName: "Date Effet",
+            flex: 1,
+            renderCell: (params) => new Date(params.row.effetDate).toLocaleDateString()
+        },
+        {
+            field: "actions",
+            headerName: "Actions",
+            flex: 1,
+            sortable: false,
+            filterable: false,
+            hideable: false,
+            disableColumnMenu: true,
+            renderCell: (params) => (
+                <Box display="flex" justifyContent="center" width="100%">
+                    <IconButton
+                        color="error"
+                        onClick={() => handleDeleteClick(params.row.id)}
+                    >
+                        <DeleteIcon />
+                    </IconButton>
+                </Box>
+            ),
+        },
+    ];
 
     return (
-        <Box
-            width="100%"
-            p={3}
-            display={"flex"}
-            flexDirection={"column"}
-            alignItems={"center"}
-            justifyContent={"center"}
-        >
-            <Header subtitle={"Ajouter des Acheteurs à l'adhérent"} title={"Les relations"} />
-            <Grid container spacing={4} justifyContent="center">
-                {/* Sélection de l'Adhérent & Acheteur */}
-                <Grid item xs={12} md={6} display="flex" flexDirection="column" alignItems="center">
-                    <Typography variant="subtitle1" mb={1}>
-                        Sélectionner un Adhérent :
-                    </Typography>
-                    <Autocomplete
-                        options={adherents}
-                        value={selectedAdherent}
-                        disabled={selectedAdherent !== null}
-                        onChange={(event, newValue) => setSelectedAdherent(newValue)}
-                        // Adjust this getOptionLabel as needed for adherents if they have similar structure.
-                        getOptionLabel={(option) =>
-                            `${option.typePieceIdentite?.dsg || ""}${option.numeroPieceIdentite || ""} - ${option.raisonSocial || ""}`
-                        }
-                        renderInput={(params) => (
-                            <TextField {...params} label="Adhérent" variant="outlined" fullWidth />
-                        )}
-                        sx={{ mb: 3, width: 400 }}
-                    />
-                    <Typography variant="subtitle1" mb={1}>
-                        Sélectionner un Acheteur :
-                    </Typography>
-                    <Autocomplete
-                        options={acheteursOptions}
-                        value={selectedAcheteur}
-                        onChange={(event, newValue) => setSelectedAcheteur(newValue)}
-                        freeSolo={false}
-                        disabled={!selectedAdherent}
-                        getOptionLabel={(option) => {
-                            // Build identity string from typePieceIdentite and numeroPieceIdentite
-                            const identityStr = `${option.typePieceIdentite?.dsg || ""}${option.numeroPieceIdentite || ""}`;
-                            // If it's a personne physique (pps), it should have a nom and prenom
-                            if (option.nom && option.prenom) {
-                                return `${identityStr} - ${option.nom} ${option.prenom}`;
-                            }
-                            // Else if it's a personne morale (pms) with raisonSocial
-                            if (option.raisonSocial) {
-                                return `${identityStr} - ${option.raisonSocial}`;
-                            }
-                            // Fallback to the identity string alone
-                            return identityStr;
-                        }}
-                        renderInput={(params) => (
-                            <TextField {...params} label="Acheteur" variant="outlined" fullWidth />
-                        )}
-                        sx={{ mb: 3, width: 400 }}
-                    />
-                    <Button
-                        onClick={handleAddAcheteur}
-                        variant="contained"
-                        color="primary"
-                        disabled={!selectedAcheteur}
-                    >
-                        Ajouter Acheteur
-                    </Button>
-                </Grid>
+        <Box m="20px">
+            <Header title="Relations Adhérents Et Acheteurs" subtitle="Gestion des relations" />
 
-                {/* Liste des Acheteurs */}
-                {/*<Grid item xs={12} md={6} display="flex" flexDirection="column" alignItems="center">*/}
-                {/*    <TableContainer component={Paper} sx={{ mt: 2 }}>*/}
-                {/*        <Table>*/}
-                {/*            <TableHead>*/}
-                {/*                <TableRow>*/}
-                {/*                    <TableCell>Nom de l'Acheteur</TableCell>*/}
-                {/*                    <TableCell>Actions</TableCell>*/}
-                {/*                </TableRow>*/}
-                {/*            </TableHead>*/}
-                {/*            <TableBody>*/}
-                {/*                {relations.map((acheteur, index) => (*/}
-                {/*                    <TableRow key={index}>*/}
-                {/*                        <TableCell>*/}
-                {/*                            {(() => {*/}
-                {/*                                const identityStr = `${acheteur.typePieceIdentite?.dsg || ""}${acheteur.numeroPieceIdentite || ""}`;*/}
-                {/*                                if (acheteur.nom && acheteur.prenom) {*/}
-                {/*                                    return `${identityStr} - ${acheteur.nom} ${acheteur.prenom}`;*/}
-                {/*                                }*/}
-                {/*                                if (acheteur.raisonSocial) {*/}
-                {/*                                    return `${identityStr} - ${acheteur.raisonSocial}`;*/}
-                {/*                                }*/}
-                {/*                                return identityStr;*/}
-                {/*                            })()}*/}
-                {/*                        </TableCell>*/}
-                {/*                        <TableCell>*/}
-                {/*                            <IconButton onClick={() => handleRemoveAcheteur(index)} color="error">*/}
-                {/*                                <DeleteIcon />*/}
-                {/*                            </IconButton>*/}
-                {/*                        </TableCell>*/}
-                {/*                    </TableRow>*/}
-                {/*                ))}*/}
-                {/*            </TableBody>*/}
-                {/*        </Table>*/}
-                {/*    </TableContainer>*/}
-                {/*    <Box display="flex" justifyContent="center" width="100%" mt={2}>*/}
-                {/*        <Button*/}
-                {/*            onClick={handleSubmit}*/}
-                {/*            variant="contained"*/}
-                {/*            color="success"*/}
-                {/*            sx={{ width: "50%" }}*/}
-                {/*        >*/}
-                {/*            Soumettre*/}
-                {/*        </Button>*/}
-                {/*    </Box>*/}
-                {/*</Grid>*/}
-                <Grid item xs={12} md={6} display="flex" flexDirection="column" alignItems="center">
-                    <TableContainer component={Paper} sx={{ mt: 2 }}>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Nom de l'Acheteur</TableCell>
-                                    <TableCell>Actions</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {relations.map((relation, index) => {
-                                    let displayLabel = "";
-                                    if (relation.acheteurMorale) {
-                                        const identityStr = `${relation.acheteurMorale.typePieceIdentite?.dsg || ""}${relation.acheteurMorale.numeroPieceIdentite || ""}`;
-                                        displayLabel = `${identityStr} - ${relation.acheteurMorale.raisonSocial}`;
-                                    } else if (relation.acheteurPhysique) {
-                                        const identityStr = `${relation.acheteurPhysique.typePieceIdentite?.dsg || ""}${relation.acheteurPhysique.numeroPieceIdentite || ""}`;
-                                        displayLabel = `${identityStr} - ${relation.acheteurPhysique.nom} ${relation.acheteurPhysique.prenom}`;
+            {/* Form Section */}
+            <Card sx={{ mb: 3, p: 2, backgroundColor: colors.grey[900] }}>
+                <form onSubmit={formik.handleSubmit}>
+                    <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                            <Autocomplete
+                                options={adherents}
+                                value={formik.values.adherent}
+                                onChange={(_, value) => formik.setFieldValue('adherent', value)}
+                                getOptionLabel={(option) =>
+                                    `${option.typePieceIdentite?.dsg || ''} ${option.numeroPieceIdentite} - ${option.raisonSocial}`
+                                }
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Adhérent"
+                                        error={formik.touched.adherent && !!formik.errors.adherent}
+                                        helperText={formik.touched.adherent && formik.errors.adherent}
+                                    />
+                                )}
+                            />
+                        </Grid>
+
+                        <Grid item xs={12} md={6}>
+                            <Autocomplete
+                                options={acheteursOptions}
+                                disabled={!formik.values.adherent?.id}
+                                value={formik.values.acheteur}
+                                onChange={(_, value) => formik.setFieldValue('acheteur', value)}
+                                getOptionLabel={(option) => {
+                                    if (option.nom) {
+                                        return `${option.typePieceIdentite?.dsg} ${option.numeroPieceIdentite} - ${option.nom} ${option.prenom}`;
                                     }
-                                    return (
-                                        <TableRow key={index}>
-                                            <TableCell>{displayLabel}</TableCell>
-                                            <TableCell>
-                                                <IconButton onClick={() => handleRemoveAcheteur(index)} color="error">
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                    return `${option.typePieceIdentite?.dsg} ${option.numeroPieceIdentite} - ${option.raisonSocial}`;
+                                }}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
 
-                </Grid>
-            </Grid>
+                                        label="Acheteur"
+                                        error={formik.touched.acheteur && !!formik.errors.acheteur}
+                                        helperText={formik.touched.acheteur && formik.errors.acheteur}
+                                        disabled={!formik.values.adherent?.id}
+                                    />
+                                )}
+                            />
+                        </Grid>
+
+                        <Grid item xs={6} md={3}>
+                            <TextField
+                                fullWidth
+                                type="number"
+                                label="Délai paiement (jours)"
+                                name="delaiMaxPai"
+                                value={formik.values.delaiMaxPai}
+                                onChange={formik.handleChange}
+                                error={formik.touched.delaiMaxPai && !!formik.errors.delaiMaxPai}
+                                helperText={formik.touched.delaiMaxPai && formik.errors.delaiMaxPai}
+                            />
+                        </Grid>
+
+                        <Grid item xs={6} md={3}>
+                            <TextField
+                                fullWidth
+                                type="number"
+                                label="Limite achat"
+                                name="limiteAchat"
+                                value={formik.values.limiteAchat}
+                                onChange={formik.handleChange}
+                                error={formik.touched.limiteAchat && !!formik.errors.limiteAchat}
+                                helperText={formik.touched.limiteAchat && formik.errors.limiteAchat}
+                            />
+                        </Grid>
+
+                        <Grid item xs={6} md={3}>
+                            <TextField
+                                fullWidth
+                                type="number"
+                                label="Limite couverture"
+                                name="limiteCouverture"
+                                value={formik.values.limiteCouverture}
+                                onChange={formik.handleChange}
+                                error={formik.touched.limiteCouverture && !!formik.errors.limiteCouverture}
+                                helperText={formik.touched.limiteCouverture && formik.errors.limiteCouverture}
+                            />
+                        </Grid>
+                        <Grid item xs={6} md={3}>
+                            <TextField
+                                fullWidth
+                                type="text"
+                                label="Comite Du Risque"
+                                name="comiteRisqueTexte"
+                                value={formik.values.comiteRisqueTexte}
+                                onChange={formik.handleChange}
+                                error={formik.touched.comiteRisqueTexte && !!formik.errors.comiteRisqueTexte}
+                                helperText={formik.touched.comiteRisqueTexte && formik.errors.comiteRisqueTexte}
+                            />
+                        </Grid>
+                        <Grid item xs={6} md={3}>
+                            <TextField
+                                fullWidth
+                                type="text"
+                                label="Comite Du Derogation"
+                                name="comiteDerogTexte"
+                                value={formik.values.comiteDerogTexte}
+                                onChange={formik.handleChange}
+                                error={formik.touched.comiteDerogTexte && !!formik.errors.comiteDerogTexte}
+                                helperText={formik.touched.comiteDerogTexte && formik.errors.comiteDerogTexte}
+                            />
+                        </Grid>
+
+
+                        <Grid item xs={6} md={3}>
+                            <TextField
+                                fullWidth
+                                type="date"
+                                label="Date effet"
+                                name="effetDate"
+                                value={formik.values.effetDate}
+                                onChange={formik.handleChange}
+                                InputLabelProps={{ shrink: true }}
+                                error={formik.touched.effetDate && !!formik.errors.effetDate}
+                                helperText={formik.touched.effetDate && formik.errors.effetDate}
+                            />
+                        </Grid>
+
+                        <Grid item xs={6} md={6}>
+                            <TextField
+                                fullWidth
+                                type="text"
+                                label="Info Libre"
+                                name="infoLibre"
+                                value={formik.values.infoLibre}
+                                onChange={formik.handleChange}
+                                error={formik.touched.infoLibre && !!formik.errors.infoLibre}
+                                helperText={formik.touched.infoLibre && formik.errors.infoLibre}
+                            />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                            <Button
+                                fullWidth
+                                type="submit"
+                                variant="contained"
+                                sx={{ height: '56px' }}
+                                disabled={!formik.isValid || !formik.dirty}
+                            >
+                                Ajouter Relation
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </form>
+            </Card>
+
+            {/* Relations List */}
+            <Card sx={{ p: 2, backgroundColor: colors.grey[900] }}>
+                <Typography variant="h6" gutterBottom>
+                    Liste des Relations
+                </Typography>
+                <Box
+                    sx={{
+                        height: 400,
+                        "& .MuiDataGrid-root": { border: "none" },
+                        "& .MuiDataGrid-cell": { borderBottom: "none" },
+                        "& .MuiDataGrid-columnHeader": {
+                            backgroundColor: colors.blueAccent[700],
+                        },
+                        "& .MuiDataGrid-footerContainer": {
+                            backgroundColor: colors.blueAccent[700],
+                        },
+                        "& .MuiCheckbox-root": {
+                            color: `${colors.greenAccent[200]} !important`,
+                        },
+                        "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+                            color: `${colors.grey[100]} !important`,
+                        },
+                    }}
+                >
+                    <DataGrid
+                        rows={relations || []}
+                        columns={columns}
+                        pageSizeOptions={[5, 10, 20]}
+                        slots={{ toolbar: GridToolbar }}
+                        checkboxSelection
+                        disableRowSelectionOnClick
+                        localeText={localeText}
+                        getRowId={(row) =>{
+                            return row.id
+                        }}
+                        loading={loading}
+                    />
+                </Box>
+            </Card>
+
+            <DeletePopup
+                open={openDelete}
+                onClose={() => setOpenDelete(false)}
+                onConfirm={handleConfirmDelete}
+            />
         </Box>
     );
 };

@@ -33,6 +33,14 @@ import EditBordereau from "./pages/facture/editFacture/EditFacture.jsx";
 import ListNonValider from "./pages/facture/listFacture/ListNonValider.jsx";
 import ListFValider from "./pages/facture/listFactureValider/ListValider.jsx";
 import ValidateFacture from "./pages/facture/validateFacture.jsx";
+import AddTraite from "./pages/Traite/AddTraite.jsx";
+import UpdateTraite from "./pages/Traite/UpdateTraite.jsx";
+import GetAllTraite from "./pages/Traite/GetAllTraite.jsx";
+import AddDemFin from "./pages/DemFin/AddDemFin.jsx";
+import UpdateDemFin from "./pages/DemFin/UpdateDemFin.jsx";
+import GetAllDemFin from "./pages/DemFin/GetAllDemFin.jsx";
+import Financement from "./pages/DemFin/Financement.jsx";
+import AcceptDemFin from "./pages/DemFin/AcceptDemFin.jsx";
 
 
 function App() {
@@ -77,12 +85,19 @@ function App() {
                       <Route path={"/list-contrats-juridique"} element={<ListJuridique/>}/>
                       <Route path={"/list-contrats-modifier"} element={<ListModification/>}/>
                       <Route path={"/list-contrats-signer"} element={<ListSigner/>}/>
-                          <Route path={"/ajouter-facture"} element={<Facture/>}/>
+                      <Route path={"/ajouter-facture"} element={<Facture/>}/>
                       <Route path="/modifier-facture/:id" element={<EditBordereau />} />
                       <Route path="/valider-facture/:id" element={<ValidateFacture />} />
                       <Route path={"/factures-non-valider"} element={<ListNonValider/>}/>s
                       <Route path={"/factures"} element={<ListFValider/>}/>
-
+                      <Route path={"/ajouter-traite"} element={<AddTraite/>}/>
+                      <Route path={"/modifier-traite/:id"} element={<UpdateTraite/>}/>
+                      <Route path={"/all-traite"} element={<GetAllTraite/>}/>
+                      <Route path={"/ajouter-demFin"} element={<AddDemFin/>}/>
+                      <Route path={"/modifier-demFin/:id"} element={<UpdateDemFin/>}/>
+                      <Route path={"/all-demFin"} element={<GetAllDemFin/>}/>
+                      <Route path={"/financement"} element={<Financement/>}/>
+                      <Route path={"/accept-demfin/:id"} element={<AcceptDemFin/>}/>
 
                   </Route>
               </Route>

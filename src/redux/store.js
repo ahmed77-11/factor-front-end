@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import {combineReducers,configureStore} from "@reduxjs/toolkit";
 import storage from "redux-persist/lib/storage";
 import userReducer from "./user/userSlice";
@@ -6,8 +7,10 @@ import ppReducer from "./personne/PersonnePhysiqueSlice";
 import pmReducer from "./personne/PersonneMoraleSlice.js";
 import formReducer from "./formSteperSlice/FormSlice";
 import contratReducer from "./contrat/ContratSlice";
-import relationsReducer from "./relations/RelationsSlice";
-import factureReducer from "./facture/FactureSlice.js";
+import relationsReducer from "./relations/relationsSlice.js"
+import factureReducer from "./facture/FactureSlice.js"
+import traiteReducer from "./traite/traiteSlice.js"
+import demFinReducer from "./demFin/demFinSlice.js"
 import {persistReducer,persistStore} from "redux-persist";
 import {createTransform} from "redux-persist";
 
@@ -52,6 +55,8 @@ const rootReducer = combineReducers({
     contrat:contratReducer,
     relations:relationsReducer,
     facture:factureReducer,
+    traite:traiteReducer,
+    demFin:demFinReducer,
 });
 
 const persistConfig = {

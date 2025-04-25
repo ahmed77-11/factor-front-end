@@ -193,6 +193,21 @@ export const signerContratAsync = (contratId,navigate) => async (dispatch) => {
 
     }
 }
+export const fetchContratsSigner=()=>async(dispatch)=>{
+    dispatch(fetchContrats());
+    try{
+        const res=await axios.get("http://localhost:8083/factoring/contrat/api/all-signer-contrat",{
+            withCredentials:true,
+        })
+        if (res.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(fetchContratsSuccess(res.data));
+    }catch(e){
+        dispatch(fetchContratsFailure(e.message));
+
+    }
+}
 
 export const { fetchContrats, fetchContratsSuccess, fetchContratsFailure,addContratStart,addContratSuccess,addContratFailure ,updateContratStart,updateContratSuccess,updateContratFailure,getContratByIdStart,getContratByIdSuccess,getContratByIdFailure,signerContratStart,signerContratSuccess,signerContratFailure,getByAdherentStart,getByAdherentSuccess,getByAdherentFailure} = contratSlice.actions;
 export default contratSlice.reducer;

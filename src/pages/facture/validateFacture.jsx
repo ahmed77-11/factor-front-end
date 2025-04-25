@@ -7,11 +7,12 @@ import {formatDate} from "../../helpers/timeConvert.js";
 import * as Yup from "yup";
 import {getPMById} from "../../redux/personne/PersonneMoraleSlice.js";
 import {
+    Autocomplete,
     Box, Button,
     Card,
     CardContent, Checkbox,
     FormControl,
-    Grid,
+    Grid, InputAdornment,
     InputLabel,
     MenuItem, Paper,
     Select, Table, TableBody, TableCell,
@@ -42,7 +43,6 @@ const validationSchema = Yup.object().shape({
             echeanceFirst: Yup.date()
                 .min(new Date(), 'La date d\'échéance ne peut pas être dans le passé')
                 .required('Date d\'échéance requise'),
-            boolAdmis: Yup.boolean(),
             boolLitige: Yup.boolean(),
             devise: Yup.mixed().required('Devise requise')
         })
@@ -62,11 +62,9 @@ const ValidateFacture = () => {
     const [validation2, setValidation2] = useState(false);
 
     useEffect(() => {
-        // Fetch the facture data using the id
         dispatch(getFactureById(id));
     }, [dispatch, id]);
 
-    // Fetch related data when the facture is loaded
     useEffect(() => {
         if (currentFacture?.contrat?.adherent) {
             dispatch(getPMById(currentFacture.contrat.adherent));
@@ -74,19 +72,14 @@ const ValidateFacture = () => {
         }
     }, [currentFacture?.contrat?.adherent, dispatch]);
 
-    // Initialize form with data when it's available
     useEffect(() => {
         if (currentFacture && !formInitialized && formik) {
-            // Prepare docRemises with correct format
             const formattedDocRemises = currentFacture.docRemises?.map(doc => ({
                 ...doc,
-                // Format dates if they exist
                 createDate: doc.createDate || formatDate(new Date()),
                 echeanceFirst: doc.echeanceFirst || formatDate(new Date(Date.now() + 86400000)),
-                // Ensure booleans are correct
-                boolAdmis: doc.boolAdmis === true,
-                boolLitige: doc.boolLitige === true,
-                // Use correct references
+                boolAdmis: !doc.boolLitige,
+                boolLitige: doc.boolLitige || false,
                 acheteurFactorCode: doc.acheteurFactorCode || "",
                 typeDocRemise: doc.typeDocRemise || null,
                 docRemiseNo: doc.docRemiseNo || "",
@@ -94,7 +87,6 @@ const ValidateFacture = () => {
                 devise: doc.devise || currentFacture.devise || null
             })) || [];
 
-            // Set all form values
             formik.setValues({
                 contrat: currentFacture.contrat || null,
                 bordRemiseNo: currentFacture.bordRemiseNo || "0",
@@ -108,7 +100,6 @@ const ValidateFacture = () => {
                 devise: currentFacture.devise || null,
                 docRemises: formattedDocRemises.length > 0 ? formattedDocRemises : [createEmptyDocument(currentFacture.devise)]
             });
-
             setFormInitialized(true);
         }
     }, [currentFacture, formInitialized]);
@@ -121,8 +112,8 @@ const ValidateFacture = () => {
             createDate: formatDate(new Date()),
             montantBrut: 0,
             echeanceFirst: formatDate(new Date(Date.now() + 86400000)),
-            boolAdmis: false,
             boolLitige: false,
+            boolAdmis: true,
             devise: devise || null,
             bordRemiseLigneNo: 0
         };
@@ -149,95 +140,73 @@ const ValidateFacture = () => {
                 return;
             }
 
-            // Check if devise is set
             if (!values.devise) {
                 formik.setFieldError('devise', 'La devise est requise');
                 alert("La devise est requise pour le bordereau");
                 return;
             }
 
-            // Verify number of documents
             if (values.docRemises.length !== Number(values.bordRemiseNbrLigne)) {
                 formik.setFieldError('bordRemiseNbrLigne', 'Nombre de lignes ≠ nombre de documents indiqué');
                 return;
             }
 
-            // Format dates for submission
             const formData = {
                 ...values,
-                id: currentFacture.id, // Make sure to include the id for update
+                id: currentFacture.id,
                 bordRemiseFactorDate1v: formatDate(values.bordRemiseFactorDate1v),
                 bordRemiseFactorDate2v: formatDate(values.bordRemiseFactorDate2v),
                 contrat: values.contrat,
                 docRemises: values.docRemises.map((doc, index) => ({
                     ...doc,
-                    id: doc.id, // Keep the original id if it exists
+                    id: doc.id,
                     createDate: formatDate(doc.createDate),
                     echeanceFirst: formatDate(doc.echeanceFirst),
                     bordRemiseLigneNo: index + 1,
                     devise: doc.devise || values.devise,
-                    contrat: values.contrat.id, // just send the id, not the whole object
-                    bordRemiseId: currentFacture.id // Link to the parent
+                    contrat: values.contrat.id,
+                    bordRemiseId: currentFacture.id,
+                    boolAdmis: !doc.boolLitige
                 }))
             };
 
-            // Calculate total amounts
             const totalMontant = values.docRemises.reduce((sum, doc) => sum + Number(doc.montantBrut || 0), 0);
-            const totalAdmis = values.docRemises.filter(d => d.boolAdmis).reduce((sum, d) => sum + Number(d.montantBrut || 0), 0);
             const totalLitige = values.docRemises.filter(d => d.boolLitige).reduce((sum, d) => sum + Number(d.montantBrut || 0), 0);
+            const totalAdmis = totalMontant - totalLitige;
 
-            // Update the values for submission
             formData.bordRemiseMontantAdmis = totalAdmis;
             formData.bordRemiseMontantLitige = totalLitige;
             formData.bordRemiseMontantBrut = Number(formData.bordRemiseMontantBrut);
 
-            // Check total amounts
             if (Math.abs(totalMontant - Number(formData.bordRemiseMontantBrut)) > 0.001) {
                 formik.setFieldError('bordRemiseMontantBrut', 'Montant total ≠ somme des montants des documents');
                 return;
             }
 
-            console.log("Form submitted with values:", formData);
             dispatch(validerFacture(formData, navigate));
         }
     });
 
-    // Calculate totals and remaining amount
     const totalMontant = formik.values.docRemises.reduce((sum, doc) => sum + Number(doc.montantBrut || 0), 0);
     const amountsMatch = Math.abs(totalMontant - Number(formik.values.bordRemiseMontantBrut)) <= 0.001;
     const remainingAmount = Number(formik.values.bordRemiseMontantBrut) - totalMontant;
-    const totalAdmis = formik.values.docRemises.filter(d => d.boolAdmis).reduce((sum, d) => sum + Number(d.montantBrut || 0), 0);
     const totalLitige = formik.values.docRemises.filter(d => d.boolLitige).reduce((sum, d) => sum + Number(d.montantBrut || 0), 0);
+    const totalAdmis = totalMontant - totalLitige;
 
     const updateDocument = (index, field, value) => {
         const updated = [...formik.values.docRemises];
-        updated[index][field] = value;
 
-        if (field === 'typeDocRemise') {
-            formik.setFieldValue(`docRemises[${index}].typeDocRemise`, value);
+        if (field === 'boolLitige') {
+            updated[index].boolLitige = value;
+            updated[index].boolAdmis = !value;
         } else {
-            formik.setFieldValue(`docRemises[${index}].${field}`, value);
+            updated[index][field] = value;
         }
 
-        if (field === 'boolAdmis' && value) {
-            formik.setFieldValue(`docRemises[${index}].boolLitige`, false);
-        } else if (field === 'boolLitige' && value) {
-            formik.setFieldValue(`docRemises[${index}].boolAdmis`, false);
-        }
+        formik.setFieldValue(`docRemises[${index}]`, updated[index]);
 
-        if (formik.values.devise) {
-            formik.setFieldValue(`docRemises[${index}].devise`, formik.values.devise);
-        }
-
-        const newAdmis = formik.values.docRemises.filter((d, i) => {
-            if (i === index && field === 'boolAdmis') return value;
-            return d.boolAdmis;
-        }).reduce((sum, d) => sum + Number(d.montantBrut || 0), 0);
-
-        const newLitige = formik.values.docRemises.filter((d, i) => {
-            if (i === index && field === 'boolLitige') return value;
-            return d.boolLitige;
-        }).reduce((sum, d) => sum + Number(d.montantBrut || 0), 0);
+        const newLitige = updated.filter(d => d.boolLitige).reduce((sum, d) => sum + Number(d.montantBrut || 0), 0);
+        const newAdmis = totalMontant - newLitige;
 
         formik.setFieldValue('bordRemiseMontantAdmis', newAdmis);
         formik.setFieldValue('bordRemiseMontantLitige', newLitige);
@@ -342,7 +311,6 @@ const ValidateFacture = () => {
                             <Grid item xs={2}>
                                 <TextField
                                     fullWidth
-
                                     type="date"
                                     label="Date Validation"
                                     InputLabelProps={{shrink: true}}
@@ -447,12 +415,22 @@ const ValidateFacture = () => {
                                 <TableCell>Date</TableCell>
                                 <TableCell>Montant</TableCell>
                                 <TableCell>Échéance</TableCell>
-                                <TableCell>Admis</TableCell>
                                 <TableCell>Litige</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {formik.values.docRemises.map((doc, index) => (
+                            {formik.values.docRemises.map((doc, index) => {
+                                function calculateDays() {
+                                    try {
+                                        const startDate = new Date(formik.values.bordRemiseFactorDate1v);
+                                        const endDate = new Date(doc.echeanceFirst);
+                                        const diffTime = endDate - startDate;
+                                        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    } catch {
+                                        return '';
+                                    }
+                                }
+                                return (
                                 <TableRow key={index}>
                                     <TableCell>
                                         <TextField value={index + 1} disabled size="medium"/>
@@ -533,7 +511,6 @@ const ValidateFacture = () => {
                                             InputLabelProps={{shrink: true}}
                                             error={formik.touched.docRemises?.[index]?.createDate && Boolean(formik.errors.docRemises?.[index]?.createDate)}
                                             helperText={formik.touched.docRemises?.[index]?.createDate && formik.errors.docRemises?.[index]?.createDate}
-
                                         />
                                     </TableCell>
                                     <TableCell>
@@ -552,22 +529,36 @@ const ValidateFacture = () => {
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        <TextField
-                                            fullWidth
-                                            type="date"
-                                            value={doc.echeanceFirst}
-                                            onChange={(e) => updateDocument(index, "echeanceFirst", e.target.value)}
-                                            sx={{width: '150px'}}
-                                            InputLabelProps={{shrink: true}}
-                                            error={formik.touched.docRemises?.[index]?.echeanceFirst && Boolean(formik.errors.docRemises?.[index]?.echeanceFirst)}
-                                            helperText={formik.touched.docRemises?.[index]?.echeanceFirst && formik.errors.docRemises?.[index]?.echeanceFirst}
-                                            inputProps={{min: formatDate(new Date())}}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Checkbox
-                                            checked={doc.boolAdmis}
-                                            onChange={(e) => updateDocument(index, "boolAdmis", e.target.checked)}
+                                        <Autocomplete
+                                            freeSolo
+                                            options={[90, 120, 180]}
+                                            value={calculateDays()}
+                                            onChange={(event, newValue) => {
+                                                const days = parseInt(newValue, 10);
+                                                if (!isNaN(days)) {
+                                                    const startDate = new Date(formik.values.bordRemiseFactorDate1v);
+                                                    const newDate = new Date(startDate);
+                                                    newDate.setDate(startDate.getDate() + days);
+                                                    updateDocument(index, "echeanceFirst", formatDate(newDate));
+                                                }
+                                            }}
+                                            renderInput={(params) => (
+                                                <TextField
+                                                    {...params}
+                                                    label="Jours jusqu'à échéance"
+                                                    error={formik.touched.docRemises?.[index]?.echeanceFirst && Boolean(formik.errors.docRemises?.[index]?.echeanceFirst)}
+                                                    helperText={formik.touched.docRemises?.[index]?.echeanceFirst && formik.errors.docRemises?.[index]?.echeanceFirst}
+                                                    InputProps={{
+                                                        ...params.InputProps,
+                                                        endAdornment: (
+                                                            <>
+                                                                {params.InputProps.endAdornment}
+                                                                <InputAdornment position="end">jours</InputAdornment>
+                                                            </>
+                                                        )
+                                                    }}
+                                                />
+                                            )}
                                         />
                                     </TableCell>
                                     <TableCell>
@@ -577,7 +568,7 @@ const ValidateFacture = () => {
                                         />
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                         </TableBody>
                     </Table>
                 </TableContainer>
@@ -593,8 +584,6 @@ const ValidateFacture = () => {
                         ✅ VALIDER
                     </Button>
                 </Box>
-
-
             </form>
         </Box>
     );

@@ -67,12 +67,24 @@ const relationsSlice = createSlice({
         },
         addRelationSuccess: (state, action) => {
             state.loading = false;
-            state.relations.push(action.payload);
+            state.relations=state.relations.push(action.payload);
         },
         addRelationFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
         },
+        allAdherentByAcheteurStart: (state) => {
+            state.loading = true;
+        },
+        allAdherentByAcheteurSuccess: (state, action) => {
+            state.loading = false;
+            state.adherents = action.payload;
+        },
+        allAdherentByAcheteurFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
     }
 });
 
@@ -93,6 +105,9 @@ export const {
     fetchPerAcheteurByIdStart,
     fetchPerAcheteurByIdSuccess,
     fetchPerAcheteurByIdFailure,
+    allAdherentByAcheteurStart,
+    allAdherentByAcheteurSuccess,
+    allAdherentByAcheteurFailure
 } = relationsSlice.actions;
 
 
@@ -133,13 +148,14 @@ export const fetchAcheteursAsync = () => async (dispatch) => {
     }
 }
 
-export const addRelationAsync=(adherId,acheteurPPId,acheteurPMId)=>async (dispatch) => {
+export const addRelationAsync=(data)=>async (dispatch) => {
     dispatch(addRelationStart());
-    const url = acheteurPMId ? `http://localhost:8081/factoring/api/relations/adherants/${adherId}/acheteurs?acheteurMoraleId=${acheteurPMId}` : `http://localhost:8081/factoring/api/relations/adherants/${adherId}/acheteurs?acheteurPhysiqueId=${acheteurPPId}`;
+    const {adherentId,acheteurPhysiqueId,acheteurMoraleId}=data;
+    const url = acheteurMoraleId ? `http://localhost:8081/factoring/api/relations/adherants/${adherentId}/acheteurs?acheteurMoraleId=${acheteurMoraleId}` : `http://localhost:8081/factoring/api/relations/adherants/${adherentId}/acheteurs?acheteurPhysiqueId=${acheteurPhysiqueId}`;
     try {
         const response = await axios.post(
             url,
-            null,
+            data,
             {withCredentials: true}
         );
         if (response.status !== 200) {
@@ -182,5 +198,23 @@ export const fetchPerAcheteurByIdAsync=(id)=>async (dispatch) => {
         dispatch(fetchPerAcheteurByIdSuccess(response.data));
     } catch (error) {
         dispatch(fetchPerAcheteurByIdFailure(error.message));
+    }
+}
+
+
+export const fetchAdherentsByAcheteur=(id)=>async (dispatch)=>{
+    dispatch(allAdherentByAcheteurStart());
+    try {
+        const response = await axios.get(
+            `http://localhost:8081/factoring/api/relations/adherents/${id}`,
+            { withCredentials: true }
+        );
+        if (response.status!==200) {
+            throw new Error("Une erreur s'est produite");
+        }
+
+        dispatch(allAdherentByAcheteurSuccess(response.data));
+    } catch (error) {
+        dispatch(allAdherentByAcheteurFailure(error.message));
     }
 }
