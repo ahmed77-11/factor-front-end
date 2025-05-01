@@ -1,36 +1,60 @@
-import {Box, IconButton, useTheme, InputBase} from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
-import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
-import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
-import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
-import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
-import SearchIcon from "@mui/icons-material/Search";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import {
+    Box,
+    IconButton,
+    useTheme,
+    Badge,
+    Menu,
+    MenuItem, Fade
+} from "@mui/material";
+import {
+    LightModeOutlined as LightModeOutlinedIcon,
+    DarkModeOutlined as DarkModeOutlinedIcon,
+    NotificationsOutlined as NotificationsOutlinedIcon,
+    PersonOutlined as PersonOutlinedIcon,
+    SettingsOutlined as SettingsOutlinedIcon
+} from "@mui/icons-material";
 import { tokens } from "../../../theme.js";
-import {toggleColorMode} from "../../../redux/mode/modeSlice.js";
-import {useNavigate} from "react-router-dom";
+import { toggleColorMode } from "../../../redux/mode/modeSlice.js";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
-
-const NavBar = () => {
+// eslint-disable-next-line react/prop-types
+const NavBar = ({ unreadCount }) => {
     const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
     const dispatch = useDispatch();
     const mode = useSelector((state) => state.mode.mode);
-    const colors = tokens(theme.palette.mode);
-    const navigate=useNavigate()
+    const navigate = useNavigate();
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
 
-    const handleNavigate=()=>{
-        navigate("/notification")
-    }
+    const handleSettingsClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleChangePassword = () => {
+        handleClose();
+        navigate("/change-password");
+    };
+
+    const handleLogout = () => {
+        handleClose();
+        navigate("/login");
+    };
+
+    const handleNavigate = () => {
+        navigate("/notification");
+    };
 
     return (
         <Box display="flex" justifyContent="space-between" p={2}>
-            {/* SEARCH BAR */}
-            <Box display="flex" backgroundColor={colors.primary[400]} borderRadius="3px">
-                <InputBase sx={{ ml: 2, flex: 1 }} placeholder="Search" />
-                <IconButton type="button" sx={{ p: 1 }}>
-                    <SearchIcon />
-                </IconButton>
-            </Box>
+            {/* SEARCH BAR (currently unused) */}
+            <Box display="flex" backgroundColor={colors.primary[400]} borderRadius="3px" />
 
             {/* ICONS */}
             <Box display="flex">
@@ -38,16 +62,40 @@ const NavBar = () => {
                     {mode === "dark" ? <DarkModeOutlinedIcon /> : <LightModeOutlinedIcon />}
                 </IconButton>
 
-
                 <IconButton onClick={handleNavigate}>
-
-                    <NotificationsOutlinedIcon />
-
+                    <Badge badgeContent={unreadCount} color="error" max={99}>
+                        <NotificationsOutlinedIcon />
+                    </Badge>
                 </IconButton>
 
-                <IconButton>
-                    <SettingsOutlinedIcon />
+                <IconButton onClick={handleSettingsClick}>
+                    <SettingsOutlinedIcon
+                        style={{
+                            transform: open ? "rotate(20deg)" : "rotate(0deg)",
+                            transition: "transform 0.3s ease-in-out",
+                        }}
+                    />
                 </IconButton>
+
+                <Menu
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleClose}
+                    TransitionComponent={Fade} // ✅ Apply fade transition
+
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                    }}
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                    }}
+                >
+                    <MenuItem onClick={handleChangePassword}>Change Password</MenuItem>
+                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                </Menu>
+
                 <IconButton>
                     <PersonOutlinedIcon />
                 </IconButton>

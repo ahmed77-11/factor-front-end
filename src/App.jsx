@@ -41,6 +41,7 @@ import UpdateDemFin from "./pages/DemFin/UpdateDemFin.jsx";
 import GetAllDemFin from "./pages/DemFin/GetAllDemFin.jsx";
 import Financement from "./pages/DemFin/Financement.jsx";
 import AcceptDemFin from "./pages/DemFin/AcceptDemFin.jsx";
+import NotFound from "./pages/Global/notFound/NotFound.jsx";
 
 
 function App() {
@@ -62,6 +63,7 @@ function App() {
               <Route  path="/reset-password" element={<ResetPassword/>}/>
               <Route  path="/confirm-code" element={<ConfirmCode/>}/>
               <Route  path="/change-pass" element={<ChangePasswordFT/>}/>
+              <Route path={"*"} element={<NotFound/>}/>
               {/* Private Routes*/}
               <Route element={<ProtectedRoute/>}>
                   <Route element={<Dashboard isSidebar={isSidebar}/>}>

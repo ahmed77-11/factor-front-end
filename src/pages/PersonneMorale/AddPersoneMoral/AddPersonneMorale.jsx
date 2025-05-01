@@ -176,7 +176,7 @@
                             )}
                         </Formik>
                         {errorPM && (
-                            <Typography variant="body1"  color="error" sx={{ mb: 2,textAlign:"center" }}>
+                            <Typography variant="body1"  color="error" sx={{ my: 2,textAlign:"center" }}>
                                 {errorPM}
                             </Typography>
                         )}

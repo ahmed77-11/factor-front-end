@@ -110,7 +110,7 @@ export const addPM = (data, navigate) => async (dispatch) => {
         navigate("/");
     } catch (e) {
         console.log(e);
-        dispatch(addPMFailure(e.message));
+        dispatch(addPMFailure(e.response.data));
     }
 };
 
@@ -126,7 +126,7 @@ export const getPM = () => async (dispatch) => {
         }
         dispatch(allPMSuccess(response.data));
     } catch (e) {
-        dispatch(allPMFailure(e.message));
+        dispatch(allPMFailure(e.response.data));
     }
 };
 
@@ -142,7 +142,7 @@ export const getPMById = (id) => async (dispatch) => {
         }
         dispatch(findPMByIdSuccess(response.data));
     } catch (e) {
-        dispatch(findPMByIdFailure(e.message));
+        dispatch(findPMByIdFailure(e.response.data));
     }
 };
 
@@ -159,7 +159,7 @@ export const updatePM = (id, data, navigate) => async (dispatch) => {
         dispatch(updateMPSuccess());
         navigate("/");
     } catch (e) {
-        dispatch(updatePMFailure(e.message));
+        dispatch(updatePMFailure(e.response.data));
     }
 };
 export const deletePM=(id,navigate)=>async (dispatch)=>{
@@ -174,6 +174,6 @@ export const deletePM=(id,navigate)=>async (dispatch)=>{
         dispatch(deletePMSuccess());
         navigate("/all-pm");
     } catch (e) {
-        dispatch(deletePMFailure(e.message));
+        dispatch(deletePMFailure(e.response.data));
     }
 }

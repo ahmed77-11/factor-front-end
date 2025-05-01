@@ -99,7 +99,7 @@ export const getPP=()=>async (dispatch)=>{
         }
         dispatch(allPPSuccess(response.data));
     }catch (e) {
-        dispatch(allPPFailure(e.message));
+        dispatch(allPPFailure(e.response.data));
     }
 }
 export const getPPById=(id)=>async (dispatch)=>{
@@ -113,7 +113,7 @@ export const getPPById=(id)=>async (dispatch)=>{
         }
         dispatch(findPPByIdSuccess(response.data));
     }catch (e) {
-        dispatch(findPPByIdFailure(e.message));
+        dispatch(findPPByIdFailure(e.response.data));
     }
 }
 export const updatePP=(id,data,navigate)=>async(dispatch)=>{
@@ -128,7 +128,7 @@ export const updatePP=(id,data,navigate)=>async(dispatch)=>{
         dispatch(updatePPSuccess());
         navigate("/");
     }catch (e) {
-        dispatch(updatePPFailure(e.message));
+        dispatch(updatePPFailure(e.response.data));
     }
 }
 export const deletePP=(id,navigate)=>async (dispatch)=>{
@@ -143,7 +143,7 @@ export const deletePP=(id,navigate)=>async (dispatch)=>{
         dispatch(deletePPSuccess());
         navigate("/all-pp");
     }catch (e) {
-        dispatch(deletePPFailure(e.message));
+        dispatch(deletePPFailure(e.response.data));
     }
 }
 

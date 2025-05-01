@@ -15,13 +15,13 @@ import {
     useTheme
 } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import {DoneOutline, CancelOutlined, Delete, Edit} from "@mui/icons-material";
+import {DoneOutline, CancelOutlined, Delete, Edit, Paid} from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { localeText, tokens } from "../../theme.js";
 import { useDispatch, useSelector } from "react-redux";
 import {
-    deleteFinByIdAsync, getAllDemFinAccepterByContratAsync,
+    deleteFinByIdAsync, demFinMarkAsPaid, getAllDemFinAccepterByContratAsync,
     getAllDemFinEnAttenteByContratAsync, getAllDemFinRejeterByContratAsync,
     rejectDemFinAsync,
 } from "../../redux/demFin/demFinSlice.js";
@@ -55,6 +55,15 @@ const Financement = () => {
         libelle: yup.string().required("Libellé est requis"),
         motif: yup.string().required("Motif est requis"),
     });
+
+
+    const handleMarkAsPaid = async (id) => {
+      await  dispatch(demFinMarkAsPaid(id));
+      dispatch(getAllDemFinAccepterByContratAsync(currentContrat?.id));
+    };
+
+
+
 
     const columns = [
         {
@@ -266,6 +275,28 @@ const Financement = () => {
             flex: 1,
         },
         {
+            field: "montantInteret",
+            headerName: "Montant Interet",
+            flex: 1,
+        },
+        {
+            field: "echeanceDate",
+            headerName: "Date Échéance",
+            flex: 1,
+            renderCell: (params) => {
+                const dateStr = params.row.echeanceDate?.split("T")[0] || "";
+                const todayStr = new Date().toISOString().split("T")[0];
+
+                const isToday = dateStr <= todayStr;
+
+                return (
+                    <span style={{ color: isToday && !params.row.paymentStatus ? "red" : "green" }}>
+                {dateStr? dateStr : ""}
+            </span>
+                );
+            },
+        },
+        {
             field: "devise",
             headerName: "Devise",
             flex: 1,
@@ -300,6 +331,25 @@ const Financement = () => {
             flex: 1,
         },
         {
+            field: "paymentStatus",
+            headerName:"Payé",
+            flex: 1,
+            renderCell: (params) => {
+                return (
+                    <Button
+                        variant="outlined"
+                        color="success"
+                        size="small"
+                        disabled={params.row.paymentStatus}
+                        startIcon={<Paid />}
+                        onClick={()=>handleMarkAsPaid(params.row.id)}
+                    >
+                        Paid
+                    </Button>
+                );
+            }
+        },
+        {
             field: "actions",
             headerName: "Actions",
             flex: 1,
@@ -307,26 +357,32 @@ const Financement = () => {
             filterable: false,
             hideable: false,
             disableColumnMenu: true,
-            renderCell: (params) => (
-                <Box display="flex" justifyContent="center" width="100%" gap={1}>
-                    <IconButton
-                        color="secondary"
-                        onClick={() =>
-                            navigate(`/modifier-demfin/${params.row.id}`, {
-                                state: { demande: params.row },
-                            })
-                        }
-                    >
-                        <Edit />
-                    </IconButton>
-                    <IconButton
-                        color="error"
-                        onClick={() => handleDeleteClick(params.row.id)}
-                    >
-                        <Delete />
-                    </IconButton>
-                </Box>
-            ),
+            renderCell: (params) => {
+
+                return (
+                    <Box display="flex" justifyContent="center" alignItems="center" width="100%" gap={1}>
+                        <IconButton
+                            color="secondary"
+                            onClick={() =>
+                                navigate(`/modifier-demfin/${params.row.id}`, {
+                                    state: { demande: params.row },
+                                })
+                            }
+                        >
+                            <Edit />
+                        </IconButton>
+
+                        <IconButton
+                            color="error"
+                            onClick={() => handleDeleteClick(params.row.id)}
+                        >
+                            <Delete />
+                        </IconButton>
+
+
+                    </Box>
+                );
+            },
         },
     ];
 

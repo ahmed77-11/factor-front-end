@@ -307,6 +307,21 @@ export const rejectDemFinAsync=(id,values)=>async (dispatch)=>{
         rejectDemFinFailure(e.message);
     }
 }
+
+export const demFinMarkAsPaid=(id)=>async (dispatch)=>{
+    dispatch(updateDemFinStart());
+    try {
+        const res = await axios.post(`http://localhost:8083/factoring/contrat/api/demfin/mark-as-paid/${id}`, null,{
+            withCredentials: true
+        })
+        if (res.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(updateDemFinSuccess());
+    } catch (e) {
+        updateDemFinFailure(e.message)
+    }
+}
 export const {
     allDemFinStart,
     allDemFinSuccess,

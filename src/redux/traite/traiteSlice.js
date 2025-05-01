@@ -115,6 +115,21 @@ export const getAllTraites = () => async (dispatch) => {
     }
 };
 
+export const getAllTraitesByContrat=(id)=>async (dispatch)=>{
+    dispatch(allTraiteStart())
+    try {
+        const response = await axios.get(`http://localhost:8083/factoring/contrat/api/traite/all-traite-by-contrat/${id}`, {
+            withCredentials: true,
+        });
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(allTraiteSuccess(response.data));
+    }catch (e) {
+        dispatch(allTraiteFailure(e.message));
+    }
+}
+
 // ➕ Add traite
 export const addTraite = (data, navigate) => async (dispatch) => {
     dispatch(addTraiteStart());

@@ -15,7 +15,8 @@ import { tokens } from "../../theme.js";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import {acceptDemFinAsync, demFinByIdAsync, updateDemFinAsync} from "../../redux/demFin/demFinSlice.js";
+import {acceptDemFinAsync, demFinByIdAsync} from "../../redux/demFin/demFinSlice.js";
+import {getAllTraitesByContrat} from "../../redux/traite/traiteSlice.js";
 
 const AcceptDemFin = () => {
     const theme = useTheme();
@@ -23,7 +24,8 @@ const AcceptDemFin = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const dispatch = useDispatch();
-    const { currentDemfin } = useSelector((state) => state.demFin);
+    const { currentDemfin,loading:loadCDfin } = useSelector((state) => state.demFin);
+    const {traites,loading:loadTraites}=useSelector((state)=>state.traite)
 
     const banques = [
         { code: "01", nom: "Banque de Tunisie" },
@@ -33,7 +35,15 @@ const AcceptDemFin = () => {
         { code: "20", nom: "UBCI" },
     ];
 
+    useEffect(()=>{
+        dispatch(demFinByIdAsync(id))
+    },[])
 
+    useEffect(() => {
+        if(currentDemfin || !loadCDfin){
+            dispatch(getAllTraitesByContrat(currentDemfin?.contrat.id))
+        }
+    }, [currentDemfin, loadCDfin]);
 
     // Extract bank code and RIB suffix from current RIB if it exists
     const currentRib = currentDemfin?.factorRib || "";
@@ -152,7 +162,11 @@ const AcceptDemFin = () => {
                                             name="factorTypeInstrument"
                                             fullWidth
                                             value={values.factorTypeInstrument}
-                                            onChange={handleChange}
+                                            onChange={(e) => {
+                                                handleChange(e);
+                                                // Reset instrument number when type changes
+                                                setFieldValue("factorInstrumentNo", "");
+                                            }}
                                             onBlur={handleBlur}
                                             error={touched.factorTypeInstrument && Boolean(errors.factorTypeInstrument)}
                                             helperText={touched.factorTypeInstrument && errors.factorTypeInstrument}
@@ -168,19 +182,42 @@ const AcceptDemFin = () => {
 
                                     {/* Numéro d'instrument */}
                                     <Grid item xs={12}>
-                                        <TextField
-                                            label="Numéro d'instrument"
-                                            name="factorInstrumentNo"
-                                            fullWidth
-                                            value={values.factorInstrumentNo}
-                                            onChange={handleChange}
-                                            onBlur={handleBlur}
-                                            error={touched.factorInstrumentNo && Boolean(errors.factorInstrumentNo)}
-                                            helperText={touched.factorInstrumentNo && errors.factorInstrumentNo}
-                                            InputProps={{ style: { fontSize: inputFontSize } }}
-                                            InputLabelProps={{ shrink: true, style: { fontSize: labelFontSize } }}
-                                            FormHelperTextProps={{ style: { fontSize: helperFontSize } }}
-                                        />
+                                        {values.factorTypeInstrument === "TRAITE" ? (
+                                            <TextField
+                                                select
+                                                label="Numéro de traite"
+                                                name="factorInstrumentNo"
+                                                fullWidth
+                                                value={values.factorInstrumentNo}
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                                error={touched.factorInstrumentNo && Boolean(errors.factorInstrumentNo)}
+                                                helperText={touched.factorInstrumentNo && errors.factorInstrumentNo}
+                                                InputProps={{ style: { fontSize: inputFontSize } }}
+                                                InputLabelProps={{ shrink: true, style: { fontSize: labelFontSize } }}
+                                                FormHelperTextProps={{ style: { fontSize: helperFontSize } }}
+                                            >
+                                                {traites?.map((traite) => (
+                                                    <MenuItem key={traite.id} value={traite.numero}>
+                                                        {traite.numero}
+                                                    </MenuItem>
+                                                ))}
+                                            </TextField>
+                                        ) : (
+                                            <TextField
+                                                label="Numéro d'instrument"
+                                                name="factorInstrumentNo"
+                                                fullWidth
+                                                value={values.factorInstrumentNo}
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                                error={touched.factorInstrumentNo && Boolean(errors.factorInstrumentNo)}
+                                                helperText={touched.factorInstrumentNo && errors.factorInstrumentNo}
+                                                InputProps={{ style: { fontSize: inputFontSize } }}
+                                                InputLabelProps={{ shrink: true, style: { fontSize: labelFontSize } }}
+                                                FormHelperTextProps={{ style: { fontSize: helperFontSize } }}
+                                            />
+                                        )}
                                     </Grid>
 
                                     {/* Banque & RIB */}
@@ -308,7 +345,6 @@ const AcceptDemFin = () => {
                                         <Button
                                             fullWidth
                                             type="submit"
-
                                             variant="contained"
                                             size="large"
                                             sx={{ mt: 2,backgroundColor:colors.greenAccent[600],color:colors.primary[100] }}
