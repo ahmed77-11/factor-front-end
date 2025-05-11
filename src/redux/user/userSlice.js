@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import axios from "axios";
+import {data} from "react-router";
 
 const initialState = {
     current: null,
@@ -25,8 +26,16 @@ const userSlice = createSlice({
             state.loading = false;
             state.error = action.payload;
         },
+        logoutStart:(state)=>{
+          state.loading=true;
+        },
         logout: (state) => {
+            state.loading=false;
             state.current = null;
+        },
+        logoutFailure:(state,action)=>{
+            state.loading=false;
+            state.error=action.payload;
         },
         sendResetStart: (state) => {
             state.loading = true;
@@ -65,6 +74,18 @@ const userSlice = createSlice({
             state.loading=false;
         },
         addUserFailure:(state,action)=>{
+            state.loading=false;
+            state.error=action.payload;
+        },
+
+        updateUserStart:(state)=>{
+            state.loading=true;
+        },
+        updateUserSuccess:(state,action)=>{
+            state.loading=false;
+            state.current=action.payload;
+        },
+        updateUserFailure:(state,action)=>{
             state.loading=false;
             state.error=action.payload;
         },
@@ -108,6 +129,37 @@ export const login = (email, password,navigate) => async (dispatch) => {
                 ? error.response.data.message
                 : error.message;
         dispatch(loginFailure(errorMessage));
+    }
+}
+
+
+export const logoutUser = () => async (dispatch) => {
+    dispatch(logoutStart());
+    try {
+        const res = await axios.post(
+            "http://localhost:8082/factoring/users/api/auth/logout",
+            {},
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                withCredentials: true, // move this here
+            }
+        );
+        if (res.data && res.status === 200) {
+            dispatch(logout());
+        } else {
+            console.log(res.data.response.message)
+            dispatch(logoutFailure(res.data.response.message || "An error occurred"));
+        }
+    } catch (error) {
+        console.log(error);
+        // Check if the backend provided a custom error message
+        const errorMessage =
+            error.response && error.response.data && error.response.data.message
+                ? error.response.data.message
+                : error.message;
+        dispatch(logoutFailure(errorMessage));
     }
 }
 export const sendResetToken = (email,navigate) => async (dispatch) => {
@@ -265,7 +317,64 @@ export const addUser = (email, cin, firstName, lastName, roles, navigate) => asy
         dispatch(addUserFailure(errorMessage));
     }
 };
+export const addMobileUser = (values, navigate) => async (dispatch) => {
+    dispatch(addUserStart())
+    try{
+        const res = await axios.post(
+            "http://localhost:8082/factoring/users/api/admin/create_user_mobile",
+            values, // data object
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                withCredentials: true,
+            }
+        );
+        if (res.data && res.status === 200) {
+            dispatch(addUserSuccess(res.data));
+            navigate("/");
+        } else {
+            dispatch(addUserFailure(res.data.response.message || "An error occurred"));
+        }
+
+    }catch (error){
+        console.log(error);
+        const errorMessage =
+            error.response && error.response.data && error.response.data.message
+                ? error.response.data.message
+                : error.message;
+        dispatch(addUserFailure(errorMessage));
+    }
+}
+
+export const updateUser = (data) => async (dispatch) => {
+    dispatch(updateUserStart());
+    try {
+        const res = await axios.patch(
+            `http://localhost:8082/factoring/users/api/user/updateUser`,
+            data, // data object
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                withCredentials: true,
+            }
+        );
+        if (res.data && res.status === 200) {
+            dispatch(updateUserSuccess(res.data));
+        } else {
+            dispatch(updateUserFailure(res.data.response.message || "An error occurred"));
+        }
+    } catch (error) {
+        console.log(error);
+        const errorMessage =
+            error.response && error.response.data && error.response.data.message
+                ? error.response.data.message
+                : error.message;
+        dispatch(updateUserFailure(errorMessage));
+    }
+}
 
 
-export const { loginStart, loginSuccess, loginFailure, logout,sendResetStart,sendResetSuccess,sendResetFailure ,confirmCodeStart,confirmCodeSuccess,confirmCodeFailure,resetPasswordStart,resetPasswordSuccess,resetPasswordFailure,addUserStart,addUserSuccess,addUserFailure} = userSlice.actions;
+export const { loginStart, loginSuccess, loginFailure,logoutStart, logout,logoutFailure,sendResetStart,sendResetSuccess,sendResetFailure ,confirmCodeStart,confirmCodeSuccess,confirmCodeFailure,resetPasswordStart,resetPasswordSuccess,resetPasswordFailure,addUserStart,addUserSuccess,addUserFailure,updateUserStart,updateUserSuccess,updateUserFailure} = userSlice.actions;
 export default userSlice.reducer;

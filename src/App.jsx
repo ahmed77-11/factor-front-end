@@ -42,6 +42,10 @@ import GetAllDemFin from "./pages/DemFin/GetAllDemFin.jsx";
 import Financement from "./pages/DemFin/Financement.jsx";
 import AcceptDemFin from "./pages/DemFin/AcceptDemFin.jsx";
 import NotFound from "./pages/Global/notFound/NotFound.jsx";
+import ModifyProfile from "./pages/Global/userMangement/modifyProfile/ModifyProfile.jsx";
+import Users from "./pages/Global/userMangement/all/Users.jsx";
+import ModifyUser from "./pages/Global/userMangement/modify/ModifyUser.jsx";
+import AddMobileUser from "./pages/Global/userMangement/addMobileUser/AddMobileUser.jsx";
 
 
 function App() {
@@ -68,7 +72,11 @@ function App() {
               <Route element={<ProtectedRoute/>}>
                   <Route element={<Dashboard isSidebar={isSidebar}/>}>
                       <Route path={"/"} element={<Home/>}/>
-                      <Route path={"/ajouter-utlisateur"} element={<AddUser/>}/>
+                      <Route path={"/ajouter-utilisateur"} element={<AddUser/>}/>
+                        <Route path={"/ajouter-utilisateur-mobile"} element={<AddMobileUser/>}/>
+                      <Route path={"/users"} element={<Users/>}/>
+                      <Route path={"/modifier-utilisateur/:id"} element={<ModifyUser/>}/>
+                      <Route path={"/profile"} element={<ModifyProfile/>}/>
                       <Route path={"/ajouter-pp"} element={<AddPersonePhysique/>}/>
                       <Route path={"/ajouter-pm"} element={<AddPersonneMorale/>}/>
                       <Route path={"/all-pp"} element={<ListPp/>}/>

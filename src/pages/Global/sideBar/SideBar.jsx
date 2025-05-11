@@ -126,7 +126,8 @@ const SideBarComponent = () => {
                                     alt="profil-utilisateur"
                                     width="100px"
                                     height="100px"
-                                    src={"../../assets/userImage.jpeg"}
+
+                                    src={current.profilePicture ?`http://localhost:8082/factoring/users${current.profilePicture}`:"../../assets/userImage.jpeg"}
                                     style={{ cursor: "pointer", borderRadius: "50%" }}
                                 />
                             </Box>
@@ -143,9 +144,9 @@ const SideBarComponent = () => {
 
                         <Typography variant="h6" color={colors.grey[300]} sx={{ m: "15px 0 5px 20px" }}>Administration</Typography>
                         <SubMenu label="Gérer les utilisateurs" icon={<PeopleOutlined />} style={{ color: colors.grey[100] }} onClick={handleSubMenuOpen}>
-                            <Item title="Ajouter un utilisateur" to="/ajouter-utlisateur" icon={<PersonAddOutlined />} selected={selected} setSelected={setSelected} />
-                            <Item title="Modifier un utilisateur" to="/modify-user" icon={<EditOutlined />} selected={selected} setSelected={setSelected} />
-                            <Item title="Afficher tous les utilisateurs" to="/all-users" icon={<ListOutlined />} selected={selected} setSelected={setSelected} />
+                            <Item title="Ajouter un utilisateur" to="/ajouter-utilisateur" icon={<PersonAddOutlined />} selected={selected} setSelected={setSelected} />
+                            {/*<Item title="Modifier un utilisateur" to="/modify-user" icon={<EditOutlined />} selected={selected} setSelected={setSelected} />*/}
+                            <Item title="Afficher tous les utilisateurs" to="/users" icon={<ListOutlined />} selected={selected} setSelected={setSelected} />
                         </SubMenu>
 
                         <SubMenu label="Refrentiel" icon={<MapOutlined />} style={{ color: colors.grey[100] }} onClick={handleSubMenuOpen}>

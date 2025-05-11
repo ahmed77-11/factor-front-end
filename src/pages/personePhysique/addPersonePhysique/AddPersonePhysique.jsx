@@ -100,7 +100,12 @@ const AddPersonnePhysique = () => {
                         initialValues={initialValues}
                         validationSchema={validationSchema}
                     >
-                        {({ values, errors, touched, handleBlur, handleChange, handleSubmit }) => (
+                        {({ values,
+                              errors,
+                              touched,
+                              handleBlur,
+                              handleChange,
+                              handleSubmit }) => (
                             <form onSubmit={handleSubmit}>
                                 <Box>
                                     <Typography variant="subtitle1" fontWeight="bold">

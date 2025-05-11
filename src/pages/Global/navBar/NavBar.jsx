@@ -13,14 +13,15 @@ import {
     PersonOutlined as PersonOutlinedIcon,
     SettingsOutlined as SettingsOutlinedIcon
 } from "@mui/icons-material";
-import { tokens } from "../../../theme.js";
-import { toggleColorMode } from "../../../redux/mode/modeSlice.js";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import {tokens} from "../../../theme.js";
+import {toggleColorMode} from "../../../redux/mode/modeSlice.js";
+import {useDispatch, useSelector} from "react-redux";
+import {Link, useNavigate} from "react-router-dom";
+import {useState} from "react";
+import {logoutUser} from "../../../redux/user/userSlice.js";
 
 // eslint-disable-next-line react/prop-types
-const NavBar = ({ unreadCount }) => {
+const NavBar = ({unreadCount}) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const dispatch = useDispatch();
@@ -44,6 +45,7 @@ const NavBar = ({ unreadCount }) => {
 
     const handleLogout = () => {
         handleClose();
+        dispatch(logoutUser())
         navigate("/login");
     };
 
@@ -54,17 +56,17 @@ const NavBar = ({ unreadCount }) => {
     return (
         <Box display="flex" justifyContent="space-between" p={2}>
             {/* SEARCH BAR (currently unused) */}
-            <Box display="flex" backgroundColor={colors.primary[400]} borderRadius="3px" />
+            <Box display="flex" backgroundColor={colors.primary[400]} borderRadius="3px"/>
 
             {/* ICONS */}
             <Box display="flex">
                 <IconButton onClick={() => dispatch(toggleColorMode())}>
-                    {mode === "dark" ? <DarkModeOutlinedIcon /> : <LightModeOutlinedIcon />}
+                    {mode === "dark" ? <DarkModeOutlinedIcon/> : <LightModeOutlinedIcon/>}
                 </IconButton>
 
                 <IconButton onClick={handleNavigate}>
                     <Badge badgeContent={unreadCount} color="error" max={99}>
-                        <NotificationsOutlinedIcon />
+                        <NotificationsOutlinedIcon/>
                     </Badge>
                 </IconButton>
 
@@ -92,13 +94,14 @@ const NavBar = ({ unreadCount }) => {
                         horizontal: 'right',
                     }}
                 >
-                    <MenuItem onClick={handleChangePassword}>Change Password</MenuItem>
-                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                    <MenuItem onClick={handleLogout}>Déconnexion</MenuItem>
                 </Menu>
 
-                <IconButton>
-                    <PersonOutlinedIcon />
-                </IconButton>
+                <Link to={"/profile"}>
+                    <IconButton>
+                        <PersonOutlinedIcon/>
+                    </IconButton>
+                </Link>
             </Box>
         </Box>
     );

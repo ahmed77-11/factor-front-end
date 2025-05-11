@@ -2,6 +2,7 @@
 import {combineReducers,configureStore} from "@reduxjs/toolkit";
 import storage from "redux-persist/lib/storage";
 import userReducer from "./user/userSlice";
+import usersReducer from "./user/usersSlice";
 import modeReducer from "./mode/modeSlice";
 import ppReducer from "./personne/PersonnePhysiqueSlice";
 import pmReducer from "./personne/PersonneMoraleSlice.js";
@@ -48,6 +49,7 @@ const expireTransform = createTransform(
 
 const rootReducer = combineReducers({
     user:userReducer,
+    users:usersReducer,
     mode:modeReducer,
     personnePhysique:ppReducer,
     personneMorale:pmReducer,
