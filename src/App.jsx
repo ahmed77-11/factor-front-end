@@ -46,6 +46,8 @@ import ModifyProfile from "./pages/Global/userMangement/modifyProfile/ModifyProf
 import Users from "./pages/Global/userMangement/all/Users.jsx";
 import ModifyUser from "./pages/Global/userMangement/modify/ModifyUser.jsx";
 import AddMobileUser from "./pages/Global/userMangement/addMobileUser/AddMobileUser.jsx";
+import NewAddTraite from "./pages/Traite/newAddTraite.jsx";
+import OcrAddTraite from "./pages/Traite/OcrAddTraite.jsx";
 
 
 function App() {
@@ -101,6 +103,8 @@ function App() {
                       <Route path={"/factures-non-valider"} element={<ListNonValider/>}/>s
                       <Route path={"/factures"} element={<ListFValider/>}/>
                       <Route path={"/ajouter-traite"} element={<AddTraite/>}/>
+                      <Route path={"/extract-traite"} element={<NewAddTraite/>}/>
+                      <Route path={"/ajouter-traite-extracter"} element={<OcrAddTraite/>}/>
                       <Route path={"/modifier-traite/:id"} element={<UpdateTraite/>}/>
                       <Route path={"/all-traite"} element={<GetAllTraite/>}/>
                       <Route path={"/ajouter-demFin"} element={<AddDemFin/>}/>

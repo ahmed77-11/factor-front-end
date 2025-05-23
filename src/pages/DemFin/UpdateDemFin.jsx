@@ -110,7 +110,7 @@ const UpdateDemFin = () => {
                                     />
 
                                     <TextField
-                                        label="Fin Adhérent Emission Num"
+                                        label="Financement Adhérent Numero d'Emission"
                                         name="adherEmisNo"
                                         fullWidth
                                         value={values.adherEmisNo}
@@ -124,7 +124,7 @@ const UpdateDemFin = () => {
                                     />
 
                                     <TextField
-                                        label="Date Fin Adhérent Emission"
+                                        label="Date de Finacement Adhérent Emission"
                                         type="date"
                                         name="adherEmisDate"
                                         fullWidth
@@ -139,7 +139,7 @@ const UpdateDemFin = () => {
                                     />
 
                                     <TextField
-                                        label="RIB Fin Adhérent"
+                                        label="RIB Finacement Adhérent"
                                         name="adherRib"
                                         fullWidth
                                         value={values.adherRib}
@@ -153,7 +153,7 @@ const UpdateDemFin = () => {
                                     />
 
                                     <TextField
-                                        label="Montant Fin Adhérent"
+                                        label="Montant Finacement Adhérent"
                                         name="adherMontant"
                                         fullWidth
                                         value={values.adherMontant}

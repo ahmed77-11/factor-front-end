@@ -5,7 +5,8 @@ import {
     TextField, Button, Card, CardContent, Typography,
     Grid, MenuItem, Select, FormControl,
     Box, Table, TableBody, TableCell, TableHead,
-    TableRow, Paper, Autocomplete, TableContainer, InputAdornment
+    TableRow, Paper, Autocomplete, TableContainer, InputAdornment,
+    useTheme
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAdherentsAsync, fetchRelationsAsync } from "../../../redux/relations/relationsSlice.js";
@@ -14,6 +15,8 @@ import { addFacture, getNbFac } from "../../../redux/facture/FactureSlice.js";
 import { useTypeDoc } from "../../../customeHooks/useTypeDoc.jsx";
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "../../../helpers/timeConvert.js";
+import Header from "../../../components/Header.jsx";
+import { tokens } from "../../../theme.js";
 
 const validationSchema = Yup.object().shape({
     bordRemiseNo: Yup.string().required('Numéro de bordereau requis'),
@@ -43,6 +46,8 @@ const validationSchema = Yup.object().shape({
 const SaisieBordereau = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const theme=useTheme();
+    const colors=tokens(theme.palette.mode)
     const { typeDoc } = useTypeDoc();
     const { adherents, relations } = useSelector(state => state.relations);
     const { currentContrat } = useSelector(state => state.contrat);
@@ -240,6 +245,7 @@ const SaisieBordereau = () => {
 
     return (
         <Box p={4} maxWidth="1200px" margin="auto">
+            <Header title={"Bordreaux"} subtitle={"Ajouter Bordreaux"}/>
             <form onSubmit={formik.handleSubmit}>
                 <Card sx={{ mb: 3 }}>
                     <CardContent>
@@ -389,6 +395,16 @@ const SaisieBordereau = () => {
                         </Grid>
                     </CardContent>
                 </Card>
+
+                <Typography
+                variant="h4" // Smaller font size for both title and subtitle
+                color={colors.grey[100]} // Single color for both
+                fontWeight="bold"
+                sx={{ marginBottom: "5px" }}
+            >
+                   Ajouter Facture
+            </Typography>
+
 
                 <TableContainer component={Paper} sx={{ mb: 2 }}>
                     <Table>
@@ -540,24 +556,11 @@ const SaisieBordereau = () => {
                         disabled={!formik.values.contrat || !formik.values.devise || !isComplete}
                         onClick={validation1 ? undefined : handleValidation}
                     >
-                        ✅ VALIDER
+                        Ajotuer
                     </Button>
                 </Box>
 
-                {validation1 && !validation2 && (
-                    <Box textAlign="center" mt={2}>
-                        <Typography variant="body1">👤 En attente de validation par 2ème agent</Typography>
-                        <Button variant="contained" color="secondary" onClick={validerParDeuxiemeAgent}>
-                            ✅ Deuxième Validation
-                        </Button>
-                    </Box>
-                )}
-
-                {validation1 && validation2 && (
-                    <Typography align="center" color="success.main" mt={2}>
-                        ✅ Bordereau validé par les deux agents
-                    </Typography>
-                )}
+                
             </form>
         </Box>
     );

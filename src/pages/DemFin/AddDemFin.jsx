@@ -142,7 +142,7 @@
 
                         {/* Emission No */}
                         <TextField
-                          label="Fin Adhérent Emission Num"
+                          label="Financement Adhérent Numero d'Emission "
                           name="adherEmisNo"
                           fullWidth
                           value={values.adherEmisNo}
@@ -162,7 +162,7 @@
 
                         {/* Emission Date */}
                         <TextField
-                          label="Date Fin Adhérent Emission"
+                          label="Date de Finacement Adhérent Emission"
                           type="date"
                           name="adherEmisDate"
                           fullWidth
@@ -217,7 +217,7 @@
                           </TextField>
 
                           <TextField
-                            label="RIB Fin Adhérent"
+                            label="RIB Finacement Adhérent"
                             name="ribSuffix"
                             fullWidth
                             value={values.ribSuffix || ""}
@@ -257,7 +257,7 @@
 
                         {/* Montant */}
                         <TextField
-                          label="Montant Fin Adhérent"
+                          label="Montant Financement Adhérent"
                           name="adherMontant"
                           fullWidth
                           value={values.adherMontant}

@@ -177,6 +177,7 @@ const NotificationPanel = () => {
 
     };
 
+    console.log(notifications)
     return (
         <Box sx={{ p: 4, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center" }}>
             <Header title="Les Notifications" subtitle="Liste Des Notifications" />

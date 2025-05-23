@@ -552,7 +552,7 @@ const Financement = () => {
                 <Grid item xs={12}>
                     <Card sx={{ p: 2, backgroundColor: colors.grey[900] }}>
                         <Typography variant="h6" gutterBottom>
-                            Demandes Valider
+                            Demandes Validées
                         </Typography>
                         <Box sx={{
                             height: 400,
@@ -589,7 +589,7 @@ const Financement = () => {
                 <Grid item xs={12}>
                     <Card sx={{ p: 2, backgroundColor: colors.grey[900] }}>
                         <Typography variant="h6" gutterBottom>
-                            Demandes Rejeter
+                            Demandes Rejetées
                         </Typography>
                         <Box sx={{
                             height: 400,

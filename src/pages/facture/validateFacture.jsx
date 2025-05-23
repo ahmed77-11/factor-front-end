@@ -17,11 +17,14 @@ import {
     MenuItem, Paper,
     Select, Table, TableBody, TableCell,
     TableContainer, TableHead, TableRow,
-    TextField, Typography
+    TextField, Typography,
+    useTheme
 } from "@mui/material";
 import {fetchRelationsAsync} from "../../redux/relations/relationsSlice.js";
 import {useTypeDoc} from "../../customeHooks/useTypeDoc.jsx";
 import {validerFacture} from "../../redux/facture/FactureSlice.js";
+import Header from "../../components/Header.jsx";
+import { tokens } from "../../theme.js";
 
 const validationSchema = Yup.object().shape({
     bordRemiseNo: Yup.string().required('Numéro de bordereau requis'),
@@ -53,6 +56,8 @@ const ValidateFacture = () => {
     const {id} = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const theme=useTheme();
+    const colors = tokens(theme.palette.mode);
     const {currentFacture, loading, error} = useSelector(state => state.facture);
     const {relations} = useSelector(state => state.relations);
     const {currentPM} = useSelector(state => state.personneMorale);
@@ -252,6 +257,8 @@ const ValidateFacture = () => {
 
     return (
         <Box p={4} maxWidth="1200px" margin="auto">
+                    <Header title={"Bordreaux"} subtitle={"Valider Bordreaux"}/>
+
             <form onSubmit={formik.handleSubmit}>
                 <Card sx={{mb: 3}}>
                     <CardContent>
@@ -403,6 +410,16 @@ const ValidateFacture = () => {
                         </Grid>
                     </CardContent>
                 </Card>
+
+
+                <Typography
+                variant="h4" // Smaller font size for both title and subtitle
+                color={colors.grey[100]} // Single color for both
+                fontWeight="bold"
+                sx={{ marginBottom: "5px" }}
+            >
+                   Valider Facture
+            </Typography>
 
                 <TableContainer component={Paper} sx={{mb: 2}}>
                     <Table>
