@@ -22,7 +22,10 @@ const NewAddTraite = () => {
             formData.append("file", file);
 
             const response = await axios.post(`http://localhost:5000/${apiEndpoint}`, formData);
+            
             const processedData = processOCRData(response.data.extracted_data);
+            console.log(response.data.extracted_data);
+            
 
             navigate("/ajouter-traite-extracter", { state: { extractedData: processedData } });
         } catch (error) {
@@ -32,7 +35,8 @@ const NewAddTraite = () => {
         }
     };
 
-    const processOCRData = (data) => ({
+    const processOCRData = (data) => (
+        {
         numero: data.traite_num || "",
         tireEmisDate: formatDate(data.date_created) || "",
         tireEmisLieu: data.place_created || "",
@@ -41,26 +45,61 @@ const NewAddTraite = () => {
         ribSuffix: data.rib?.slice(2) || "",
         tireNom: data.drawer_name || "",
         echFirst: formatDate(data.date_due) || "",
-        factorDate: formatDate(data.date_created) || ""
+        factorDate: formatDate(data.date_created) || "",
+        amount_words: data.amount_words,
+        barcode_matches_traite:data.barcode_matches_traite,
+        signature_detected:data.signature_detected,
+        bank:data.bank
     });
+    
 
     const formatDate = (dateStr) => {
+        const monthMap = {
+            'janvier': '01', 'février': '02', 'mars': '03', 'avril': '04',
+            'mai': '05', 'juin': '06', 'juillet': '07', 'août': '08',
+            'septembre': '09', 'octobre': '10', 'novembre': '11', 'décembre': '12'
+        };
+
         const formats = [
-            { regex: /(\d{2})\/(\d{2})\/(\d{4})/, parts: [3, 2, 1] },
-            { regex: /(\d{4})-(\d{2})-(\d{2})/, parts: [1, 2, 3] },
-            { regex: /(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/, parts: [2, 1, 3] }
+            // DD/MM/YYYY
+            {
+                regex: /(\d{2})\/(\d{2})\/(\d{4})/,
+                handler: (groups) => `${groups[2]}-${groups[1]}-${groups[0]}`
+            },
+            // YYYY-MM-DD
+            {
+                regex: /(\d{4})-(\d{2})-(\d{2})/,
+                handler: (groups) => `${groups[0]}-${groups[1]}-${groups[2]}`
+            },
+            // Day Month Year (e.g., "10 mai 2024")
+            {
+                regex: /(\d{1,2})\s+([a-zA-Zûéèà]+)\s+(\d{4})/i,
+                handler: (groups) => {
+                    const month = monthMap[groups[1].toLowerCase()] || '00';
+                    return `${groups[2]}-${month}-${groups[0].padStart(2, '0')}`;
+                }
+            },
+            // Month Year (fallback)
+            {
+                regex: /(\d{4})-(\d{2})/,
+                handler: (groups) => `${groups[0]}-${groups[1]}-01`
+            }
         ];
 
-        for (const { regex, parts } of formats) {
-            const match = dateStr?.match(regex);
+        if (!dateStr) return '';
+
+        for (const { regex, handler } of formats) {
+            const match = dateStr.match(regex);
             if (match) {
-                const [_, ...groups] = match;
-                return `${groups[parts[0]]}-${groups[parts[1]]}-${groups[parts[2]]}`;
+                try {
+                    return handler(match.slice(1));
+                } catch {
+                    continue;
+                }
             }
         }
-        return "";
+        return '';
     };
-
     return (
         <Box m="20px">
             <Header title="Nouvelle Traite" subtitle="Sélectionnez la méthode d'extraction" />
