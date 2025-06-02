@@ -6,7 +6,7 @@ const PieChartDetailedView = () => {
   return (
     <Box m={4} >
       <Typography variant="h3" gutterBottom>
-        Status Des Demandes Des Financement
+          Demandes Finalisées
       </Typography>
 
 

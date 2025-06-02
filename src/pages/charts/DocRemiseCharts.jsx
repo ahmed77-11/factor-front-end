@@ -91,7 +91,7 @@ const DocRemiseChart = ({ adherentId,withLabel }) => {
   return (
     <Box height="100%">
       <Typography variant="h4" mb={2}>
-        Nombre de factures créées par mois
+        Nombre de factures crées par mois
       </Typography>
         <ResponsiveBar
             data={data}

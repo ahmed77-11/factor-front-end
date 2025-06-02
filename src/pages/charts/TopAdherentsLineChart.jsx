@@ -383,12 +383,12 @@ const TopAdherentsLineChart = ({withLabel}) => {
         return (
             <Box m={1} height="100%"   >
                 <Typography variant="h5" gutterBottom>
-                    Top Adhérents – Montant Facture Mensuel
+                    Top Adhérents – Montant Mensuel des Factures
                 </Typography>
                 <ResponsiveLine
 
                     data={data}
-                    margin={{ top: 20, right: 120, bottom: 70, left: 70 }}
+                    margin={{ top: 20, right: 130, bottom: 70, left: 70 }}
 
                     xScale={{ type: 'point' }}
                     yScale={{

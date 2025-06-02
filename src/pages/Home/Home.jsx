@@ -181,7 +181,7 @@ const Home = () => {
                 >
                     <Box>
                         <Typography variant="h6" color={colors.grey[100]}>
-                            montant total
+                            Montant Total
                         </Typography>
                         <Typography variant="h4" fontWeight="bold" color={colors.greenAccent[500]}>
                             {totalDocRemises || 0}

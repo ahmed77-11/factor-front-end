@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Paper } from "@mui/material";
 import FunnelChart from "../charts/FunnelChart.jsx";
 
 const FunnelChartDetailView = () => {
     const [funnelData, setFunnelData] = useState([]);
 
     const stepDescriptions = {
-        Validation: "Étape initiale de vérification du contrat.",
-        Juridique: "Revue et validation par l'équipe juridique.",
+        Validation: "Étape initiale de Validation du contrat.",
+        Juridique: "Revue et validation par Validateur juridique.",
         Modification: "Modifications demandées sur le contrat.",
         Validé: "Contrat finalisé et validé.",
-        Signé: "Contrat signé par toutes les parties.",
+        Signé: "Contrat signé par le Signateur",
     };
 
     const colorMap = {
@@ -22,61 +22,61 @@ const FunnelChartDetailView = () => {
     };
 
     return (
-        <Box m={4}>
-            <Typography variant="h3" gutterBottom>
+        <Box m={6}>
+            <Typography variant="h2" gutterBottom fontWeight="bold">
                 Les Étapes de Création du Contrat
             </Typography>
 
-            <Box display="flex" justifyContent="center" alignItems="flex-start" gap={6} mt={4}>
-                <Box height="500px" width="50%">
+            <Box display="flex" justifyContent="center" alignItems="flex-start" gap={8} mt={6}>
+                <Paper elevation={4} sx={{ height: "520px", width: "50%", p: 2,mt :10   }}>
                     <FunnelChart withLabel={true} onDataLoaded={setFunnelData} />
-                </Box>
+                </Paper>
 
-                <Box width="40%">
+                <Box width="50%">
                     {/* Legend */}
-                    <Box>
-                        <Typography variant="h5" gutterBottom>
+                    <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3 }}>
+                        <Typography variant="h4" gutterBottom>
                             Légende
                         </Typography>
                         {Object.entries(colorMap).map(([label, color]) => (
-                            <Box key={label} display="flex" alignItems="center" mb={1}>
+                            <Box key={label} display="flex" alignItems="center" mb={1.5}>
                                 <Box
                                     sx={{
-                                        width: 16,
-                                        height: 16,
+                                        width: 20,
+                                        height: 20,
                                         backgroundColor: color,
-                                        mr: 1,
+                                        mr: 2,
                                         borderRadius: "4px",
                                     }}
                                 />
-                                <Typography>{label}</Typography>
+                                <Typography variant="body1" fontWeight="500">{label}</Typography>
                             </Box>
                         ))}
-                    </Box>
+                    </Paper>
 
                     {/* Step Descriptions */}
-                    <Box mt={4}>
-                        <Typography variant="h5" gutterBottom>
+                    <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
+                        <Typography variant="h4" gutterBottom>
                             Description des étapes
                         </Typography>
                         {Object.entries(stepDescriptions).map(([label, description]) => (
-                            <Box key={label} mb={1}>
-                                <Typography variant="subtitle1" fontWeight="bold">
+                            <Box key={label} mb={2}>
+                                <Typography variant="h6" fontWeight="bold">
                                     {label}
                                 </Typography>
-                                <Typography variant="body2" color="text.secondary">
+                                <Typography variant="body1" color="text.secondary">
                                     {description}
                                 </Typography>
                             </Box>
                         ))}
-                    </Box>
 
-                    {/* Optional Last Updated */}
-                    <Box mt={3}>
-                        <Typography variant="caption" color="text.secondary">
-                            Données mises à jour le : {new Date().toLocaleDateString("fr-FR")}
-                        </Typography>
-                    </Box>
+                        {/* Optional Last Updated */}
+                        <Box mt={4}>
+                            <Typography variant="caption" color="text.secondary">
+                                Données mises à jour le : {new Date().toLocaleDateString("fr-FR")}
+                            </Typography>
+                        </Box>
+                    </Paper>
                 </Box>
             </Box>
         </Box>
