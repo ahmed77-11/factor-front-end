@@ -48,6 +48,10 @@ import ModifyUser from "./pages/Global/userMangement/modify/ModifyUser.jsx";
 import AddMobileUser from "./pages/Global/userMangement/addMobileUser/AddMobileUser.jsx";
 import NewAddTraite from "./pages/Traite/newAddTraite.jsx";
 import OcrAddTraite from "./pages/Traite/OcrAddTraite.jsx";
+import DocRemiseDetailView from './pages/docRemiseView/DocRemiseDetailView.jsx';
+import PieChartDetailedView from './pages/pieChart/PieChartDetailedView.jsx';
+import FunnelChartDetailView from "./pages/funnelChartDetailView/FunnelChartDetailView.jsx";
+import TopAdherentDetailView from "./pages/topAdherenDetailView/TopAdherentDetailView.jsx";
 
 
 function App() {
@@ -113,6 +117,10 @@ function App() {
                       <Route path={"/financement"} element={<Financement/>}/>
                       <Route path={"/accept-demfin/:id"} element={<AcceptDemFin/>}/>
 
+                      <Route path="/chart-factures" element={<DocRemiseDetailView/>}/>
+                      <Route path="/pie-demfin" element={<PieChartDetailedView/>}/>
+                      <Route path="/funnel-contrat" element={<FunnelChartDetailView/>}/>
+                      <Route path={"/line-top-adhr"} element={<TopAdherentDetailView/>}/>
                   </Route>
               </Route>
           </Routes>

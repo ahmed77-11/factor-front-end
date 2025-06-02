@@ -104,7 +104,7 @@ const NewAddTraite = () => {
         <Box m="20px">
             <Header title="Nouvelle Traite" subtitle="Sélectionnez la méthode d'extraction" />
 
-            <Box display="flex" gap={4} justifyContent="center" mt={4}>
+            <Box display="flex" gap={4} justifyContent="center" alignItems={"center"} pt={10} mt={4}>
                 <Card
                     sx={ocrCardStyle(colors)}
                     onClick={() => !loading.google && document.getElementById("google-ocr").click()}
@@ -114,7 +114,7 @@ const NewAddTraite = () => {
                             🌟 Extraction Premium
                         </Typography>
                         <Typography variant="body1" sx={{ mb: 2 }}>
-                            Utilisation de Google Vision API pour une reconnaissance optimale des documents
+                            Utilisation  une reconnaissance optimale des documents
                         </Typography>
                         {loading.google ? (
                             <CircularProgress size={24} />
@@ -142,7 +142,7 @@ const NewAddTraite = () => {
                             🛠️ Extraction Standard
                         </Typography>
                         <Typography variant="body1" sx={{ mb: 2 }}>
-                            Solution économique avec PaddleOCR (open-source)
+                            Solution économique (open-source)
                         </Typography>
                         {loading.paddle ? (
                             <CircularProgress size={24} />

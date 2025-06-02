@@ -648,41 +648,47 @@ const OcrAddTraite = () => {
   const handleFormSubmit = async (values, { setSubmitting: setFormikSubmitting }) => {
     setSubmitting(true);
     try {
-      // const predictPayload = {
-      //   traite_num: values.numero,
-      //   amount_digits: parseFloat(values.montant),
-      //   date_created: values.tireEmisDate,
-      //   date_due: values.echFirst,
-      //   bank: "biat",
-      //   amount_words: "six mille cinq cents", // Placeholder - should come from OCR data
-      //   signature_detected: true, // Placeholder - should come from OCR
-      //   barcode_validates_traite: true, // Placeholder - should come from OCR
-      //   rib: values.tireRib,
-      //   payer_name_address: "ahmed mghirbi ahmed mghirbi", // Placeholder - should come from OCR
-      //   drawer_name: values.tireNom,
-      // };
-      const predictPayload={
-        traite_num: "010687580474",
+      const predictPayload = {
+        traite_num: values.numero,
         bank: "biat",
-        amount_digits: 6776.383,
-        amount_words: "six mille sept cent soixante-seize dinars zéro trois huit trois", // Placeholder - should come from OCR data
-        rib: "01050093110000158536",
-        signature_detected: true, // Placeholder - should come from OCR
-        barcode_validates_traite: true, // Placeholder - should come from OCR
+        amount_digits: parseFloat(values.montant),
+        amount_words: "six mille cinq cents ", // Placeholder - should come from OCR data
+        rib: values.tireRib,
+        
+        signature_detected: false, // Placeholder - should come from OCR
+        barcode_validates_traite: false, // Placeholder - should come from OCR
 
-        date_created: '2025-01-03',
-        date_due: '2025-05-26',
+       
+
+        date_created: values.tireEmisDate,
+        date_due: values.echFirst,
         place_created:"Tunis",
-        drawer_name: "Client bravo bravo bravo", 
+        drawer_name: values.tireNom,
 
         payer_name_address: "ahmed mghirbi ahmed mghirbi", // Placeholder - should come from OCR
-      }
+      };
+      // const predictPayload={
+      //   traite_num: "010687580474",
+      //   bank: "biat",
+      //   amount_digits: 6776.383,
+      //   amount_words: "six mille sept cent soixante-seize dinars zéro trois huit trois", // Placeholder - should come from OCR data
+      //   rib: "01050093110000158536",
+      //   signature_detected: true, // Placeholder - should come from OCR
+      //   barcode_validates_traite: true, // Placeholder - should come from OCR
+
+      //   date_created: '2025-01-03',
+      //   date_due: '2025-05-26',
+      //   place_created:"Tunis",
+      //   drawer_name: "Client bravo bravo bravo", 
+
+      //   payer_name_address: "ahmed mghirbi ahmed mghirbi", // Placeholder - should come from OCR
+      // }
       console.log(predictPayload);
       
       
       const resp = await axios.post("http://localhost:5000/api/predict/fraud", predictPayload);
       const prediction = resp.data.prediction;
-      
+      console.log(resp.data)
       if (prediction.fraud_label) {
         setFraudPrediction(prediction);
         setFraudDialogOpen(true);
