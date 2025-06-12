@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Button, TextField, Typography, Card, CardContent, Chip } from "@mui/material";
+import {Box, Button, TextField, Typography, Card, CardContent, Chip, Alert} from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
 import Header from "../../../../components/Header.jsx";
@@ -54,6 +54,13 @@ const AddUser = () => {
 
             <Card sx={{ width: "100%", maxWidth: "1200px", boxShadow: 5, borderRadius: 3, p: 3 }}>
                 <CardContent>
+                    {error && (
+                        <Box  my={2}>
+                            <Alert  severity="error" sx={{fontSize:"14px"}}>
+                                {error}
+                            </Alert>
+                        </Box>
+                    )}
                     <Formik onSubmit={handleFormSubmit} initialValues={initialValues} validationSchema={userSchema}>
                         {({
                               values,
@@ -175,11 +182,12 @@ const AddUser = () => {
                             </form>
                         )}
                     </Formik>
-                    {error && (
-                    <Typography variant="body1"  color="error" sx={{ mb: 2,textAlign:"center" }}>
-                        {error}
-                    </Typography>
-                )}
+                {/*    {error && (*/}
+                {/*    <Typography variant="body1" fontSize={16} mt={3} color="error" sx={{ mb: 2,textAlign:"center" }}>*/}
+                {/*        {error}*/}
+                {/*    </Typography>*/}
+                {/*)}*/}
+
 
                 </CardContent>
             </Card>

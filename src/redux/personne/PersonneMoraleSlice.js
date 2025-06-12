@@ -107,7 +107,7 @@ export const addPM = (data, navigate) => async (dispatch) => {
             throw new Error("Une erreur s'est produite");
         }
         dispatch(addMPSuccess());
-        navigate("/");
+        navigate("/all-pm");
     } catch (e) {
         console.log(e);
         dispatch(addPMFailure(e.response.data));
@@ -157,7 +157,7 @@ export const updatePM = (id, data, navigate) => async (dispatch) => {
             throw new Error("Une erreur s'est produite");
         }
         dispatch(updateMPSuccess());
-        navigate("/");
+        navigate("/all-pm");
     } catch (e) {
         dispatch(updatePMFailure(e.response.data));
     }

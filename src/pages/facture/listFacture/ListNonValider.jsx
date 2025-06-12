@@ -1,4 +1,4 @@
-import { Box, Button, useTheme } from "@mui/material";
+import {Alert, Box, Button, useTheme} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import Header from "../../../components/Header.jsx";
 import { localeText, tokens } from "../../../theme.js";
@@ -12,7 +12,7 @@ const ListNonValider = () => {
     const colors = tokens(theme.palette.mode);
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { factures } = useSelector((state) => state.facture);
+    const { factures,loading,error } = useSelector((state) => state.facture);
 
     console.log(factures)
     const [columnVisibility, setColumnVisibility] = useState({
@@ -111,6 +111,11 @@ const ListNonValider = () => {
     return (
         <Box m="20px">
             <Header title="Bordereaux" subtitle="Liste des Bordereaux Non Validés" />
+            {loading && (
+                <div className="loader-overlay">
+                    <div className="loader"></div>
+                </div>
+            )}
             <Box display="flex" justifyContent="flex-end" mb={2}>
                 <Button variant="contained" sx={{ backgroundColor: colors.greenAccent[500], color: colors.grey[900] }} onClick={() => navigate("/ajouter-facture")}>
                     Ajouter
@@ -120,7 +125,10 @@ const ListNonValider = () => {
                 height="75vh"
                 sx={{
                     "& .MuiDataGrid-root": { border: "none" },
-                    "& .MuiDataGrid-cell": { borderBottom: "none" },
+                    "& .MuiDataGrid-cell": {
+                        borderBottom: `1px solid ${colors.blueAccent[500]}`,
+                        fontSize: "14px"
+                    },
                     "& .MuiDataGrid-columnHeader": {
                         backgroundColor: colors.blueAccent[700],
                         fontSize: "14px"
@@ -133,6 +141,13 @@ const ListNonValider = () => {
                     },
                 }}
             >
+                {error && (
+                    <Box  my={2}>
+                        <Alert  severity="error" sx={{fontSize:"14px"}}>
+                            {error || "Une erreur s'est produite lors de la création de la personne physique !"}
+                        </Alert>
+                    </Box>
+                )}
                 <DataGrid
                     rows={factures}
                     rowCount={factures?.length ?? 0}

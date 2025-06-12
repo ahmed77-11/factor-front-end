@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Card, CardContent, TextField, Typography, Button, Autocomplete } from "@mui/material";
+import {Box, Card, CardContent, TextField, Typography, Button, Autocomplete, Alert} from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
 import { fetchAdherentsAsync } from "../../../../redux/relations/relationsSlice.js";
@@ -49,6 +49,13 @@ const AddMobileUser = () => {
 
             <Card sx={{ width: "100%", maxWidth: "1200px", boxShadow: 5, borderRadius: 3, p: 3 }}>
                 <CardContent>
+                    {error && (
+                        <Box  my={2}>
+                            <Alert  severity="error" sx={{fontSize:"14px"}}>
+                                {error}
+                            </Alert>
+                        </Box>
+                    )}
                     <Formik initialValues={initialValues} validationSchema={userSchema} onSubmit={handleFormSubmit}>
                         {({
                               values,
@@ -60,6 +67,12 @@ const AddMobileUser = () => {
                               setFieldValue,
                           }) => (
                             <form onSubmit={handleSubmit}>
+                                {loading && (
+                                    <div className="loader-overlay">
+                                        <div className="loader"></div>
+                                    </div>
+                                )}
+
                                 <Box display="flex" flexDirection="column" gap="20px">
                                     {/* Autocomplete */}
                                     <Box>
@@ -151,11 +164,7 @@ const AddMobileUser = () => {
                             </form>
                         )}
                     </Formik>
-                    {error && (
-                        <Typography variant="body1" color="error" sx={{ mb: 2, textAlign: "center" }}>
-                            {error}
-                        </Typography>
-                    )}
+
                 </CardContent>
             </Card>
         </Box>

@@ -1,10 +1,11 @@
 // import { ResponsiveLine } from '@nivo/line';
-// import { useEffect, useState } from 'react';
+// import { useEffect, useState,forwardRef } from 'react';
+
 // import axios from 'axios';
 // import {Box, Typography, CircularProgress, useTheme} from '@mui/material';
 // import {tokens} from "../../theme.js";
 //
-// const   TopAdherentsLineChart = ({withLabel}) => {
+// const   TopAdherentsLineChart =forwardRef( ({withLabel},ref) => {
 //     const [data, setData] = useState([]);
 //     const [loading, setLoading] = useState(true);
 //         const theme = useTheme();
@@ -227,7 +228,7 @@
 //                 />
 //             </Box>
 //     );
-// };
+// });
 //
 // export default TopAdherentsLineChart;
 
@@ -235,9 +236,10 @@
 import { ResponsiveLine } from '@nivo/line';
 import {Box, Typography, useTheme} from '@mui/material';
 import {tokens} from "../../theme.js";
+import {forwardRef} from "react";
 
-// eslint-disable-next-line react/prop-types
-const TopAdherentsLineChart = ({withLabel}) => {
+// eslint-disable-next-line react/prop-types,react/display-name
+const TopAdherentsLineChart =forwardRef (({withLabel},ref) => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const data = [
@@ -381,7 +383,7 @@ const TopAdherentsLineChart = ({withLabel}) => {
 
 
         return (
-            <Box m={1} height="100%"   >
+            <Box m={1} height="100%"  ref={ref} >
                 <Typography variant="h5" gutterBottom>
                     Top Adhérents – Montant Mensuel des Factures
                 </Typography>
@@ -472,6 +474,6 @@ const TopAdherentsLineChart = ({withLabel}) => {
                 />
             </Box>
         );
-    };
+    });
 
     export default TopAdherentsLineChart;

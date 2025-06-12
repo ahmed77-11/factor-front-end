@@ -7,7 +7,7 @@ const FunnelChartDetailView = () => {
 
     const stepDescriptions = {
         Validation: "Étape initiale de Validation du contrat.",
-        Juridique: "Revue et validation par Validateur juridique.",
+        Validation_Juridique: "Revue et validation par Validateur juridique.",
         Modification: "Modifications demandées sur le contrat.",
         Validé: "Contrat finalisé et validé.",
         Signé: "Contrat signé par le Signateur",
@@ -15,11 +15,14 @@ const FunnelChartDetailView = () => {
 
     const colorMap = {
         Validation: "#a117fc",
-        Juridique: "#45ffd0",
+        Validation_Juridique: "#45ffd0",
         Modification: "#03fbff",
         Validé: "#ffb3fe",
         Signé: "#FFA07A",
     };
+
+
+
 
     return (
         <Box m={6}>
@@ -49,7 +52,7 @@ const FunnelChartDetailView = () => {
                                         borderRadius: "4px",
                                     }}
                                 />
-                                <Typography variant="body1" fontWeight="500">{label}</Typography>
+                                <Typography variant="body1" fontWeight="500">{label==="Validation_Juridique"?`${label.split("_")[0]} ${label.split("_")[1]}`:label}</Typography>
                             </Box>
                         ))}
                     </Paper>
@@ -62,7 +65,7 @@ const FunnelChartDetailView = () => {
                         {Object.entries(stepDescriptions).map(([label, description]) => (
                             <Box key={label} mb={2}>
                                 <Typography variant="h6" fontWeight="bold">
-                                    {label}
+                                    {label==="Validation_Juridique"?`${label.split("_")[0]} ${label.split("_")[1]}`:label}
                                 </Typography>
                                 <Typography variant="body1" color="text.secondary">
                                     {description}

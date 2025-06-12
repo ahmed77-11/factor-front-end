@@ -1,4 +1,15 @@
-import { Box, Button, Step, StepLabel, Stepper, TextField, Typography, CircularProgress, useTheme } from "@mui/material";
+import {
+    Box,
+    Button,
+    Step,
+    StepLabel,
+    Stepper,
+    TextField,
+    Typography,
+    CircularProgress,
+    useTheme,
+    Alert
+} from "@mui/material";
 import { tokens } from "../../../theme.js";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,6 +46,7 @@ const UpdateContrat = () => {
 
     const activeStep = useSelector((state) => state.form.step);
     const formData = useSelector((state) => state.form.formData);
+    const {loading:loadSub,error:errorSub}=useSelector((state) => state.contrat);
 
     const { notification, findNotificationByNotes,  loading, notifErr: notifError } = useNotification();
     const { currentPM, loading: loadingPM } = useSelector((state) => state.personneMorale);
@@ -375,6 +387,18 @@ const UpdateContrat = () => {
     return (
         <Box m="20px" display="flex" flexDirection="column" alignItems="center">
             <Header title="MODIFIER UN CONTRAT" subtitle="Modifier un contrat existant" />
+            {loadSub && (
+                <div className="loader-overlay">
+                    <div className="loader"></div>
+                </div>
+            )}
+            {errorSub && (
+                <Box  mb={2}>
+                    <Alert  severity="error" sx={{fontSize:"14px"}}>
+                        {errorSub ||  "Une erreur s'est produite !"}
+                    </Alert>
+                </Box>
+            )}
             <Box sx={{ width: "100%", maxWidth: "800px", my: 4 }}>
                 <Stepper activeStep={activeStep} alternativeLabel>
                     {steps.map((label, index) => (

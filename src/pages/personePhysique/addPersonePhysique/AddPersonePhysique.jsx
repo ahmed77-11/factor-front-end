@@ -1,4 +1,4 @@
-import { Box, Button, TextField, Typography, Card, CardContent, MenuItem, useTheme } from "@mui/material";
+import {Box, Button, TextField, Typography, Card, CardContent, MenuItem, useTheme, Alert} from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
 import Header from "../../../components/Header.jsx";
@@ -95,6 +95,13 @@ const AddPersonnePhysique = () => {
                 }}
             >
                 <CardContent>
+                    {errorPP && (
+                        <Box  my={2}>
+                            <Alert  severity="error" sx={{fontSize:"14px"}}>
+                                {errorPP || "Une erreur s'est produite lors de la création de la personne physique !"}
+                            </Alert>
+                        </Box>
+                    )}
                     <Formik
                         onSubmit={handleFormSubmit}
                         initialValues={initialValues}
@@ -192,11 +199,6 @@ const AddPersonnePhysique = () => {
                             </form>
                         )}
                     </Formik>
-                    {errorPP && (
-                        <Typography variant="body1" color="error" sx={{ mb: 2, textAlign: "center" }}>
-                            {errorPP}
-                        </Typography>
-                    )}
                 </CardContent>
             </Card>
         </Box>

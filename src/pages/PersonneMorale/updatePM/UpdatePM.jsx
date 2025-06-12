@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Box, Button, TextField, Typography, Card, CardContent, MenuItem, useTheme } from "@mui/material";
+import {Box, Button, TextField, Typography, Card, CardContent, MenuItem, useTheme, Alert} from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
 import Header from "../../../components/Header.jsx";
@@ -94,7 +94,11 @@ const UpdatePM = () => {
 
     return (
         <Box m="20px" display="flex" flexDirection="column">
-            {loadingPM && <Typography>Chargement...</Typography>}
+            {loadingPM && (
+                <div className="loader-overlay">
+                    <div className="loader"></div>
+                </div>
+            )}
             <Header title="Personne Morale" subtitle="Modifier" />
 
             <Card sx={{
@@ -102,6 +106,13 @@ const UpdatePM = () => {
                 backgroundColor: `${colors.primary[900]}`
             }}>
                 <CardContent>
+                    {errorPM && (
+                        <Box  mb={2}>
+                            <Alert  severity="error" sx={{fontSize:"14px"}}>
+                                {errorPM ||  "Une erreur s'est produite lors de la récupération des données. !"}
+                            </Alert>
+                        </Box>
+                    )}
                     <Formik
                         enableReinitialize
                         initialValues={initialValues}
@@ -211,7 +222,6 @@ const UpdatePM = () => {
                         )}
                     </Formik>
 
-                    {errorPM && <Typography color="error">{errorPM}</Typography>}
                 </CardContent>
             </Card>
         </Box>

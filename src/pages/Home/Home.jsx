@@ -13,12 +13,14 @@ import DemFinCountChart from "../charts/DemFinCountChart.jsx";
 import FunnelChart from "../charts/FunnelChart.jsx";
 import TopAdherentsLineChart from "../charts/TopAdherentsLineChart.jsx";
 import TopAdherentsList from "../charts/TopAdherenetList.jsx";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import axios from "axios";
 
 const Home = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
+    const chartRef = useRef();
+
 
     const [countUser, setCountUser] = useState(0);
     const [countRoles, setCountRoles] = useState({});
@@ -26,6 +28,22 @@ const Home = () => {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const downloadSVGChart = () => {
+        const svg = chartRef.current?.querySelector("svg");
+        if (!svg) return;
+
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(svg);
+        const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "top-adherents-line-chart.svg";
+        link.click();
+        URL.revokeObjectURL(url);
+    };
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -221,13 +239,13 @@ const Home = () => {
                             Top Adhérents
                         </Typography>
                         <IconButton>
-                            <DownloadOutlined
+                            <DownloadOutlined onClick={downloadSVGChart}
                                 sx={{ fontSize: "26px", color: colors.greenAccent[500] }}
                             />
                         </IconButton>
                     </Box>
                     <Box height={"250px"} flexGrow={1}>
-                        <TopAdherentsLineChart withLabel={false} />
+                        <TopAdherentsLineChart withLabel={false}  ref={chartRef} />
                     </Box>
                 </Box>
 
@@ -243,7 +261,7 @@ const Home = () => {
                     }}
                 >
                     <Typography variant="h5" fontWeight="600" color={colors.grey[100]} mb={2}>
-                        Top 5 Adhérents avec le plus d’Acheteurs
+                        Top 5 des adhérents comptant le plus d&#39;acheteurs
                     </Typography>
                     <TopAdherentsList />
                 </Box>

@@ -1,4 +1,4 @@
-import {Box, Button, useTheme} from "@mui/material";
+import {Alert, Box, Button, useTheme} from "@mui/material";
 import {DataGrid, GridToolbar} from "@mui/x-data-grid";
 import {Edit, Delete} from "@mui/icons-material";
 import {useEffect, useState} from "react";
@@ -13,7 +13,7 @@ const ListPp = () => {
     const colors = tokens(theme.palette.mode);
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const {personnePhysiques} = useSelector((state) => state.personnePhysique);
+    const {personnePhysiques,errorPP} = useSelector((state) => state.personnePhysique);
     const [columnVisibility, setColumnVisibility] = useState({
         id: false,
     })
@@ -78,12 +78,19 @@ const ListPp = () => {
                     Ajouter
                 </Button>
             </Box>
+            {errorPP && (
+                <Box  mb={2}>
+                    <Alert  severity="error" sx={{fontSize:"14px"}}>
+                        {errorPP ||  "Une erreur s'est produite !"}
+                    </Alert>
+                </Box>
+            )}
             <Box
                 height="75vh"
                 sx={{
                     "& .MuiDataGrid-root": {border: "none"},
-                    "& .MuiDataGrid-cell": {borderBottom: "none"},
-                    "& .MuiDataGrid-columnHeader": {backgroundColor: colors.blueAccent[700]},
+                    "& .MuiDataGrid-cell": {borderBottom: `1px solid ${colors.blueAccent[500]}`,fontSize: "13px"},
+                    "& .MuiDataGrid-columnHeader": {backgroundColor: colors.blueAccent[700],fontSize: "13px"},
                     "& .MuiDataGrid-footerContainer": {backgroundColor: colors.blueAccent[700]},
                     "& .MuiCheckbox-root": {color: `${colors.greenAccent[200]} !important`},
                     "& .MuiDataGrid-toolbarContainer .MuiButton-text": {color: `${colors.grey[100]} !important`},

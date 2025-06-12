@@ -1,5 +1,6 @@
 import Header from "../../components/Header.jsx";
 import {
+    Alert,
     Autocomplete,
     Box,
     Button,
@@ -459,6 +460,14 @@ const Financement = () => {
         <Box m="20px">
             <Header title="Financement" subtitle="Gestion des financements" />
 
+            {error && (
+                <Box  my={2}>
+                    <Alert  severity="error" sx={{fontSize:"14px"}}>
+                        {error || "Une erreur s'est produite lors de la création de la personne physique !"}
+                    </Alert>
+                </Box>
+            )}
+
             {/* Adherent Selection and Financial Info */}
             <Card sx={{ mb: 3, p: 2, backgroundColor: colors.grey[900] }}>
                 <Grid container spacing={3}>
@@ -520,9 +529,13 @@ const Financement = () => {
                             sx={{
                                 height: 400,
                                 "& .MuiDataGrid-root": { border: "none" },
-                                "& .MuiDataGrid-cell": { borderBottom: "none" },
+                                "& .MuiDataGrid-cell": {
+                        borderBottom: `1px solid ${colors.blueAccent[500]}`,
+                        fontSize: "12px"
+                    },
                                 "& .MuiDataGrid-columnHeader": {
                                     backgroundColor: colors.blueAccent[700],
+                                    fontSize: "14px"
                                 },
                                 "& .MuiDataGrid-footerContainer": {
                                     backgroundColor: colors.blueAccent[700],
@@ -557,9 +570,13 @@ const Financement = () => {
                         <Box sx={{
                             height: 400,
                             "& .MuiDataGrid-root": { border: "none" },
-                            "& .MuiDataGrid-cell": { borderBottom: "none" },
+                            "& .MuiDataGrid-cell": {
+                        borderBottom: `1px solid ${colors.blueAccent[500]}`,
+                        fontSize: "12px"
+                    },
                             "& .MuiDataGrid-columnHeader": {
                                 backgroundColor: colors.blueAccent[700],
+                                fontSize: "14px"
                             },
                             "& .MuiDataGrid-footerContainer": {
                                 backgroundColor: colors.blueAccent[700],
@@ -594,9 +611,13 @@ const Financement = () => {
                         <Box sx={{
                             height: 400,
                             "& .MuiDataGrid-root": { border: "none" },
-                            "& .MuiDataGrid-cell": { borderBottom: "none" },
+                            "& .MuiDataGrid-cell": {
+                        borderBottom: `1px solid ${colors.blueAccent[500]}`,
+                        fontSize: "12px"
+                    },
                             "& .MuiDataGrid-columnHeader": {
                                 backgroundColor: colors.blueAccent[700],
+                                fontSize: "14px"
                             },
                             "& .MuiDataGrid-footerContainer": {
                                 backgroundColor: colors.blueAccent[700],

@@ -1,4 +1,4 @@
-import { Box, Button, useTheme } from "@mui/material";
+import {Alert, Box, Button, useTheme} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,7 +16,7 @@ const ListModification = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { contrats: notifications, loading } = useSelector((state) => state.contrat);
+    const { contrats: notifications, loading,error } = useSelector((state) => state.contrat);
     const [rows, setRows] = useState([]);
     const [columnVisibility, setColumnVisibility] = useState({ id: false });
     const [hasFetched, setHasFetched] = useState(false);
@@ -44,22 +44,27 @@ const ListModification = () => {
             let contrat = notification.notificationContratId;
             contrat = { ...contrat, notifId: notification.id };
             let adherent = { sigle: "—" };
-
             try {
+
                 if (contrat.adherent) {
                     const response = await axios.get(
                         `http://localhost:8081/factoring/api/pm/get-pm/${contrat.adherent}`,
                         { withCredentials: true }
                     );
+
                     if (response.status === 200) {
                         adherent = response.data;
+
                     }
+
                 }
             } catch (error) {
+
                 console.error("Error fetching adherent:", error);
             }
 
             processedRows.push({
+                id: notification.id, // for MUI DataGrid
                 ...contrat,
                 adherentSigle: adherent.sigle || "—",
                 deviseLabel: contrat.devise?.dsg || "—",
@@ -152,6 +157,13 @@ const ListModification = () => {
                 title="Contrats à modifier"
                 subtitle="Liste des contrats en attente de modification"
             />
+            {error && (
+                <Box  mb={2}>
+                    <Alert  severity="error" sx={{fontSize:"14px"}}>
+                        {error || "Une erreur s'est produite!"}
+                    </Alert>
+                </Box>
+            )}
 
 
 
@@ -159,9 +171,10 @@ const ListModification = () => {
                 height="75vh"
                 sx={{
                     "& .MuiDataGrid-root": { border: "none" },
-                    "& .MuiDataGrid-cell": { borderBottom: "none" },
+                    "& .MuiDataGrid-cell": { borderBottom: "none",fontSize:"13px" },
                     "& .MuiDataGrid-columnHeader": {
                         backgroundColor: colors.blueAccent[700],
+                        fontSize:"14px"
                     },
                     "& .MuiDataGrid-footerContainer": {
                         backgroundColor: colors.blueAccent[700],
@@ -178,7 +191,10 @@ const ListModification = () => {
                     rows={rows}
                     columns={columns}
                     loading={loading}
-                    getRowId={(row) => row.id}
+                    getRowId={(row) => {
+                        console.log(row)
+                        return(row.id)}
+                }
                     pageSizeOptions={[5, 10, 20]}
                     slots={{
                         toolbar: GridToolbar,

@@ -521,48 +521,48 @@ const validerRib = (value) => {
 };
 
 const dateField = (message) =>
-  yup
-    .date()
-    .transform((value, original) => (original === '' ? null : value))
-    .typeError(message);
+    yup
+        .date()
+        .transform((value, original) => (original === '' ? null : value))
+        .typeError(message);
 
 const validationSchema = yup.object().shape({
   factorDate: dateField("Date factor invalide")
-    .required("Date factor requise")
-    .max(new Date(), "La date de factor ne peut pas être dans le futur"),
+      .required("Date factor requise")
+      .max(new Date(), "La date de factor ne peut pas être dans le futur"),
   numero: yup
-    .string()
-    .required("Le numéro est requis")
-    .length(12, "Le numéro doit contenir exactement 12 caractères"),
+      .string()
+      .required("Le numéro est requis")
+      .length(12, "Le numéro doit contenir exactement 12 caractères"),
   tireEmisDate: dateField("Date tire émis invalide")
-    .required("Date tire émis requise")
-    .max(new Date(), "La date tire émis ne peut pas être dans le futur")
-    .when("factorDate", {
-      is: (val) => !!val,
-      then: (schema) =>
-        schema.min(
-          yup.ref("factorDate"),
-          "La date tire émis doit être après la date de factor"
-        )
-    }),
+      .required("Date tire émis requise")
+      .max(new Date(), "La date tire émis ne peut pas être dans le futur")
+      .when("factorDate", {
+        is: (val) => !!val,
+        then: (schema) =>
+            schema.min(
+                yup.ref("factorDate"),
+                "La date tire émis doit être après la date de factor"
+            )
+      }),
   tireEmisLieu: yup.string().required("Lieu tire émis requis"),
   bankCode: yup.string().required("Choisir une banque"),
   tireRib: yup
-    .string()
-    .required("RIB requis")
-    .test("valid-rib", "RIB invalide", validerRib),
+      .string()
+      .required("RIB requis")
+      .test("valid-rib", "RIB invalide", validerRib),
   tireNom: yup
-    .string()
-    .required("Nom du tire requis")
-    .min(5, "Le nom doit contenir au moins 5 caractères"),
+      .string()
+      .required("Nom du tire requis")
+      .min(5, "Le nom doit contenir au moins 5 caractères"),
   montant: yup
-    .number()
-    .typeError("Le montant doit être un nombre")
-    .required("Le montant est requis")
-    .positive("Le montant doit être positif"),
+      .number()
+      .typeError("Le montant doit être un nombre")
+      .required("Le montant est requis")
+      .positive("Le montant doit être positif"),
   echFirst: dateField("Date 1ère échéance invalide")
-    .required("Date 1ère échéance requise")
-    .min(new Date(), "La date d'échéance ne peut pas être dans le passé"),
+      .required("Date 1ère échéance requise")
+      .min(new Date(), "La date d'échéance ne peut pas être dans le passé"),
   adherFactorCode: yup.string(),
   achetFactorCode: yup.string(),
   linkedAdherent: yup.string()
@@ -570,11 +570,11 @@ const validationSchema = yup.object().shape({
 
 // Helper component to prevent prop type warnings
 const SafeListItemText = ({ primary }) => (
-  <ListItemText 
-    primary={typeof primary === 'string' || React.isValidElement(primary) 
-      ? primary 
-      : String(primary)}
-  />
+    <ListItemText
+        primary={typeof primary === 'string' || React.isValidElement(primary)
+            ? primary
+            : String(primary)}
+    />
 );
 
 const OcrAddTraite = () => {
@@ -610,39 +610,12 @@ const OcrAddTraite = () => {
 
   const translateRiskLevel = (level) => {
     if (!level) return "Inconnu";
-    switch (level.toLowerCase()) {
-      case 'high': return 'Élevé';
-      case 'medium': return 'Moyen';
-      case 'low': return 'Faible';
+    switch (level.toUpperCase()) {
+      case 'HIGH': return 'Élevé';
+      case 'MEDIUM': return 'Moyen';
+      case 'LOW': return 'Faible';
       default: return level;
     }
-  };
-
-  const translateReason = (reason) => {
-    if (!reason) return "";
-    
-    const translations = {
-      "Amount mismatch": "Incohérence de montant",
-      "Invalid date format": "Format de date invalide",
-      "Signature missing": "Signature manquante",
-      "Invalid barcode": "Code-barres invalide",
-      "RIB validation failed": "Échec de validation RIB",
-      "Name mismatch": "Incohérence de nom",
-      "Address inconsistency": "Incohérence d'adresse",
-      "Suspicious amount": "Montant suspect",
-      "Date inconsistency": "Incohérence de dates",
-      "Document tampering detected": "Altération de document détectée",
-      "Amount matches": "Montant cohérent",
-      "Valid signature": "Signature valide",
-      "Barcode validates": "Code-barres valide",
-      "RIB validates": "RIB valide",
-      "Consistent information": "Informations cohérentes",
-      "Normal amount range": "Montant dans la plage normale",
-      "Dates consistent": "Dates cohérentes",
-      "Document appears authentic": "Document semble authentique"
-    };
-    
-    return translations[reason] || reason;
   };
 
   const handleFormSubmit = async (values, { setSubmitting: setFormikSubmitting }) => {
@@ -652,44 +625,21 @@ const OcrAddTraite = () => {
         traite_num: values.numero,
         bank: "biat",
         amount_digits: parseFloat(values.montant),
-        amount_words: "six mille cinq cents ", // Placeholder - should come from OCR data
+        amount_words: "dix mille ", // Placeholder - should come from OCR data
         rib: values.tireRib,
-        
         signature_detected: false, // Placeholder - should come from OCR
         barcode_validates_traite: false, // Placeholder - should come from OCR
-
-       
-
         date_created: values.tireEmisDate,
         date_due: values.echFirst,
         place_created:"Tunis",
         drawer_name: values.tireNom,
-
         payer_name_address: "ahmed mghirbi ahmed mghirbi", // Placeholder - should come from OCR
       };
-      // const predictPayload={
-      //   traite_num: "010687580474",
-      //   bank: "biat",
-      //   amount_digits: 6776.383,
-      //   amount_words: "six mille sept cent soixante-seize dinars zéro trois huit trois", // Placeholder - should come from OCR data
-      //   rib: "01050093110000158536",
-      //   signature_detected: true, // Placeholder - should come from OCR
-      //   barcode_validates_traite: true, // Placeholder - should come from OCR
 
-      //   date_created: '2025-01-03',
-      //   date_due: '2025-05-26',
-      //   place_created:"Tunis",
-      //   drawer_name: "Client bravo bravo bravo", 
-
-      //   payer_name_address: "ahmed mghirbi ahmed mghirbi", // Placeholder - should come from OCR
-      // }
-      console.log(predictPayload);
-      
-      
       const resp = await axios.post("http://localhost:5000/api/predict/fraud", predictPayload);
-      const prediction = resp.data.prediction;
-      console.log(resp.data)
-      if (prediction.fraud_label) {
+      const prediction = resp.data;
+
+      if (prediction.predicted_label) {
         setFraudPrediction(prediction);
         setFraudDialogOpen(true);
       } else {
@@ -718,359 +668,381 @@ const OcrAddTraite = () => {
   const combinedAcheteurs = [...(acheteurs?.pps || []), ...(acheteurs?.pms || [])];
 
   return (
-    <Box m="20px">
-      <Header title="Création Traite" subtitle="Complétez les informations de la traite" />
-      <Card sx={{ backgroundColor: colors.primary[400], p: 3, borderRadius: '12px' }}>
-        <Formik
-          initialValues={initialData}
-          validationSchema={validationSchema}
-          onSubmit={handleFormSubmit}
-          enableReinitialize
-        >
-          {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
-            <form onSubmit={handleSubmit}>
-              <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={3}>
-                <TextField
-                  fullWidth
-                  label="Date Factor"
-                  type="date"
-                  name="factorDate"
-                  value={values.factorDate}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={touched.factorDate && Boolean(errors.factorDate)}
-                  helperText={touched.factorDate && errors.factorDate}
-                  InputLabelProps={{ shrink: true }}
-                />
-                <TextField
-                  fullWidth
-                  label="Numéro Traite"
-                  name="numero"
-                  value={values.numero}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={touched.numero && Boolean(errors.numero)}
-                  helperText={touched.numero && errors.numero}
-                />
-
-                <Box sx={{ gridColumn: 'span 2' }}>
-                  <Box display="flex" gap={2}>
+      <Box m="20px">
+        <Header title="Création Traite" subtitle="Complétez les informations de la traite" />
+        <Card sx={{ backgroundColor: colors.primary[400], p: 3, borderRadius: '12px' }}>
+          <Formik
+              initialValues={initialData}
+              validationSchema={validationSchema}
+              onSubmit={handleFormSubmit}
+              enableReinitialize
+          >
+            {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
+                <form onSubmit={handleSubmit}>
+                  <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={3}>
                     <TextField
-                      select
-                      fullWidth
-                      label="Banque"
-                      name="bankCode"
-                      value={values.bankCode}
-                      onChange={(e) => {
-                        handleChange(e);
-                        setRibSuffix(values.tireRib.slice(2));
-                      }}
-                      onBlur={handleBlur}
-                      error={touched.bankCode && Boolean(errors.bankCode)}
-                      helperText={touched.bankCode && errors.bankCode}
+                        fullWidth
+                        label="Date Factor"
+                        type="date"
+                        name="factorDate"
+                        value={values.factorDate}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={touched.factorDate && Boolean(errors.factorDate)}
+                        helperText={touched.factorDate && errors.factorDate}
+                        InputLabelProps={{ shrink: true }}
+                    />
+                    <TextField
+                        fullWidth
+                        label="Numéro Traite"
+                        name="numero"
+                        value={values.numero}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={touched.numero && Boolean(errors.numero)}
+                        helperText={touched.numero && errors.numero}
+                    />
+
+                    <Box sx={{ gridColumn: 'span 2' }}>
+                      <Box display="flex" gap={2}>
+                        <TextField
+                            select
+                            fullWidth
+                            label="Banque"
+                            name="bankCode"
+                            value={values.bankCode}
+                            onChange={(e) => {
+                              handleChange(e);
+                              setRibSuffix(values.tireRib.slice(2));
+                            }}
+                            onBlur={handleBlur}
+                            error={touched.bankCode && Boolean(errors.bankCode)}
+                            helperText={touched.bankCode && errors.bankCode}
+                        >
+                          {banques.map((b) => (
+                              <MenuItem key={b.code} value={b.code}>{b.nom}</MenuItem>
+                          ))}
+                        </TextField>
+                        <TextField
+                            fullWidth
+                            label="RIB du Tire"
+                            name="tireRib"
+                            value={values.tireRib}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              handleChange({ target: { name: 'tireRib', value: val } });
+                            }}
+                            onBlur={handleBlur}
+                            error={touched.tireRib && Boolean(errors.tireRib)}
+                            helperText={touched.tireRib && errors.tireRib}
+                        />
+                      </Box>
+                    </Box>
+
+                    <TextField
+                        fullWidth
+                        label="Nom du Tire"
+                        name="tireNom"
+                        value={values.tireNom}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={touched.tireNom && Boolean(errors.tireNom)}
+                        helperText={touched.tireNom && errors.tireNom}
+                    />
+                    <TextField
+                        fullWidth
+                        label="Montant"
+                        name="montant"
+                        type="number"
+                        value={values.montant}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={touched.montant && Boolean(errors.montant)}
+                        helperText={touched.montant && errors.montant}
+                    />
+
+                    <TextField
+                        fullWidth
+                        label="Date Tire Émis"
+                        type="date"
+                        name="tireEmisDate"
+                        value={values.tireEmisDate}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={touched.tireEmisDate && Boolean(errors.tireEmisDate)}
+                        helperText={touched.tireEmisDate && errors.tireEmisDate}
+                        InputLabelProps={{ shrink: true }}
+                    />
+                    <TextField
+                        fullWidth
+                        label="Lieu Tire Émis"
+                        name="tireEmisLieu"
+                        value={values.tireEmisLieu}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={touched.tireEmisLieu && Boolean(errors.tireEmisLieu)}
+                        helperText={touched.tireEmisLieu && errors.tireEmisLieu}
+                    />
+
+                    <TextField
+                        select
+                        fullWidth
+                        label="Adhérent"
+                        name="adherFactorCode"
+                        value={values.adherFactorCode}
+                        onChange={(e) => {
+                          handleChange(e);
+                          dispatch(fetchContratByAdherentIdAsync(e.target.value));
+                        }}
+                        onBlur={handleBlur}
+                        error={touched.adherFactorCode && Boolean(errors.adherFactorCode)}
+                        helperText={touched.adherFactorCode && errors.adherFactorCode}
+                        disabled={!!values.achetFactorCode}
                     >
-                      {banques.map((b) => (
-                        <MenuItem key={b.code} value={b.code}>{b.nom}</MenuItem>
+                      {adherents.map((adh) => (
+                          <MenuItem key={adh.id} value={adh.id.toString()}>
+                            {adh.raisonSocial || `${adh.nom} ${adh.prenom}`}
+                          </MenuItem>
                       ))}
                     </TextField>
+
                     <TextField
-                      fullWidth
-                      label="RIB du Tire"
-                      name="tireRib"
-                      value={values.tireRib}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        handleChange({ target: { name: 'tireRib', value: val } });
-                      }}
-                      onBlur={handleBlur}
-                      error={touched.tireRib && Boolean(errors.tireRib)}
-                      helperText={touched.tireRib && errors.tireRib}
-                    />
-                  </Box>
-                </Box>
+                        select
+                        fullWidth
+                        label="Acheteur"
+                        name="achetFactorCode"
+                        value={values.achetFactorCode}
+                        onChange={(e) => {
+                          handleChange(e);
+                          dispatch(fetchAdherentsByAcheteur(e.target.value));
+                        }}
+                        onBlur={handleBlur}
+                        error={touched.achetFactorCode && Boolean(errors.achetFactorCode)}
+                        helperText={touched.achetFactorCode && errors.achetFactorCode}
+                        disabled={!!values.adherFactorCode}
+                    >
+                      {combinedAcheteurs.map((ach) => (
+                          <MenuItem key={ach.id} value={ach.id.toString()}>
+                            {ach.raisonSocial || `${ach.nom} ${ach.prenom}`}
+                          </MenuItem>
+                      ))}
+                    </TextField>
 
-                <TextField
-                  fullWidth
-                  label="Nom du Tire"
-                  name="tireNom"
-                  value={values.tireNom}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={touched.tireNom && Boolean(errors.tireNom)}
-                  helperText={touched.tireNom && errors.tireNom}
-                />
-                <TextField
-                  fullWidth
-                  label="Montant"
-                  name="montant"
-                  type="number"
-                  value={values.montant}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={touched.montant && Boolean(errors.montant)}
-                  helperText={touched.montant && errors.montant}
-                />
-
-                <TextField
-                  fullWidth
-                  label="Date Tire Émis"
-                  type="date"
-                  name="tireEmisDate"
-                  value={values.tireEmisDate}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={touched.tireEmisDate && Boolean(errors.tireEmisDate)}
-                  helperText={touched.tireEmisDate && errors.tireEmisDate}
-                  InputLabelProps={{ shrink: true }}
-                />
-                <TextField
-                  fullWidth
-                  label="Lieu Tire Émis"
-                  name="tireEmisLieu"
-                  value={values.tireEmisLieu}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={touched.tireEmisLieu && Boolean(errors.tireEmisLieu)}
-                  helperText={touched.tireEmisLieu && errors.tireEmisLieu}
-                />
-
-                <TextField
-                  select
-                  fullWidth
-                  label="Adhérent"
-                  name="adherFactorCode"
-                  value={values.adherFactorCode}
-                  onChange={(e) => {
-                    handleChange(e);
-                    dispatch(fetchContratByAdherentIdAsync(e.target.value));
-                  }}
-                  onBlur={handleBlur}
-                  error={touched.adherFactorCode && Boolean(errors.adherFactorCode)}
-                  helperText={touched.adherFactorCode && errors.adherFactorCode}
-                  disabled={!!values.achetFactorCode}
-                >
-                  {adherents.map((adh) => (
-                    <MenuItem key={adh.id} value={adh.id.toString()}>
-                      {adh.raisonSocial || `${adh.nom} ${adh.prenom}`}
-                    </MenuItem>
-                  ))}
-                </TextField>
-
-                <TextField
-                  select
-                  fullWidth
-                  label="Acheteur"
-                  name="achetFactorCode"
-                  value={values.achetFactorCode}
-                  onChange={(e) => {
-                    handleChange(e);
-                    dispatch(fetchAdherentsByAcheteur(e.target.value));
-                  }}
-                  onBlur={handleBlur}
-                  error={touched.achetFactorCode && Boolean(errors.achetFactorCode)}
-                  helperText={touched.achetFactorCode && errors.achetFactorCode}
-                  disabled={!!values.adherFactorCode}
-                >
-                  {combinedAcheteurs.map((ach) => (
-                    <MenuItem key={ach.id} value={ach.id.toString()}>
-                      {ach.raisonSocial || `${ach.nom} ${ach.prenom}`}
-                    </MenuItem>
-                  ))}
-                </TextField>
-
-                {values.achetFactorCode && (
-                  <TextField
-                    select
-                    fullWidth
-                    label="Adhérent lié"
-                    name="linkedAdherent"
-                    value={values.linkedAdherent}
-                    onChange={(e) => {
-                      handleChange(e);
-                      dispatch(fetchContratByAdherentIdAsync(e.target.value));
-                    }}
-                    onBlur={handleBlur}
-                    error={touched.linkedAdherent && Boolean(errors.linkedAdherent)}
-                    helperText={touched.linkedAdherent && errors.linkedAdherent}
-                    sx={{ gridColumn: 'span 2' }}
-                  >
-                    {adherents.map((adh) => (
-                      <MenuItem key={adh.id} value={adh.id.toString()}>
-                        {adh.raisonSocial || `${adh.nom} ${adh.prenom}`}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                )}
-
-                <TextField
-                  fullWidth
-                  label="Date 1ère Échéance"
-                  type="date"
-                  name="echFirst"
-                  value={values.echFirst}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={touched.echFirst && Boolean(errors.echFirst)}
-                  helperText={touched.echFirst && errors.echFirst}
-                  InputLabelProps={{ shrink: true }}
-                />
-
-                <TextField
-                  fullWidth
-                  label="Devise"
-                  name="devise"
-                  value={currentContrat?.devise?.dsg || ''}
-                  InputProps={{ readOnly: true }}
-                  helperText="Devise liée au contrat sélectionné"
-                />
-
-                <Box sx={{ gridColumn: 'span 2', textAlign: 'center', mt: 3 }}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    color="secondary"
-                    size="large"
-                    disabled={submitting}
-                    sx={{
-                      px: 6,
-                      fontSize: '1.1rem',
-                      fontWeight: 'bold',
-                      textTransform: 'none',
-                      borderRadius: '8px'
-                    }}
-                  >
-                    {submitting ? (
-                      <CircularProgress size={24} sx={{ color: 'white' }} />
-                    ) : (
-                      'Valider la Traite'
+                    {values.achetFactorCode && (
+                        <TextField
+                            select
+                            fullWidth
+                            label="Adhérent lié"
+                            name="linkedAdherent"
+                            value={values.linkedAdherent}
+                            onChange={(e) => {
+                              handleChange(e);
+                              dispatch(fetchContratByAdherentIdAsync(e.target.value));
+                            }}
+                            onBlur={handleBlur}
+                            error={touched.linkedAdherent && Boolean(errors.linkedAdherent)}
+                            helperText={touched.linkedAdherent && errors.linkedAdherent}
+                            sx={{ gridColumn: 'span 2' }}
+                        >
+                          {adherents.map((adh) => (
+                              <MenuItem key={adh.id} value={adh.id.toString()}>
+                                {adh.raisonSocial || `${adh.nom} ${adh.prenom}`}
+                              </MenuItem>
+                          ))}
+                        </TextField>
                     )}
-                  </Button>
-                </Box>
-              </Box>
-            </form>
-          )}
-        </Formik>
-      </Card>
 
-      <Dialog 
-        open={fraudDialogOpen} 
-        onClose={handleCloseFraudDialog} 
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle sx={{ 
-          backgroundColor: fraudPrediction?.risk_level === 'High' 
-            ? colors.redAccent[700] 
-            : "#ff6a00", 
-          color: "white",
-          display: "flex",
-          alignItems: "center"
-        }}>
-          <ErrorOutlineIcon sx={{ mr: 1 }} />
-          Risque de Fraude Détecté
-        </DialogTitle>
-        
-        <DialogContent dividers>
-          <Box mb={2}>
-            <Typography variant="h6" color="error" sx={{ display: "flex", alignItems: "center" }}>
-              <WarningIcon sx={{ mr: 1 }} />
-              Cette traite présente un risque de fraude {fraudPrediction?.risk_level === 'High' ? 'élevé' : 'modéré'}
-            </Typography>
-          </Box>
+                    <TextField
+                        fullWidth
+                        label="Date 1ère Échéance"
+                        type="date"
+                        name="echFirst"
+                        value={values.echFirst}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={touched.echFirst && Boolean(errors.echFirst)}
+                        helperText={touched.echFirst && errors.echFirst}
+                        InputLabelProps={{ shrink: true }}
+                    />
 
-          <Grid container spacing={2} mb={3}>
-            <Grid item xs={4}>
-              <Typography variant="subtitle1">
-                <strong>Score de fraude:</strong> 
-              </Typography>
-              <Typography variant="h4" color={colors.redAccent[500]}>
-                {fraudPrediction ? (fraudPrediction.fraud_score * 100).toFixed(1) + '%' : 'N/A'}
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={4}>
-              <Typography variant="subtitle1">
-                <strong>Niveau de risque:</strong>
-              </Typography>
-              <Typography variant="h5" color={colors.redAccent[500]}>
-                {fraudPrediction ? translateRiskLevel(fraudPrediction.risk_level) : 'N/A'}
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={4}>
-              <Typography variant="subtitle1">
-                <strong>Décision:</strong>
-              </Typography>
-              <Typography variant="h5" color={colors.redAccent[500]}>
-                Frauduleuse
-              </Typography>
-            </Grid>
-          </Grid>
+                    <TextField
+                        fullWidth
+                        label="Devise"
+                        name="devise"
+                        value={currentContrat?.devise?.dsg || ''}
+                        InputProps={{ readOnly: true }}
+                        helperText="Devise liée au contrat sélectionné"
+                    />
 
-          <Box mb={3}>
-            <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center" }}>
-              <ListIcon sx={{ mr: 1 }} />
-              Analyse Détailée
-            </Typography>
-            
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <Typography variant="subtitle1" color="error" gutterBottom>
-                  <strong>Indicateurs de fraude:</strong>
+                    <Box sx={{ gridColumn: 'span 2', textAlign: 'center', mt: 3 }}>
+                      <Button
+                          type="submit"
+                          variant="contained"
+                          color="secondary"
+                          size="large"
+                          disabled={submitting}
+                          sx={{
+                            px: 6,
+                            fontSize: '1.1rem',
+                            fontWeight: 'bold',
+                            textTransform: 'none',
+                            borderRadius: '8px'
+                          }}
+                      >
+                        {submitting ? (
+                            <CircularProgress size={24} sx={{ color: 'white' }} />
+                        ) : (
+                            'Valider la Traite'
+                        )}
+                      </Button>
+                    </Box>
+                  </Box>
+                </form>
+            )}
+          </Formik>
+        </Card>
+
+        <Dialog
+            open={fraudDialogOpen}
+            onClose={handleCloseFraudDialog}
+            maxWidth="md"
+            fullWidth
+        >
+          <DialogTitle sx={{
+            backgroundColor: fraudPrediction?.critical_risk
+                ? colors.redAccent[700]
+                : fraudPrediction?.risk_level === 'HIGH'
+                    ? colors.redAccent[700]
+                    : "#ff6a00",
+            color: "white",
+            display: "flex",
+            alignItems: "center"
+          }}>
+            <ErrorOutlineIcon sx={{ mr: 1 }} />
+            {fraudPrediction?.critical_risk
+                ? "Risque Critique de Fraude Détecté"
+                : "Risque de Fraude Détecté"}
+          </DialogTitle>
+
+          <DialogContent dividers>
+            <Box mb={2}>
+              <Typography variant="h6" color="error" sx={{ display: "flex", alignItems: "center" }}>
+                <WarningIcon sx={{ mr: 1 }} />
+                {fraudPrediction?.critical_risk
+                    ? "Cette traite présente un risque critique de fraude"
+                    : `Cette traite présente un risque de fraude ${translateRiskLevel(fraudPrediction?.risk_level)}`}
+              </Typography>
+            </Box>
+
+            <Grid container spacing={2} mb={3}>
+              <Grid item xs={4}>
+                <Typography variant="subtitle1">
+                  <strong>Probabilité de fraude:</strong>
                 </Typography>
-                <List dense>
-                  {fraudPrediction?.detailed_analysis?.reasons_for_fraud?.map((reason, i) => (
-                    <ListItem key={i}>
-                      <ListItemIcon>
-                        <CancelIcon color="error" />
-                      </ListItemIcon>
-                      <SafeListItemText primary={translateReason(reason.message)} />
-                    </ListItem>
-                  ))}
-                </List>
+                <Typography variant="h4" color={colors.redAccent[500]}>
+                  {fraudPrediction ? (fraudPrediction.probability * 100).toFixed(1) + '%' : 'N/A'}
+                </Typography>
               </Grid>
 
-              <Grid item xs={6}>
-                <Typography variant="subtitle1" sx={{ color: colors.greenAccent[500] }} gutterBottom>
-                  <strong>Éléments rassurants:</strong>
+              <Grid item xs={4}>
+                <Typography variant="subtitle1">
+                  <strong>Niveau de risque:</strong>
                 </Typography>
-                <List dense>
-                  {fraudPrediction?.detailed_analysis?.reasons_against_fraud?.map((reason, i) => (
-                    <ListItem key={i}>
-                      <ListItemIcon>
-                        <CheckCircleIcon sx={{ color: colors.greenAccent[500] }} />
-                      </ListItemIcon>
-                      <SafeListItemText primary={translateReason(reason.message)} />
-                    </ListItem>
-                  ))}
-                </List>
+                <Typography variant="h5" color={colors.redAccent[500]}>
+                  {fraudPrediction ? translateRiskLevel(fraudPrediction.risk_level) : 'N/A'}
+                </Typography>
+              </Grid>
+
+              <Grid item xs={4}>
+                <Typography variant="subtitle1">
+                  <strong>Décision:</strong>
+                </Typography>
+                <Typography variant="h5" color={colors.redAccent[500]}>
+                  {fraudPrediction?.predicted_label ? "Frauduleuse" : "Légitime"}
+                </Typography>
               </Grid>
             </Grid>
-          </Box>
 
-          <Box p={2} sx={{ backgroundColor: colors.blueAccent[900], borderRadius: "4px" }}>
-            <Typography variant="body1" sx={{ display: "flex", alignItems: "flex-start" }}>
-              <InfoIcon sx={{ mr: 1, mt: 0.5 }} />
-              <span>
-                <strong>Résumé analytique:</strong> {fraudPrediction?.summary || 
-                  "Plusieurs indicateurs suggèrent que cette traite pourrait être frauduleuse. Veuillez vérifier manuellement tous les éléments."
+            <Box mb={3}>
+              <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center" }}>
+                <ListIcon sx={{ mr: 1 }} />
+                Analyse Détailée
+              </Typography>
+
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle1" color="error" gutterBottom>
+                    <strong>Indicateurs de fraude:</strong>
+                  </Typography>
+                  <List dense>
+                    {fraudPrediction?.reasons_for_fraud?.map((reason, i) => (
+                        <ListItem key={i}>
+                          <ListItemIcon>
+                            <CancelIcon color="error" />
+                          </ListItemIcon>
+                          <SafeListItemText primary={reason.message} />
+                        </ListItem>
+                    ))}
+                    {(!fraudPrediction?.reasons_for_fraud || fraudPrediction.reasons_for_fraud.length === 0) && (
+                        <ListItem>
+                          <ListItemIcon>
+                            <CheckCircleIcon sx={{ color: colors.greenAccent[500] }} />
+                          </ListItemIcon>
+                          <SafeListItemText primary="Aucun indicateur de fraude détecté" />
+                        </ListItem>
+                    )}
+                  </List>
+                </Grid>
+
+                <Grid item xs={6}>
+                  <Typography variant="subtitle1" sx={{ color: colors.greenAccent[500] }} gutterBottom>
+                    <strong>Éléments rassurants:</strong>
+                  </Typography>
+                  <List dense>
+                    {fraudPrediction?.reasons_against_fraud?.map((reason, i) => (
+                        <ListItem key={i}>
+                          <ListItemIcon>
+                            <CheckCircleIcon sx={{ color: colors.greenAccent[500] }} />
+                          </ListItemIcon>
+                          <SafeListItemText primary={reason.message} />
+                        </ListItem>
+                    ))}
+                    {(!fraudPrediction?.reasons_against_fraud || fraudPrediction.reasons_against_fraud.length === 0) && (
+                        <ListItem>
+                          <ListItemIcon>
+                            <CancelIcon color="error" />
+                          </ListItemIcon>
+                          <SafeListItemText primary="Aucun élément rassurant détecté" />
+                        </ListItem>
+                    )}
+                  </List>
+                </Grid>
+              </Grid>
+            </Box>
+
+            <Box p={2} sx={{ backgroundColor: colors.blueAccent[900], borderRadius: "4px" }}>
+              <Typography variant="body1" sx={{ display: "flex", alignItems: "flex-start" }}>
+                <InfoIcon sx={{ mr: 1, mt: 0.5 }} />
+                <span>
+                <strong>Résumé analytique:</strong> {fraudPrediction?.summary ||
+                    "L'analyse n'a pas fourni de résumé."
                 }
               </span>
-            </Typography>
-          </Box>
-        </DialogContent>
+              </Typography>
+            </Box>
+          </DialogContent>
 
-        <DialogActions>
-          <Button 
-            onClick={handleCloseFraudDialog} 
-            variant="contained"
-            sx={{ backgroundColor: colors.grey[700], color: "white" }}
-          >
-            Fermer
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          <DialogActions>
+            <Button
+                onClick={handleCloseFraudDialog}
+                variant="contained"
+                sx={{ backgroundColor: colors.grey[700], color: "white" }}
+            >
+              Fermer
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
   );
 };
 

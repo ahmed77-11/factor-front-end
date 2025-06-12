@@ -116,8 +116,11 @@ const GetAllTraite = () => {
                 height="75vh"
                 sx={{
                     "& .MuiDataGrid-root": { border: "none" },
-                    "& .MuiDataGrid-cell": { borderBottom: "none" },
-                    "& .MuiDataGrid-columnHeader": { backgroundColor: colors.blueAccent[700] },
+                   "& .MuiDataGrid-cell": {
+                        borderBottom: `1px solid ${colors.blueAccent[500]}`,
+                        fontSize: "14px"
+                    },
+                    "& .MuiDataGrid-columnHeader": { backgroundColor: colors.blueAccent[700], fontSize: "14px" },
                     "& .MuiDataGrid-footerContainer": { backgroundColor: colors.blueAccent[700] },
                     "& .MuiCheckbox-root": { color: `${colors.greenAccent[200]} !important` },
                     "& .MuiDataGrid-toolbarContainer .MuiButton-text": { color: `${colors.grey[100]} !important` },

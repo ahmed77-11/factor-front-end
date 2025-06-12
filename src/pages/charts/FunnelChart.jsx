@@ -15,7 +15,7 @@ const FunnelChart = ({ withLabel = false, onDataLoaded }) => {
             case "SVV":
                 return "Validation";
             case "SVJ":
-                return "Juridique";
+                return "Validation_Juridique";
             case "SM":
                 return "Modification";
             case "SV":
@@ -53,7 +53,7 @@ const FunnelChart = ({ withLabel = false, onDataLoaded }) => {
 
     const colorMap = {
         Validation: '#a117fc',
-        Juridique: '#45ffd0',
+        Validation_Juridique: '#45ffd0',
         Modification: '#03fbff',
         Validé: '#ffb3fe',
         Signé: '#FFA07A',

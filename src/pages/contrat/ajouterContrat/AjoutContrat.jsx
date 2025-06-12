@@ -13,7 +13,7 @@ import {
     Typography,
     TextField,
     MenuItem,
-    useTheme,
+    useTheme, Alert,
 } from "@mui/material";
 import { Check } from "@mui/icons-material";
 import Header from "../../../components/Header.jsx";
@@ -40,9 +40,13 @@ const AjoutContrat = () => {
     const dispatch = useDispatch();
     const activeStep = useSelector((state) => state.form.step);
     const formData = useSelector((state) => state.form.formData);
-    const { personneMorales, loading } = useSelector(
+    let { personneMorales, loading } = useSelector(
         (state) => state.personneMorale
     );
+    personneMorales = personneMorales || []; // Ensure personneMorales is always an array
+    personneMorales = personneMorales
+        .filter(pm => !pm.indviduRoles.includes("ADHERENT"));
+
     const {loading:loadingContrat,error:errContrat} = useSelector((state) => state.contrat);
     // Reference for the form step (ConditionGenerale1)
     const conditionRef = useRef(null);
@@ -295,6 +299,18 @@ const AjoutContrat = () => {
     return (
         <Box m="20px" display="flex" flexDirection="column" alignItems="center">
             <Header title="CRÉER UN CONTRAT" subtitle="Créer un nouveau contrat" />
+            {loadingContrat && (
+                <div className="loader-overlay">
+                    <div className="loader"></div>
+                </div>
+            )}
+            {errContrat && (
+                <Box  mb={2}>
+                    <Alert  severity="error" sx={{fontSize:"14px"}}>
+                        {errContrat ||  "Une erreur s'est produite !"}
+                    </Alert>
+                </Box>
+            )}
             <Box sx={{ width: "100%", maxWidth: "800px", my: 4 }}>
                 <Stepper activeStep={activeStep} alternativeLabel>
                     {steps.map((label, index) => (

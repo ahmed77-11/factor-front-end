@@ -16,6 +16,21 @@ import {
     CheckOutlined,
     EditNoteOutlined,
     MapOutlined,
+    AppShortcutOutlined,
+    DescriptionOutlined,
+    TaskAltRounded,
+    UnpublishedOutlined,
+    CreditCardOutlined,
+    FormatListNumberedOutlined,
+    AutoFixHighOutlined,
+    Money,
+    MonetizationOn,
+    RuleOutlined,
+    ChecklistRtlOutlined,
+    QueryStatsOutlined,
+    BarChartOutlined,
+    DonutLargeOutlined,
+    FilterAltOutlined, StackedLineChartOutlined, InsertLinkOutlined,
 } from "@mui/icons-material";
 import { tokens } from "../../../theme.js";
 import {useSelector} from "react-redux";
@@ -38,7 +53,25 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
                 },
             }}
         >
-            <Typography>{title}</Typography>
+            <Box className="scrolling-title" sx={{
+                width: '100%',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                position: 'relative',
+                '& > .MuiTypography-root': {
+                    display: 'inline-block',
+                    paddingRight: '100%',
+                    animation: 'scroll-left 7s linear infinite',
+                },
+                '@keyframes scroll-left': {
+                    '0%': { transform: 'translateX(50%)' },
+                    '100%': { transform: 'translateX(-50%)' },
+                }
+            }}>
+                <Typography>{title}</Typography>
+            </Box>
+
+
         </MenuItem>
     );
 };
@@ -48,6 +81,10 @@ const SideBarComponent = () => {
     console.log(current)
     const containAdmin=current?.roles?.some(role => role === "ROLE_ADMIN");
     console.log(current.roles)
+
+
+    const hasRole = (roles, role) => roles?.includes(role);
+    const hasAnyRole = (roles, allowedRoles) => allowedRoles.some(r => roles?.includes(r));
     
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
@@ -67,6 +104,7 @@ const SideBarComponent = () => {
                 "& .ps-sidebar-container": {
                     background: colors.primary[400],
                     color: colors.grey[100],
+                    width: isCollapsed ? "80px" : "250px",
                     height: "100vh",
                     overflowY: "auto",
                     "&::-webkit-scrollbar": { display: "none" },
@@ -142,14 +180,16 @@ const SideBarComponent = () => {
                     <Box paddingLeft={isCollapsed ? undefined : "10%"}>
                         <Item title="Tableau de bord" to="/" icon={<HomeOutlined />} selected={selected} setSelected={setSelected} />
 
-                        <Typography variant="h6" color={colors.grey[300]} sx={{ m: "15px 0 5px 20px" }}>Administration</Typography>
-                        <SubMenu label="Gérer les utilisateurs" icon={<PeopleOutlined />} style={{ color: colors.grey[100] }} onClick={handleSubMenuOpen}>
+                        {/*<Typography variant="h6" color={colors.grey[300]} sx={{ m: "15px 0 5px 20px" }}>Administration</Typography>*/}
+                        {
+                           hasRole(current.roles, "ROLE_ADMIN") && (
+                        <SubMenu label="Utilisateurs" icon={<PeopleOutlined />} style={{ color: colors.grey[100] }} onClick={handleSubMenuOpen}>
                             <Item title="Ajouter un utilisateur" to="/ajouter-utilisateur" icon={<PersonAddOutlined />} selected={selected} setSelected={setSelected} />
-                            {/*<Item title="Modifier un utilisateur" to="/modify-user" icon={<EditOutlined />} selected={selected} setSelected={setSelected} />*/}
+                            <Item title={"Ajouter Un Utilisateur Mobile"} to="/ajouter-utilisateur-mobile" icon={<AppShortcutOutlined />} selected={selected} setSelected={setSelected} />
                             <Item title="Afficher tous les utilisateurs" to="/users" icon={<ListOutlined />} selected={selected} setSelected={setSelected} />
-                        </SubMenu>
-
-                        <SubMenu label="Refrentiel" icon={<MapOutlined />} style={{ color: colors.grey[100] }} onClick={handleSubMenuOpen}>
+                        </SubMenu>)
+                        }
+                        <SubMenu label="referentiel" icon={<MapOutlined />} style={{ color: colors.grey[100] }} onClick={handleSubMenuOpen}>
                             <SubMenu label="ISO" icon={<MapOutlined />} style={{ marginLeft: "10px" }}>
                                 <Item title="Nationalite" to="/nationalite" icon={<MapOutlined />} selected={selected} setSelected={setSelected} />
                                 <Item title="Devise" to="/devise" icon={<BusinessOutlined />} selected={selected} setSelected={setSelected} />
@@ -174,19 +214,46 @@ const SideBarComponent = () => {
                                 <Item title="Document Contractuel" to="/document-contractuel" icon={<EditNoteOutlined />} selected={selected} setSelected={setSelected} />
                             </SubMenu>
                         </SubMenu>
-
+                        {
+                           hasAnyRole(current.roles, ["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]) &&(
                         <SubMenu label="Tiers" icon={<Person4Outlined />} style={{ color: colors.grey[100] }} onClick={handleSubMenuOpen}>
                             <Item title="Personne Physique" to="/all-pp" icon={<Person4Outlined />} selected={selected} setSelected={setSelected} />
                             <Item title="Personne Morale" to="/all-pm" icon={<BusinessOutlined />} selected={selected} setSelected={setSelected} />
                             <Item title="Societe Mere Et Filiale" to="/societe-mere-filiale" icon={<BusinessOutlined />} selected={selected} setSelected={setSelected} />
-                        </SubMenu>
+                            <Item title="Ajouter Acheteurs à Adherents" to="/ajouter-acheteurs" icon={<InsertLinkOutlined />} selected={selected} setSelected={setSelected} />
+                        </SubMenu>)
+                        }
 
+                        {hasAnyRole(current.roles, ["ROLE_ADMIN", "ROLE_RES_JURIDIQUE","ROLE_VALIDATEUR","ROLE_SIGNATAIRE"]) && (
                         <SubMenu label="Contrat" icon={<EditOutlined />} style={{ color: colors.grey[100] }} onClick={handleSubMenuOpen}>
-                            <Item title="Redaction contrat" to="/ajouter-contrat" icon={<EditOutlined />} selected={selected} setSelected={setSelected} />
-                            <Item title="Modification contrat" to="/list-contrats-modifier" icon={<EditOutlined />} selected={selected} setSelected={setSelected} />
-                            <Item title="Validation Validateur" to="/list-contrats-valider" icon={<CheckOutlined />} selected={selected} setSelected={setSelected} />
-                            <Item title="Validation Juridique" to="/list-contrats-juridique" icon={<CheckOutlined />} selected={selected} setSelected={setSelected} />
-                            <Item title="Signature Du Contrat" to="/list-contrats-signer" icon={<CheckOutlined />} selected={selected} setSelected={setSelected} />
+                            {hasAnyRole(current.roles,["ROLE_ADMIN","ROLE_VALIDATEUR"]) && (<Item title="Redaction contrat" to="/ajouter-contrat" icon={<EditOutlined />} selected={selected} setSelected={setSelected} />)}
+                            {hasAnyRole(current.roles,["ROLE_ADMIN","ROLE_VALIDATEUR"])&&( <Item title="Modification contrat" to="/list-contrats-modifier" icon={<EditOutlined />} selected={selected} setSelected={setSelected} />)}
+                            {hasAnyRole(current.roles,["ROLE_ADMIN","ROLE_VALIDATEUR"])&&(  <Item title="Validation Validateur" to="/list-contrats-valider" icon={<CheckOutlined />} selected={selected} setSelected={setSelected} />)}
+                            {hasAnyRole(current.roles,["ROLE_ADMIN","ROLE_RES_JURIDIQUE"])&&(    <Item title="Validation Juridique" to="/list-contrats-juridique" icon={<CheckOutlined />} selected={selected} setSelected={setSelected} />)}
+                            {hasAnyRole(current.roles,["ROLE_ADMIN","ROLE_SIGNATAIRE"])&&(  <Item title="Signature Du Contrat" to="/list-contrats-signer" icon={<CheckOutlined />} selected={selected} setSelected={setSelected} />)}
+                        </SubMenu>)}
+
+                        {hasAnyRole(current.roles, ["ROLE_ADMIN", "ROLE_RES_ACHAT"]) && (
+                        <SubMenu label="bordereaux" icon={<DescriptionOutlined/>} style={{ color: colors.grey[100] }} onClick={handleSubMenuOpen}>
+                            <Item title={"Liste Bordreaux"} to={"/factures"} icon={<TaskAltRounded  />} selected={selected} setSelected={setSelected} />
+                            <Item title={"Liste Bordreaux non validées"} to={"/factures-non-valider"} icon={<UnpublishedOutlined  />} selected={selected} setSelected={setSelected} />
+                        </SubMenu>)}
+                        {hasAnyRole(current.roles, ["ROLE_ADMIN", "ROLE_RES_ACHAT"]) && (
+                        <SubMenu label={"Traites"} icon={<CreditCardOutlined />} style={{ color: colors.grey[100] }} onClick={handleSubMenuOpen}>
+                            <Item title={"Liste des Traites"} to={"/all-traite"} icon={<FormatListNumberedOutlined />} selected={selected} setSelected={setSelected} />
+                            <Item title={"Extract Traite"} to={"/extract-traite"} icon={<AutoFixHighOutlined />} selected={selected} setSelected={setSelected} />
+                        </SubMenu>)}
+                        {hasAnyRole(current.roles, ["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]) && (
+                        <SubMenu label={"Financement"} icon={<MonetizationOn />} style={{ color: colors.grey[100] }} onClick={handleSubMenuOpen}>
+                            <Item title={"Gestion Financement"} to={"/financement"} icon={<Money />} selected={selected} setSelected={setSelected} />
+                            <Item title={"Ajouter Demande Financement"} to={"/ajouter-demFin"} icon={<RuleOutlined />} selected={selected} setSelected={setSelected} />
+                            <Item title={"Liste Demande Financement Validées"} to={"/all-demFin"} icon={<ChecklistRtlOutlined />} selected={selected} setSelected={setSelected} />
+                        </SubMenu>)}
+                        <SubMenu label={"Statistiques"} icon={<QueryStatsOutlined />} style={{ color: colors.grey[100] }} onClick={handleSubMenuOpen}>
+                            <Item title={"Nombres de Factures Par Mois/Adhérent"} to={"/chart-factures"} icon={<BarChartOutlined />} selected={selected} setSelected={setSelected} />
+                            <Item title={"Nombres de Demandes Financement/Status"} to={"/pie-demfin"} icon={<DonutLargeOutlined />} selected={selected} setSelected={setSelected} />
+                            <Item title={"Nombres de Contrats/Etats"} to={"/funnel-contrat"} icon={<FilterAltOutlined />} selected={selected} setSelected={setSelected} />
+                            <Item title={"Top Adherent Montant Factures/Mois"} to={"/line-top-adhr"} icon={<StackedLineChartOutlined />} selected={selected} setSelected={setSelected} />
                         </SubMenu>
                     </Box>
                 </Menu>

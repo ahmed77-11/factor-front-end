@@ -1,4 +1,4 @@
-    import {Box, Button, TextField, Typography, Card, CardContent, MenuItem, useTheme} from "@mui/material";
+    import {Box, Button, TextField, Typography, Card, CardContent, MenuItem, useTheme, Alert} from "@mui/material";
     import { Formik } from "formik";
     import * as yup from "yup";
     import Header from "../../../components/Header.jsx";
@@ -104,6 +104,13 @@
 
                 }}>
                     <CardContent>
+                        {errorPM && (
+                            <Box  my={2}>
+                                <Alert  severity="error" sx={{fontSize:"14px"}}>
+                                    {errorPM ||  "Une erreur s'est produite lors de la création de la personne morale !"}
+                                </Alert>
+                            </Box>
+                        )}
                         <Formik
                             onSubmit={handleFormSubmit}
                             initialValues={initialValues}
@@ -176,7 +183,7 @@
                             )}
                         </Formik>
                         {errorPM && (
-                            <Typography variant="body1"  color="error" sx={{ my: 2,textAlign:"center" }}>
+                            <Typography fontSize={20} mt={5} variant="body1"  color="error" sx={{ my: 2,textAlign:"center" }}>
                                 {errorPM}
                             </Typography>
                         )}

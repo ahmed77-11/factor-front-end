@@ -442,7 +442,7 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    IconButton
+    IconButton, Alert
 } from "@mui/material";
 import { tokens } from "../../../../theme.js";
 import { useNavigate, useParams } from "react-router-dom";
@@ -527,9 +527,13 @@ const ValidValidateur = () => {
     }, [currentPM]);
 
 
+    let loadSubmit;
+
     const handleTaskEvent = (decision) => {
+        loadSubmit = true;
         const descriptionStr=JSON.stringify(description)
         sendTaskAction({"taskId":notification.notificationTaskId,"actionType":"COMPLETE","variables":{"token":current.token,"validatorDecision":decision,"validatorId":current.id,"notes":descriptionStr}}); // Mark as read in real-time
+        loadSubmit=false;
         navigate("/")
 
     };
@@ -678,6 +682,18 @@ const ValidValidateur = () => {
     return (
         <Box m="20px" display="flex" flexDirection="column" alignItems="center">
             <Header title="validation" subtitle="validation du validateur" />
+            {loadSubmit && (
+                <div className="loader-overlay">
+                    <div className="loader"></div>
+                </div>
+            )}
+            {notifError && (
+                <Box  mb={2}>
+                    <Alert  severity="error" sx={{fontSize:"14px"}}>
+                        {notifError ||  "Une erreur s'est produite !"}
+                    </Alert>
+                </Box>
+            )}
             <Box sx={{ width: "100%", maxWidth: "800px", my: 4 }}>
                 <Stepper activeStep={activeStep} alternativeLabel>
                     {steps.map((label, index) => (

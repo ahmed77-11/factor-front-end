@@ -77,8 +77,8 @@ const demFinSlice = createSlice({
         },
         acceptDemFinSuccess: (state,action) => {
             state.loadingDemFin = false;
-            state.demFinEnCours= state.demFinEnCours.filter(d => d.id !== action.payload);
-            state.demFin= [...state.demFin, action.payload];
+            // state.demFinEnCours= state.demFinEnCours.filter(d => d.id !== action.payload);
+            // state.demFin= [...state.demFin, action.payload];
         },
         acceptDemFinFailure: (state, action) => {
             state.loadingDemFin = false;
@@ -89,7 +89,7 @@ const demFinSlice = createSlice({
         },
         rejectDemFinSucces:(state)=>{
             state.loadingDemFin=false;
-            state.demFinEnCours= state.demFinEnCours.filter(d => d.id !== action.payload);
+            // state.demFinEnCours= state.demFinEnCours.filter(d => d.id !== action.payload);
         },
         rejectDemFinFailure:(state,action)=>{
             state.loadingDemFin = false;
@@ -223,7 +223,7 @@ export const addDemfinAsync = (data, navigate) => async (dispatch) => {
             throw new Error("Une erreur s'est produite");
         }
         dispatch(addDemFinSuccess());
-        navigate("/all-demFin");
+        navigate("/financement");
 
     } catch (e) {
         addDemFinFailure(e.message)
@@ -242,7 +242,7 @@ export const updateDemFinAsync = (id, data, navigate) => async (dispatch) => {
             throw new Error("Une erreur s'est produite");
         }
         dispatch(updateDemFinSuccess());
-        navigate("/all-demFin");
+        navigate("/financement");
 
     } catch (e) {
         updateDemFinFailure(e.message)

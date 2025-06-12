@@ -81,7 +81,7 @@ export const addPP=(data,navigate)=>async(dispatch)=>{
             throw new Error("Une erreur s'est produite");
         }
         dispatch(addPPSuccess());
-        navigate("/");
+        navigate("/all-pp");
     }catch (e) {
         console.log(e)
         dispatch(addPPFailure(e.response.data));
@@ -126,7 +126,7 @@ export const updatePP=(id,data,navigate)=>async(dispatch)=>{
             throw new Error("Une erreur s'est produite");
         }
         dispatch(updatePPSuccess());
-        navigate("/");
+        navigate("/all-pp");
     }catch (e) {
         dispatch(updatePPFailure(e.response.data));
     }

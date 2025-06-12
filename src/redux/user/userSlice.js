@@ -306,14 +306,12 @@ export const addUser = (email, cin, firstName, lastName, roles, navigate) => asy
             dispatch(addUserSuccess(res.data));
             navigate("/");
         } else {
-            dispatch(addUserFailure(res.data.response.message || "An error occurred"));
+            // console.log(res.data)
+            // throw new Error(res.data.response.message || "An error occurred");
         }
     } catch (error) {
         console.log(error);
-        const errorMessage =
-            error.response && error.response.data && error.response.data.message
-                ? error.response.data.message
-                : error.message;
+        const errorMessage =error.response.data;
         dispatch(addUserFailure(errorMessage));
     }
 };

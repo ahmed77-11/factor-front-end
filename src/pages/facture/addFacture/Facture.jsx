@@ -6,7 +6,7 @@ import {
     Grid, MenuItem, Select, FormControl,
     Box, Table, TableBody, TableCell, TableHead,
     TableRow, Paper, Autocomplete, TableContainer, InputAdornment,
-    useTheme
+    useTheme, Alert
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAdherentsAsync, fetchRelationsAsync } from "../../../redux/relations/relationsSlice.js";
@@ -51,7 +51,7 @@ const SaisieBordereau = () => {
     const { typeDoc } = useTypeDoc();
     const { adherents, relations } = useSelector(state => state.relations);
     const { currentContrat } = useSelector(state => state.contrat);
-    const { nbFac } = useSelector(state => state.facture);
+    const { nbFac,loading,error } = useSelector(state => state.facture);
     const [validation1, setValidation1] = useState(false);
     const [validation2, setValidation2] = useState(false);
     const [selectedAdherent, setSelectedAdherent] = useState(null);
@@ -246,9 +246,25 @@ const SaisieBordereau = () => {
     return (
         <Box p={4} maxWidth="1200px" margin="auto">
             <Header title={"Bordreaux"} subtitle={"Ajouter Bordreaux"}/>
+            {loading && (
+                <div className="loader-overlay">
+                    <div className="loader"></div>
+                </div>
+            )}
+
+
             <form onSubmit={formik.handleSubmit}>
+                {error && (
+                    <Box  my={2}>
+                        <Alert  severity="error" sx={{fontSize:"14px"}}>
+                            {error || "Une erreur s'est produite lors de la création de la personne physique !"}
+                        </Alert>
+                    </Box>
+                )}
                 <Card sx={{ mb: 3 }}>
+
                     <CardContent>
+
                         <Grid container spacing={2}>
                             <Grid item xs={3}>
                                 <Autocomplete
@@ -383,12 +399,20 @@ const SaisieBordereau = () => {
                                         readOnly: true,
                                         style: {
                                             color: isComplete ? 'green' : 'red',
-                                            fontWeight: 'bold'
+                                            fontWeight: 'bold',
+                                            // fontSize: "16px", // Smaller font size
                                         }
                                     }}
                                     helperText={isComplete ?
                                         "Montant total atteint" :
                                         `Encore ${ (targetAmount - addedAmount).toFixed(2) } à ajouter`}
+                                    FormHelperTextProps={{
+                                        style: {
+                                            color: isComplete ? colors.greenAccent[400] : colors.redAccent[500],
+                                            fontWeight: 'bold',
+                                            fontSize: '0.9rem', // Smaller font size
+                                        }
+                                    }}
                                 />
 
                             </Grid>
@@ -552,7 +576,7 @@ const SaisieBordereau = () => {
                     <Button
                         type="submit"
                         variant="contained"
-                        color="primary"
+                        sx={{ px:2,py:1.5, backgroundColor: colors.greenAccent[600], color: "#ffffff" }}
                         disabled={!formik.values.contrat || !formik.values.devise || !isComplete}
                         onClick={validation1 ? undefined : handleValidation}
                     >

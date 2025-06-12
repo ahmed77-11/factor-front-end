@@ -5,7 +5,7 @@ import {
     TextField,
     Typography,
     useTheme,
-    Button, Chip,
+    Button, Chip, Alert,
 } from "@mui/material";
 import { tokens } from "../../../../theme.js";
 import { useSelector, useDispatch } from "react-redux";
@@ -21,7 +21,7 @@ const ModifyProfile = () => {
     const colors = tokens(theme.palette.mode);
     const dispatch = useDispatch();
 
-    const { current, loading } = useSelector((state) => state.user);
+    const { current, loading,error } = useSelector((state) => state.user);
     const [newProfileImage, setNewProfileImage] = useState(null);
     console.log(current)
     const initialValues = {
@@ -101,6 +101,13 @@ const ModifyProfile = () => {
                 <div className="loader-overlay">
                     <div className="loader"></div>
                 </div>
+            )}
+            {error && (
+                <Box  my={2}>
+                    <Alert  severity="error" sx={{fontSize:"14px"}}>
+                        {error}
+                    </Alert>
+                </Box>
             )}
             <Header title="Utilisateur" subtitle="Profil Utilisateur" />
             <Card

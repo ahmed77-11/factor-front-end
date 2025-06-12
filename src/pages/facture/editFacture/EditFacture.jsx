@@ -7,6 +7,7 @@ import {formatDate} from "../../../helpers/timeConvert.js";
 import * as Yup from "yup";
 import {getPMById} from "../../../redux/personne/PersonneMoraleSlice.js";
 import {
+    Alert,
     Autocomplete,
     Box, Button,
     Card,
@@ -290,7 +291,19 @@ const EditFacture = () => {
         <Box p={4} maxWidth="1200px" margin="auto">
         <Header title={"Bordreaux"} subtitle={"Modifier Bordreaux"}/>
 
+            {loading && (
+                <div className="loader-overlay">
+                    <div className="loader"></div>
+                </div>
+            )}
             <form onSubmit={formik.handleSubmit}>
+                {error && (
+                    <Box  my={2}>
+                        <Alert  severity="error" sx={{fontSize:"14px"}}>
+                            {error || "Une erreur s'est produite lors de la création de la personne physique !"}
+                        </Alert>
+                    </Box>
+                )}
                 <Card sx={{mb: 3}}>
                     <CardContent>
                         <Grid container spacing={2}>
@@ -320,9 +333,6 @@ const EditFacture = () => {
                                     helperText={formik.touched.devise && !formik.values.devise ? "Devise requise" : ""}
                                 />
                             </Grid>
-                        </Grid>
-
-                        <Grid container spacing={2} mt={2}>
                             <Grid item xs={2}>
                                 <TextField
                                     fullWidth
@@ -331,6 +341,10 @@ const EditFacture = () => {
                                     value={formik.values.bordRemiseNo}
                                 />
                             </Grid>
+                        </Grid>
+
+                        <Grid container spacing={2} mt={2}>
+
                             <Grid item xs={2}>
                                 <TextField
                                     fullWidth
@@ -404,7 +418,7 @@ const EditFacture = () => {
                                     helperText={formik.touched.bordRemiseMontantBrut && formik.errors.bordRemiseMontantBrut}
                                 />
                             </Grid>
-                            <Grid item xs={1.5}>
+                            <Grid item xs={1.7}>
                                 <TextField
                                     fullWidth
                                     label="Reste à ajouter"
@@ -414,12 +428,21 @@ const EditFacture = () => {
                                         readOnly: true,
                                         style: {
                                             color: remainingAmount > 0 ? 'red' : 'green',
-                                            fontWeight: 'bold'
+                                            fontWeight: 'bold',
+
                                         }
                                     }}
-                                    helperText={remainingAmount > 0 ?
+                                    helperText={remainingAmount !== 0 ?
                                         "Montant manquant" :
-                                        "OK"}
+                                        "Montant  atteint"
+                                }
+                                    FormHelperTextProps={{
+                                        style: {
+                                            color: remainingAmount!== 0 ? colors.redAccent[400] : colors.greenAccent[500],
+                                            fontWeight: 'bold',
+                                            fontSize: '0.8rem', // Smaller font size
+                                        }
+                                    }}
                                 />
                             </Grid>
                             <Grid item xs={1.5}>
@@ -635,7 +658,7 @@ const EditFacture = () => {
                     <Button
                         type="submit"
                         variant="contained"
-                        color="primary"
+                        sx={{ px:2,py:1.5, backgroundColor: colors.greenAccent[600], color: "#ffffff" }}
                         disabled={!formik.values.contrat || !formik.values.devise || !amountsMatch}
                         onClick={validation1 ? undefined : handleValidation}
                     >

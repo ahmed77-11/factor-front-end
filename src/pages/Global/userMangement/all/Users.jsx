@@ -1,4 +1,4 @@
-import {Box, Button, useTheme} from "@mui/material";
+import {Alert, Box, Button, useTheme} from "@mui/material";
 import {DataGrid, GridToolbar} from "@mui/x-data-grid";
 import {Edit, Delete} from "@mui/icons-material";
 import {useEffect, useState} from "react";
@@ -117,14 +117,22 @@ const Users = () => {
                     Ajouter Utilisateur
                 </Button>
             </Box>
+            {error && (
+                <Box  mb={2}>
+                    <Alert  severity="error" sx={{fontSize:"14px"}}>
+                        {error ||  "Une erreur s'est produite !"}
+                    </Alert>
+                </Box>
+            )}
+
             <Box
                 height="75vh"
                 sx={{
                     "& .MuiDataGrid-root": {border: "none"},
-                    "& .MuiDataGrid-cell": {borderBottom: "none"},
+                    "& .MuiDataGrid-cell": {borderBottom: "none",fontSize: "13px"},
                     "& .MuiDataGrid-columnHeaders": {
                         backgroundColor: colors.blueAccent[700],
-                        fontSize: "16px"
+                        fontSize: "14px"
                     },
                     "& .MuiDataGrid-footerContainer": {
                         backgroundColor: colors.blueAccent[700],

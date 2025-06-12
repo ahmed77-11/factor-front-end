@@ -19,7 +19,7 @@ const factureSlice=createSlice({
         },
         addFactureSuccess:(state,action)=>{
             state.loading=false;
-            state.factures.push(action.payload);
+            // state.factures.push(JSON.parse(action.payload));
         },
         addFactureFailure:(state,action)=>{
             state.loading=false;
@@ -170,7 +170,7 @@ export const addFacture=(data,navigate)=>async (dispatch)=>{
             throw new Error('Failed to fetch data');
         }
         dispatch(addFactureSuccess(response.data));
-        navigate("/factures");
+        navigate("/factures-non-valider");
     } catch (error) {
         dispatch(addFactureFailure(error.message));
     }

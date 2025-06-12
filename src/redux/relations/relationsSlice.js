@@ -67,7 +67,7 @@ const relationsSlice = createSlice({
         },
         addRelationSuccess: (state, action) => {
             state.loading = false;
-            state.relations=state.relations.push(action.payload);
+            // state.relations=state.relations.push(action.payload);
         },
         addRelationFailure: (state, action) => {
             state.loading = false;

@@ -70,7 +70,17 @@ const AdherAchet = () => {
 
             await dispatch(addRelationAsync(relationPayload));
             dispatch(fetchRelationsAsync(values.adherent.id));
-            formik.resetForm();
+            formik.setValues({
+                ...formik.values,
+                acheteur: null,
+                delaiMaxPai: 0,
+                limiteAchat: 0,
+                limiteCouverture: 0,
+                effetDate: '',
+                comiteRisqueTexte: '',
+                comiteDerogTexte: '',
+                infoLibre: ''
+            });
         }
     });
 
@@ -88,11 +98,12 @@ const AdherAchet = () => {
     const associatedAcheteurIds = useMemo(() => {
         const ids = new Set();
         if (formik.values.adherent?.id) {
-            relations?.forEach(relation => {
+            // Add null check for relations
+            (relations || []).forEach(relation => {
                 if (relation.acheteurPhysique) {
                     ids.add(relation.acheteurPhysique?.id);
                 }
-                if (relation.acheteurMoraleId) {
+                if (relation.acheteurMorale) {  // Fixed property name
                     ids.add(relation.acheteurMorale?.id);
                 }
             });
@@ -101,14 +112,14 @@ const AdherAchet = () => {
     }, [relations, formik.values.adherent]);
 
     // Filter out already associated acheteurs
+    // Add null checks for acheteurs
     const acheteursOptions = useMemo(() => {
         const pps = acheteurs?.pps || [];
         const pms = acheteurs?.pms || [];
         return [...pps, ...pms].filter(acheteur =>
             !associatedAcheteurIds.has(acheteur.id)
         );
-    }, [acheteurs?.pps, acheteurs?.pms, associatedAcheteurIds]);
-
+    }, [acheteurs, associatedAcheteurIds]);
     console.log(acheteursOptions)
 
     const handleDeleteClick = (id) => {
@@ -317,7 +328,7 @@ const AdherAchet = () => {
                                 type="date"
                                 label="Date effet"
                                 name="effetDate"
-                                value={formik.values.effetDate}
+                                value={formik.values.effetDate || ''}
                                 onChange={formik.handleChange}
                                 InputLabelProps={{ shrink: true }}
                                 error={formik.touched.effetDate && !!formik.errors.effetDate}
@@ -385,9 +396,8 @@ const AdherAchet = () => {
                         checkboxSelection
                         disableRowSelectionOnClick
                         localeText={localeText}
-                        getRowId={(row) =>{
-                            return row.id
-                        }}
+                        getRowId={(row) => row.id}  // Add this to prevent key issues
+
                         loading={loading}
                     />
                 </Box>

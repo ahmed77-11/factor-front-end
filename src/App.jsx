@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import {CssBaseline, ThemeProvider} from "@mui/material";
-import {useMode} from "./redux/mode/modeSlice.js";
-import {Route, Routes} from "react-router";
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import { useMode } from "./redux/mode/modeSlice.js";
+import { Route, Routes } from "react-router";
 import Login from "./pages/login/login.jsx";
 import ResetPassword from "./pages/resetPassword/resetPassword.jsx";
 import ConfirmCode from "./pages/confirmCode/confirmCode.jsx";
@@ -52,80 +52,236 @@ import DocRemiseDetailView from './pages/docRemiseView/DocRemiseDetailView.jsx';
 import PieChartDetailedView from './pages/pieChart/PieChartDetailedView.jsx';
 import FunnelChartDetailView from "./pages/funnelChartDetailView/FunnelChartDetailView.jsx";
 import TopAdherentDetailView from "./pages/topAdherenDetailView/TopAdherentDetailView.jsx";
-
+import Forbidden from "./pages/Global/forbidden/Forbidden.jsx";
+import RolesBasedRoute from "./pages/Global/RolesBasedRoutes.jsx"; // Import the new component
 
 function App() {
-
     const [theme, colorMode] = useMode();
     const [isSidebar, setIsSidebar] = useState(true);
 
-
     console.log(colorMode)
 
+    return (
+        <ThemeProvider theme={theme}>
+            <CssBaseline/>
+            <Routes>
+                {/* Public Routes*/}
+                <Route path="/login" element={<Login/>}/>
+                <Route path="/send-reset-code" element={<SendReset/>}/>
+                <Route path="/reset-password" element={<ResetPassword/>}/>
+                <Route path="/confirm-code" element={<ConfirmCode/>}/>
+                <Route path="/change-pass" element={<ChangePasswordFT/>}/>
+                <Route path="/forbidden" element={<Forbidden/>}/>
+                <Route path="*" element={<NotFound/>}/>
 
-  return (
-      <ThemeProvider theme={theme}>
-          <CssBaseline/>
-          <Routes>
-              {/* Public Routes*/}
-              <Route  path="/login" element={<Login/>}/>
-              <Route path="/send-reset-code" element={<SendReset/>}/>
-              <Route  path="/reset-password" element={<ResetPassword/>}/>
-              <Route  path="/confirm-code" element={<ConfirmCode/>}/>
-              <Route  path="/change-pass" element={<ChangePasswordFT/>}/>
-              <Route path={"*"} element={<NotFound/>}/>
-              {/* Private Routes*/}
-              <Route element={<ProtectedRoute/>}>
-                  <Route element={<Dashboard isSidebar={isSidebar}/>}>
-                      <Route path={"/"} element={<Home/>}/>
-                      <Route path={"/ajouter-utilisateur"} element={<AddUser/>}/>
-                        <Route path={"/ajouter-utilisateur-mobile"} element={<AddMobileUser/>}/>
-                      <Route path={"/users"} element={<Users/>}/>
-                      <Route path={"/modifier-utilisateur/:id"} element={<ModifyUser/>}/>
-                      <Route path={"/profile"} element={<ModifyProfile/>}/>
-                      <Route path={"/ajouter-pp"} element={<AddPersonePhysique/>}/>
-                      <Route path={"/ajouter-pm"} element={<AddPersonneMorale/>}/>
-                      <Route path={"/all-pp"} element={<ListPp/>}/>
-                      <Route path={"/all-pm"} element={<ListPm/>}/>
-                      <Route path={"/modifier-pp/:id"} element={<UpdatePP/>}/>
-                      <Route path={"/modifier-pm/:id"} element={<UpdatePM/>}/>
-                      <Route path={"/ajouter-contrat"} element={<AjoutContrat/>}/>
-                      <Route path={`/validation-juridique/:notificationId`} element={<ValidJuridique/>}/>
-                      <Route path={"/validation-validateur/:notificationId"} element={<ValidValidateur/>}/>
-                      <Route path={"/notification"} element={<NotificationPanel/>}/>
-                      <Route path={"/update-contrat/:notificationId"} element={<UpdateContrat/>}/>
-                      <Route path={"/signer-contrat/:contratId"} element={<SignerContrat/>}/>
+                {/* Private Routes*/}
+                <Route element={<ProtectedRoute/>}>
+                    <Route element={<Dashboard isSidebar={isSidebar}/>}>
+                        {/* Dashboard - accessible to all authenticated users */}
+                        <Route path="/" element={<Home/>}/>
 
-                      <Route path={"/ajouter-acheteurs"} element={<AdherAchet/>}/>
-                      <Route path={"/list-contrats-valider"} element={<ListValider/>}/>
-                      <Route path={"/list-contrats-juridique"} element={<ListJuridique/>}/>
-                      <Route path={"/list-contrats-modifier"} element={<ListModification/>}/>
-                      <Route path={"/list-contrats-signer"} element={<ListSigner/>}/>
-                      <Route path={"/ajouter-facture"} element={<Facture/>}/>
-                      <Route path="/modifier-facture/:id" element={<EditBordereau />} />
-                      <Route path="/valider-facture/:id" element={<ValidateFacture />} />
-                      <Route path={"/factures-non-valider"} element={<ListNonValider/>}/>s
-                      <Route path={"/factures"} element={<ListFValider/>}/>
-                      <Route path={"/ajouter-traite"} element={<AddTraite/>}/>
-                      <Route path={"/extract-traite"} element={<NewAddTraite/>}/>
-                      <Route path={"/ajouter-traite-extracter"} element={<OcrAddTraite/>}/>
-                      <Route path={"/modifier-traite/:id"} element={<UpdateTraite/>}/>
-                      <Route path={"/all-traite"} element={<GetAllTraite/>}/>
-                      <Route path={"/ajouter-demFin"} element={<AddDemFin/>}/>
-                      <Route path={"/modifier-demFin/:id"} element={<UpdateDemFin/>}/>
-                      <Route path={"/all-demFin"} element={<GetAllDemFin/>}/>
-                      <Route path={"/financement"} element={<Financement/>}/>
-                      <Route path={"/accept-demfin/:id"} element={<AcceptDemFin/>}/>
+                        {/* Profile - accessible to all authenticated users */}
+                        <Route path="/profile" element={<ModifyProfile/>}/>
+                        <Route path="/notification" element={<NotificationPanel/>}/>
 
-                      <Route path="/chart-factures" element={<DocRemiseDetailView/>}/>
-                      <Route path="/pie-demfin" element={<PieChartDetailedView/>}/>
-                      <Route path="/funnel-contrat" element={<FunnelChartDetailView/>}/>
-                      <Route path={"/line-top-adhr"} element={<TopAdherentDetailView/>}/>
-                  </Route>
-              </Route>
-          </Routes>
-      </ThemeProvider>
-  )
+                        {/* Admin Only Routes */}
+                        <Route path="/ajouter-utilisateur" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN"]}>
+                                <AddUser/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/ajouter-utilisateur-mobile" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN"]}>
+                                <AddMobileUser/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/users" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN"]}>
+                                <Users/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/modifier-utilisateur/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN"]}>
+                                <ModifyUser/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        {/* Tiers - Admin and Commercial */}
+                        <Route path="/ajouter-pp" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <AddPersonePhysique/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/ajouter-pm" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <AddPersonneMorale/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/all-pp" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <ListPp/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/all-pm" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <ListPm/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/modifier-pp/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <UpdatePP/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/modifier-pm/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <UpdatePM/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/ajouter-acheteurs" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <AdherAchet/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        {/* Contract Routes */}
+                        <Route path="/ajouter-contrat" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_VALIDATEUR"]}>
+                                <AjoutContrat/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/validation-juridique/:notificationId" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_JURIDIQUE"]}>
+                                <ValidJuridique/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/validation-validateur/:notificationId" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_VALIDATEUR"]}>
+                                <ValidValidateur/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/update-contrat/:notificationId" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_VALIDATEUR"]}>
+                                <UpdateContrat/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/signer-contrat/:contratId" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_SIGNATAIRE"]}>
+                                <SignerContrat/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/list-contrats-valider" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_VALIDATEUR"]}>
+                                <ListValider/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/list-contrats-juridique" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_JURIDIQUE"]}>
+                                <ListJuridique/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/list-contrats-modifier" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_VALIDATEUR"]}>
+                                <ListModification/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/list-contrats-signer" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_SIGNATAIRE"]}>
+                                <ListSigner/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        {/* Invoice/Facture Routes - Admin and Purchase */}
+                        <Route path="/ajouter-facture" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_ACHAT"]}>
+                                <Facture/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/modifier-facture/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_ACHAT"]}>
+                                <EditBordereau/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/valider-facture/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_ACHAT"]}>
+                                <ValidateFacture/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/factures-non-valider" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_ACHAT"]}>
+                                <ListNonValider/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/factures" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_ACHAT"]}>
+                                <ListFValider/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        {/* Traite Routes - Admin and Purchase */}
+                        <Route path="/ajouter-traite" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_ACHAT"]}>
+                                <AddTraite/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/extract-traite" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_ACHAT"]}>
+                                <NewAddTraite/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/ajouter-traite-extracter" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_ACHAT"]}>
+                                <OcrAddTraite/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/modifier-traite/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_ACHAT"]}>
+                                <UpdateTraite/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/all-traite" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_ACHAT"]}>
+                                <GetAllTraite/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        {/* Financing Routes - Admin and Finance */}
+                        <Route path="/ajouter-demFin" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <AddDemFin/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/modifier-demFin/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <UpdateDemFin/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/all-demFin" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <GetAllDemFin/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/financement" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <Financement/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/accept-demfin/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <AcceptDemFin/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        {/* Statistics Routes - Accessible to all authenticated users */}
+                        <Route path="/chart-factures" element={<DocRemiseDetailView/>}/>
+                        <Route path="/pie-demfin" element={<PieChartDetailedView/>}/>
+                        <Route path="/funnel-contrat" element={<FunnelChartDetailView/>}/>
+                        <Route path="/line-top-adhr" element={<TopAdherentDetailView/>}/>
+
+                    </Route>
+                </Route>
+            </Routes>
+        </ThemeProvider>
+    )
 }
 
 export default App
