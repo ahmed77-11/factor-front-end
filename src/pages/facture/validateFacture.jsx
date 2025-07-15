@@ -26,6 +26,7 @@ import {useTypeDoc} from "../../customeHooks/useTypeDoc.jsx";
 import {validerFacture} from "../../redux/facture/FactureSlice.js";
 import Header from "../../components/Header.jsx";
 import { tokens } from "../../theme.js";
+import {getPPById} from "../../redux/personne/PersonnePhysiqueSlice.js";
 
 const validationSchema = Yup.object().shape({
     bordRemiseNo: Yup.string().required('Numéro de bordereau requis'),
@@ -62,6 +63,7 @@ const ValidateFacture = () => {
     const {currentFacture, loading, error} = useSelector(state => state.facture);
     const {relations} = useSelector(state => state.relations);
     const {currentPM} = useSelector(state => state.personneMorale);
+    const {currentPP} = useSelector(state => state.personnePhysique);
     const {typeDoc} = useTypeDoc();
     const [formInitialized, setFormInitialized] = useState(false);
     const [validation1, setValidation1] = useState(false);
@@ -73,7 +75,12 @@ const ValidateFacture = () => {
 
     useEffect(() => {
         if (currentFacture?.contrat?.adherent) {
-            dispatch(getPMById(currentFacture.contrat.adherent));
+            if(currentFacture?.contrat?.contratNo.startsWith("PATENTE")) {
+                dispatch(getPPById(currentFacture.contrat.adherent));
+            }
+            if (currentFacture?.contrat?.contratNo.startsWith("RNE")) {
+                dispatch(getPMById(currentFacture.contrat.adherent));
+            }
             dispatch(fetchRelationsAsync(currentFacture.contrat.adherent));
         }
     }, [currentFacture?.contrat?.adherent, dispatch]);
@@ -279,7 +286,7 @@ const ValidateFacture = () => {
                                 <TextField
                                     fullWidth
                                     label="Nom Adhérent"
-                                    value={currentPM?.raisonSocial || ""}
+                                    value={currentPM ?currentPM?.raisonSocial:currentPP?.nom + " "+currentPP?.prenom || ""}
                                     disabled
                                 />
                             </Grid>

@@ -13,9 +13,10 @@ const TopAdherentsList = () => {
             .get("http://localhost:8081/factoring/api/relations/dashboard/top-adherents", {
                 withCredentials: true,
             })
-            .then((res) => setAdherents(res.data))
+            .then((res) => setAdherents([]))
             .catch((err) => console.error("Error fetching top adherents", err));
     }, []);
+
 
     return (
         <Box

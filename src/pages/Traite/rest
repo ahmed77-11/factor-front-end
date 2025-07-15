@@ -1,0 +1,1051 @@
+// // import {
+// //     Box, Button, TextField, Typography, Card, CardContent, MenuItem,
+// //     useTheme, CircularProgress, FormHelperText
+// // } from "@mui/material";
+// // import { Formik } from "formik";
+// // import * as yup from "yup";
+// // import { tokens } from "../../theme";
+// // import { useEffect, useState } from "react";
+// // import { useDispatch, useSelector } from "react-redux";
+// // import { useNavigate, useLocation } from "react-router-dom";
+// // import Header from "../../components/Header";
+//
+// // // Redux Actions
+// // import {
+// //     fetchAdherentsAsync,
+// //     fetchAcheteursAsync,
+// //     fetchAdherentsByAcheteur,
+// // } from "../../redux/relations/relationsSlice";
+// // import { fetchContratByAdherentIdAsync } from "../../redux/contrat/ContratSlice";
+// // import { addTraite } from "../../redux/traite/traiteSlice";
+//
+// // const initialValues = {
+// //     factorDate: "",
+// //     numero: "",
+// //     tireEmisDate: "",
+// //     tireEmisLieu: "",
+// //     bankCode: "",
+// //     tireRib: "",
+// //     tireNom: "",
+// //     adherFactorCode: "",
+// //     achetFactorCode: "",
+// //     linkedAdherent: "",
+// //     montant: "",
+// //     devise: null,
+// //     echFirst: "",
+// // };
+//
+// // const banques = [
+// //     { code: "01", nom: "Banque de Tunisie" },
+// //     { code: "02", nom: "STB" },
+// //     { code: "03", nom: "BIAT" },
+// //     { code: "10", nom: "Amen Bank" },
+// //     { code: "20", nom: "UBCI" },
+// // ];
+//
+// // const validerRib = (value) => {
+// //     if (!value) return true;
+// //     value = value.replace(/[\s-]/g, '');
+// //     if (value.length !== 20) return false;
+// //     let strN = value.slice(0, value.length - 2) + '00';
+// //     let strCheck = value.slice(value.length - 2);
+// //     try {
+// //         let big = BigInt(strN);
+// //         let check = BigInt(97) - (big % BigInt(97));
+// //         return BigInt(strCheck) === check;
+// //     } catch (e) {
+// //         return false;
+// //     }
+// // };
+//
+// // const dateField = (invalidMsg) =>
+// //     yup
+// //         .date()
+// //         .transform((value, originalValue) => (originalValue === "" ? null : value))
+// //         .typeError(invalidMsg);
+//
+// // const validationSchema = yup.object().shape({
+// //     factorDate: dateField("Date factor invalide")
+// //         .required("Date factor requise")
+// //         .max(new Date(), "La date de factor ne peut pas être dans le futur"),
+//
+// //     numero: yup
+// //         .string()
+// //         .required("Le numéro est requis")
+// //         .length(12, "Le numéro doit contenir exactement 12 caractères"),
+//
+// //     tireEmisDate: dateField("Date tire émis invalide")
+// //         .required("Date tire émis requise")
+// //         .max(new Date(), "La date tire émis ne peut pas être dans le futur")
+// //         .when("factorDate", {
+// //             is: (val) => val != null,
+// //             then: (schema) =>
+// //                 schema.min(
+// //                     yup.ref("factorDate"),
+// //                     "La date tire émis doit être après la date de factor"
+// //                 ),
+// //         }),
+//
+// //     tireEmisLieu: yup.string().required("Lieu tire émis requis"),
+//
+// //     tireRib: yup
+// //         .string()
+// //         .required("RIB requis")
+// //         .test("is-valid-rib", "RIB invalide", validerRib),
+//
+// //     tireNom: yup
+// //         .string()
+// //         .required("Nom du tire requis")
+// //         .min(5, "Le nom doit contenir au moins 5 caractères"),
+//
+// //     bankCode: yup.string().required("Choisir une banque"),
+//
+// //     adherFactorCode: yup.string(),
+// //     achetFactorCode: yup.string(),
+// //     linkedAdherent: yup.string(),
+//
+// //     montant: yup
+// //         .number()
+// //         .typeError("Le montant doit être un nombre")
+// //         .required("Le montant est requis")
+// //         .positive("Le montant doit être positif"),
+//
+// //     devise: yup.string().required("La devise est requise"),
+//
+// //     echFirst: dateField("Date 1ère échéance invalide")
+// //         .required("Date 1ère échéance requise")
+// //         .min(new Date(), "La date d'échéance ne peut pas être dans le passé"),
+// // });
+//
+// // const OcrAddTraite = () => {
+// //     const theme = useTheme();
+// //     const colors = tokens(theme.palette.mode);
+// //     const dispatch = useDispatch();
+// //     const location = useLocation();
+// //     const navigate = useNavigate();
+// //     const [initialData, setInitialData] = useState(initialValues);
+// //     const [ribSuffix, setRibSuffix] = useState("");
+//
+// //     // Redux States
+// //     const { adherents } = useSelector((state) => state.relations);
+// //     const { acheteurs } = useSelector((state) => state.relations);
+// //     const { currentContrat } = useSelector((state) => state.contrat);
+//
+// //     useEffect(() => {
+// //         dispatch(fetchAdherentsAsync());
+// //         dispatch(fetchAcheteursAsync());
+//
+// //         if (location.state?.extractedData) {
+// //             const { bankCode, ribSuffix, ...rest } = location.state.extractedData;
+// //             setInitialData(prev => ({
+// //                 ...prev,
+// //                 ...rest,
+// //                 bankCode,
+// //                 tireRib: `${bankCode || ''}${ribSuffix || ''}`
+// //             }));
+// //             console.log(location.state.extractedData)
+// //             setRibSuffix(ribSuffix || "");
+// //         }
+// //     }, [dispatch, location.state]);
+//
+// //     const handleFormSubmit = (values, { setSubmitting }) => {
+// //         const payload = {
+// //             ...values,
+// //             devise: currentContrat?.devise,
+// //             contrat: currentContrat
+// //         };
+//
+// //         dispatch(addTraite(payload))
+// //             .unwrap()
+// //             .then(() => navigate("/all-traite"))
+// //             .catch((error) => {
+// //                 alert(`Erreur: ${error.message}`);
+// //                 setSubmitting(false);
+// //             });
+// //     };
+//
+// //     const combinedAcheteurs = [
+// //         ...(acheteurs?.pps || []),
+// //         ...(acheteurs?.pms || []),
+// //     ];
+//
+// //     return (
+// //         <Box m="20px">
+// //             <Header title="Création Traite" subtitle="Complétez les informations de la traite" />
+//
+// //             <Card sx={{ backgroundColor: colors.primary[400], p: 3, borderRadius: '12px' }}>
+// //                 <Formik
+// //                     initialValues={initialData}
+// //                     validationSchema={validationSchema}
+// //                     onSubmit={handleFormSubmit}
+// //                     enableReinitialize
+// //                 >
+// //                     {({
+// //                           values,
+// //                           errors,
+// //                           touched,
+// //                           handleChange,
+// //                           handleBlur,
+// //                           handleSubmit,
+// //                           isSubmitting,
+// //                           setFieldValue
+// //                       }) => (
+// //                         <form onSubmit={handleSubmit}>
+// //                             <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={3}>
+//
+// //                                 {/* Row 1 */}
+// //                                 <TextField
+// //                                     fullWidth
+// //                                     label="Date Factor"
+// //                                     type="date"
+// //                                     name="factorDate"
+// //                                     value={values.factorDate}
+// //                                     onChange={handleChange}
+// //                                     onBlur={handleBlur}
+// //                                     error={!!touched.factorDate && !!errors.factorDate}
+// //                                     helperText={touched.factorDate && errors.factorDate}
+// //                                     InputLabelProps={{ shrink: true }}
+// //                                 />
+//
+// //                                 <TextField
+// //                                     fullWidth
+// //                                     label="Numéro Traite"
+// //                                     name="numero"
+// //                                     value={values.numero}
+// //                                     onChange={handleChange}
+// //                                     onBlur={handleBlur}
+// //                                     error={!!touched.numero && !!errors.numero}
+// //                                     helperText={touched.numero && errors.numero}
+// //                                 />
+//
+// //                                 {/* Row 2 */}
+// //                                 <Box sx={{ gridColumn: "span 2" }}>
+// //                                     <Box display="flex" gap={2}>
+// //                                         <TextField
+// //                                             select
+// //                                             fullWidth
+// //                                             label="Banque"
+// //                                             name="bankCode"
+// //                                             value={values.bankCode}
+// //                                             onChange={(e) => {
+// //                                                 handleChange(e);
+// //                                                 setFieldValue("tireRib", `${e.target.value}${ribSuffix}`);
+// //                                             }}
+// //                                             onBlur={handleBlur}
+// //                                             error={!!touched.bankCode && !!errors.bankCode}
+// //                                             helperText={touched.bankCode && errors.bankCode}
+// //                                         >
+// //                                             {banques.map((bank) => (
+// //                                                 <MenuItem key={bank.code} value={bank.code}>
+// //                                                     {bank.nom}
+// //                                                 </MenuItem>
+// //                                             ))}
+// //                                         </TextField>
+//
+// //                                         <TextField
+// //                                             fullWidth
+// //                                             label="RIB du Tire"
+// //                                             name="tireRib"
+// //                                             value={values.tireRib}
+// //                                             onChange={(e) => {
+// //                                                 const val = e.target.value;
+// //                                                 setFieldValue("bankCode", val.substring(0, 2));
+// //                                                 setRibSuffix(val.substring(2));
+// //                                                 setFieldValue("tireRib", val);
+// //                                             }}
+// //                                             onBlur={handleBlur}
+// //                                             error={!!touched.tireRib && !!errors.tireRib}
+// //                                             helperText={touched.tireRib && errors.tireRib}
+// //                                         />
+// //                                     </Box>
+// //                                 </Box>
+//
+// //                                 {/* Row 3 */}
+// //                                 <TextField
+// //                                     fullWidth
+// //                                     label="Nom du Tire"
+// //                                     name="tireNom"
+// //                                     value={values.tireNom}
+// //                                     onChange={handleChange}
+// //                                     onBlur={handleBlur}
+// //                                     error={!!touched.tireNom && !!errors.tireNom}
+// //                                     helperText={touched.tireNom && errors.tireNom}
+// //                                 />
+//
+// //                                 <TextField
+// //                                     fullWidth
+// //                                     label="Montant"
+// //                                     name="montant"
+// //                                     type="number"
+// //                                     value={values.montant}
+// //                                     onChange={handleChange}
+// //                                     onBlur={handleBlur}
+// //                                     error={!!touched.montant && !!errors.montant}
+// //                                     helperText={touched.montant && errors.montant}
+// //                                 />
+//
+// //                                 {/* Row 4 */}
+// //                                 <TextField
+// //                                     fullWidth
+// //                                     label="Date Tire Émis"
+// //                                     type="date"
+// //                                     name="tireEmisDate"
+// //                                     value={values.tireEmisDate}
+// //                                     onChange={handleChange}
+// //                                     onBlur={handleBlur}
+// //                                     error={!!touched.tireEmisDate && !!errors.tireEmisDate}
+// //                                     helperText={touched.tireEmisDate && errors.tireEmisDate}
+// //                                     InputLabelProps={{ shrink: true }}
+// //                                 />
+//
+// //                                 <TextField
+// //                                     fullWidth
+// //                                     label="Lieu Tire Émis"
+// //                                     name="tireEmisLieu"
+// //                                     value={values.tireEmisLieu}
+// //                                     onChange={handleChange}
+// //                                     onBlur={handleBlur}
+// //                                     error={!!touched.tireEmisLieu && !!errors.tireEmisLieu}
+// //                                     helperText={touched.tireEmisLieu && errors.tireEmisLieu}
+// //                                 />
+//
+// //                                 {/* Row 5 */}
+// //                                 <TextField
+// //                                     select
+// //                                     fullWidth
+// //                                     label="Adhérent"
+// //                                     name="adherFactorCode"
+// //                                     value={values.adherFactorCode}
+// //                                     onChange={(e) => {
+// //                                         handleChange(e);
+// //                                         setFieldValue("achetFactorCode", "");
+// //                                         setFieldValue("linkedAdherent", "");
+// //                                         dispatch(fetchContratByAdherentIdAsync(e.target.value));
+// //                                     }}
+// //                                     onBlur={handleBlur}
+// //                                     error={!!touched.adherFactorCode && !!errors.adherFactorCode}
+// //                                     helperText={touched.adherFactorCode && errors.adherFactorCode}
+// //                                     disabled={!!values.achetFactorCode}
+// //                                 >
+// //                                     {adherents.map((adh) => (
+// //                                         <MenuItem key={adh.id} value={adh.id.toString()}>
+// //                                             {adh.raisonSocial || `${adh.nom} ${adh.prenom}`}
+// //                                         </MenuItem>
+// //                                     ))}
+// //                                 </TextField>
+//
+// //                                 <TextField
+// //                                     select
+// //                                     fullWidth
+// //                                     label="Acheteur"
+// //                                     name="achetFactorCode"
+// //                                     value={values.achetFactorCode}
+// //                                     onChange={(e) => {
+// //                                         handleChange(e);
+// //                                         setFieldValue("adherFactorCode", "");
+// //                                         setFieldValue("linkedAdherent", "");
+// //                                         dispatch(fetchAdherentsByAcheteur(e.target.value));
+// //                                     }}
+// //                                     onBlur={handleBlur}
+// //                                     error={!!touched.achetFactorCode && !!errors.achetFactorCode}
+// //                                     helperText={touched.achetFactorCode && errors.achetFactorCode}
+// //                                     disabled={!!values.adherFactorCode}
+// //                                 >
+// //                                     {combinedAcheteurs.map((ach) => (
+// //                                         <MenuItem key={ach.id} value={ach.id.toString()}>
+// //                                             {ach.raisonSocial || `${ach.nom} ${ach.prenom}`}
+// //                                         </MenuItem>
+// //                                     ))}
+// //                                 </TextField>
+//
+// //                                 {/* Row 6 */}
+// //                                 {values.achetFactorCode && adherents.length > 0 && (
+// //                                     <TextField
+// //                                         select
+// //                                         fullWidth
+// //                                         label="Adhérent lié"
+// //                                         name="linkedAdherent"
+// //                                         value={values.linkedAdherent}
+// //                                         onChange={(e) => {
+// //                                             handleChange(e);
+// //                                             setFieldValue("adherFactorCode", e.target.value);
+// //                                             dispatch(fetchContratByAdherentIdAsync(e.target.value));
+// //                                         }}
+// //                                         onBlur={handleBlur}
+// //                                         error={!!touched.linkedAdherent && !!errors.linkedAdherent}
+// //                                         helperText={touched.linkedAdherent && errors.linkedAdherent}
+// //                                         sx={{ gridColumn: "span 2" }}
+// //                                     >
+// //                                         {adherents.map((adh) => (
+// //                                             <MenuItem key={adh.id} value={adh.id.toString()}>
+// //                                                 {adh.raisonSocial || `${adh.nom} ${adh.prenom}`}
+// //                                             </MenuItem>
+// //                                         ))}
+// //                                     </TextField>
+// //                                 )}
+//
+// //                                 {/* Row 7 */}
+// //                                 <TextField
+// //                                     fullWidth
+// //                                     label="Date 1ère Échéance"
+// //                                     type="date"
+// //                                     name="echFirst"
+// //                                     value={values.echFirst}
+// //                                     onChange={handleChange}
+// //                                     onBlur={handleBlur}
+// //                                     error={!!touched.echFirst && !!errors.echFirst}
+// //                                     helperText={touched.echFirst && errors.echFirst}
+// //                                     InputLabelProps={{ shrink: true }}
+// //                                 />
+//
+// //                                 <TextField
+// //                                     fullWidth
+// //                                     label="Devise"
+// //                                     name="devise"
+// //                                     value={currentContrat?.devise?.dsg || ""}
+// //                                     InputProps={{ readOnly: true }}
+// //                                     helperText="Devise liée au contrat sélectionné"
+// //                                 />
+//
+// //                                 {/* Submit Button */}
+// //                                 <Box sx={{ gridColumn: "span 2", textAlign: 'center', mt: 3 }}>
+// //                                     <Button
+// //                                         type="submit"
+// //                                         variant="contained"
+// //                                         color="secondary"
+// //                                         size="large"
+// //                                         disabled={isSubmitting}
+// //                                         sx={{
+// //                                             px: 6,
+// //                                             fontSize: '1.1rem',
+// //                                             fontWeight: 'bold',
+// //                                             textTransform: 'none',
+// //                                             borderRadius: '8px'
+// //                                         }}
+// //                                     >
+// //                                         {isSubmitting ? (
+// //                                             <CircularProgress size={24} sx={{ color: 'white' }} />
+// //                                         ) : (
+// //                                             'Valider la Traite'
+// //                                         )}
+// //                                     </Button>
+// //                                 </Box>
+// //                             </Box>
+// //                         </form>
+// //                     )}
+// //                 </Formik>
+// //             </Card>
+// //         </Box>
+// //     );
+// // };
+//
+// // export default OcrAddTraite;import React, { useEffect, useState } from "react";
+// import React, { useEffect, useState } from "react";
+// import {
+//   Box,
+//   Button,
+//   TextField,
+//   Typography,
+//   Card,
+//   CircularProgress,
+//   MenuItem,
+//   Dialog,
+//   DialogTitle,
+//   DialogContent,
+//   DialogActions,
+//   useTheme,
+//   Grid,
+//   List,
+//   ListItem,
+//   ListItemIcon
+// } from "@mui/material";
+// import { Formik } from "formik";
+// import * as yup from "yup";
+// import { tokens } from "../../theme";
+// import { useDispatch, useSelector } from "react-redux";
+// import { useNavigate, useLocation } from "react-router-dom";
+// import Header from "../../components/Header";
+// import {
+//   fetchAdherentsAsync,
+//   fetchAcheteursAsync,
+//   fetchAdherentsByAcheteur
+// } from "../../redux/relations/relationsSlice";
+// import { fetchContratByAdherentIdAsync } from "../../redux/contrat/ContratSlice";
+// import { addTraite } from "../../redux/traite/traiteSlice";
+// import axios from "axios";
+// import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+// import WarningIcon from '@mui/icons-material/Warning';
+// import ListIcon from '@mui/icons-material/List';
+// import InfoIcon from '@mui/icons-material/Info';
+// import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+// import CancelIcon from '@mui/icons-material/Cancel';
+// import ListItemText from '@mui/material/ListItemText';
+//
+// const initialValues = {
+//   factorDate: "",
+//   numero: "",
+//   tireEmisDate: "",
+//   tireEmisLieu: "",
+//   bankCode: "",
+//   tireRib: "",
+//   tireNom: "",
+//   adherFactorCode: "",
+//   achetFactorCode: "",
+//   linkedAdherent: "",
+//   montant: "",
+//   devise: null,
+//   echFirst: ""
+// };
+//
+// const banques = [
+//   { code: "01", nom: "Banque de Tunisie" },
+//   { code: "02", nom: "STB" },
+//   { code: "03", nom: "BIAT" },
+//   { code: "10", nom: "Amen Bank" },
+//   { code: "20", nom: "UBCI" }
+// ];
+//
+// const validerRib = (value) => {
+//   if (!value) return true;
+//   const val = value.replace(/[^0-9]/g, '');
+//   if (val.length !== 20) return false;
+//   const strN = val.slice(0, -2) + '00';
+//   const strCheck = val.slice(-2);
+//   try {
+//     const big = BigInt(strN);
+//     const check = BigInt(97) - (big % BigInt(97));
+//     return BigInt(strCheck) === check;
+//   } catch {
+//     return false;
+//   }
+// };
+//
+// const dateField = (message) =>
+//     yup
+//         .date()
+//         .transform((value, original) => (original === '' ? null : value))
+//         .typeError(message);
+//
+// const validationSchema = yup.object().shape({
+//   factorDate: dateField("Date factor invalide")
+//       .required("Date factor requise")
+//       .max(new Date(), "La date de factor ne peut pas être dans le futur"),
+//   numero: yup
+//       .string()
+//       .required("Le numéro est requis")
+//       .length(12, "Le numéro doit contenir exactement 12 caractères"),
+//   tireEmisDate: dateField("Date tire émis invalide")
+//       .required("Date tire émis requise")
+//       .max(new Date(), "La date tire émis ne peut pas être dans le futur")
+//       .when("factorDate", {
+//         is: (val) => !!val,
+//         then: (schema) =>
+//             schema.min(
+//                 yup.ref("factorDate"),
+//                 "La date tire émis doit être après la date de factor"
+//             )
+//       }),
+//   tireEmisLieu: yup.string().required("Lieu tire émis requis"),
+//   bankCode: yup.string().required("Choisir une banque"),
+//   tireRib: yup
+//       .string()
+//       .required("RIB requis")
+//       .test("valid-rib", "RIB invalide", validerRib),
+//   tireNom: yup
+//       .string()
+//       .required("Nom du tire requis")
+//       .min(5, "Le nom doit contenir au moins 5 caractères"),
+//   montant: yup
+//       .number()
+//       .typeError("Le montant doit être un nombre")
+//       .required("Le montant est requis")
+//       .positive("Le montant doit être positif"),
+//   echFirst: dateField("Date 1ère échéance invalide")
+//       .required("Date 1ère échéance requise")
+//       .min(new Date(), "La date d'échéance ne peut pas être dans le passé"),
+//   adherFactorCode: yup.string(),
+//   achetFactorCode: yup.string(),
+//   linkedAdherent: yup.string()
+// });
+//
+// // Helper component to prevent prop type warnings
+// const SafeListItemText = ({ primary }) => (
+//     <ListItemText
+//         primary={typeof primary === 'string' || React.isValidElement(primary)
+//             ? primary
+//             : String(primary)}
+//     />
+// );
+//
+// const OcrAddTraite = () => {
+//   const theme = useTheme();
+//   const colors = tokens(theme.palette.mode);
+//   const dispatch = useDispatch();
+//   const navigate = useNavigate();
+//   const location = useLocation();
+//   const [initialData, setInitialData] = useState(initialValues);
+//   const [ribSuffix, setRibSuffix] = useState("");
+//   const [submitting, setSubmitting] = useState(false);
+//   const [fraudDialogOpen, setFraudDialogOpen] = useState(false);
+//   const [fraudPrediction, setFraudPrediction] = useState(null);
+//
+//   const { adherents } = useSelector((state) => state.relations);
+//   const { acheteurs } = useSelector((state) => state.relations);
+//   const { currentContrat } = useSelector((state) => state.contrat);
+//
+//   useEffect(() => {
+//     dispatch(fetchAdherentsAsync());
+//     dispatch(fetchAcheteursAsync());
+//     if (location.state?.extractedData) {
+//       const { bankCode, ribSuffix, ...rest } = location.state.extractedData;
+//       setInitialData({
+//         ...initialValues,
+//         ...rest,
+//         bankCode,
+//         tireRib: `${bankCode}${ribSuffix}`
+//       });
+//       setRibSuffix(ribSuffix);
+//     }
+//   }, [dispatch, location.state]);
+//
+//   const translateRiskLevel = (level) => {
+//     if (!level) return "Inconnu";
+//     switch (level.toUpperCase()) {
+//       case 'HIGH': return 'Élevé';
+//       case 'MEDIUM': return 'Moyen';
+//       case 'LOW': return 'Faible';
+//       default: return level;
+//     }
+//   };
+//
+//   const handleFormSubmit = async (values, { setSubmitting: setFormikSubmitting }) => {
+//     setSubmitting(true);
+//     try {
+//       console.log(values)
+//       const predictPayload = {
+//         traite_num: values.numero,
+//         bank: "biat",
+//         amount_digits: parseFloat(values.montant),
+//         amount_words: "dix mille ", // Placeholder - should come from OCR data
+//         rib: values.tireRib,
+//         signature_detected: false, // Placeholder - should come from OCR
+//         barcode_validates_traite: false, // Placeholder - should come from OCR
+//         date_created: values.tireEmisDate,
+//         date_due: values.echFirst,
+//         place_created:"Tunis",
+//         drawer_name: values.tireNom,
+//         payer_name_address: "ahmed mghirbi ahmed mghirbi", // Placeholder - should come from OCR
+//       };
+//
+//       const resp = await axios.post("http://localhost:5000/api/predict/fraud", predictPayload);
+//       const prediction = resp.data;
+//
+//       if (prediction.predicted_label) {
+//         setFraudPrediction(prediction);
+//         setFraudDialogOpen(true);
+//       } else {
+//         const payload = {
+//           ...values,
+//           devise: currentContrat?.devise,
+//           contrat: currentContrat
+//         };
+//         await dispatch(addTraite(payload));
+//         navigate("/all-traite");
+//       }
+//     } catch (error) {
+//       console.error("Prediction error:", error);
+//       alert(`Erreur: ${error.response?.data?.error || error.message}`);
+//     } finally {
+//       setSubmitting(false);
+//       setFormikSubmitting(false);
+//     }
+//   };
+//
+//   const handleCloseFraudDialog = () => {
+//     setFraudDialogOpen(false);
+//     setFraudPrediction(null);
+//   };
+//
+//   const combinedAcheteurs = [...(acheteurs?.pps || []), ...(acheteurs?.pms || [])];
+//
+//   return (
+//       <Box m="20px">
+//         <Header title="Création Traite" subtitle="Complétez les informations de la traite" />
+//         <Card sx={{ backgroundColor: colors.primary[400], p: 3, borderRadius: '12px' }}>
+//           <Formik
+//               initialValues={initialData}
+//               validationSchema={validationSchema}
+//               onSubmit={handleFormSubmit}
+//               enableReinitialize
+//           >
+//             {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
+//                 <form onSubmit={handleSubmit}>
+//                   <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={3}>
+//                     <TextField
+//                         fullWidth
+//                         label="Date Factor"
+//                         type="date"
+//                         name="factorDate"
+//                         value={values.factorDate}
+//                         onChange={handleChange}
+//                         onBlur={handleBlur}
+//                         error={touched.factorDate && Boolean(errors.factorDate)}
+//                         helperText={touched.factorDate && errors.factorDate}
+//                         InputLabelProps={{ shrink: true }}
+//                     />
+//                     <TextField
+//                         fullWidth
+//                         label="Numéro Traite"
+//                         name="numero"
+//                         value={values.numero}
+//                         onChange={handleChange}
+//                         onBlur={handleBlur}
+//                         error={touched.numero && Boolean(errors.numero)}
+//                         helperText={touched.numero && errors.numero}
+//                     />
+//
+//                     <Box sx={{ gridColumn: 'span 2' }}>
+//                       <Box display="flex" gap={2}>
+//                         <TextField
+//                             select
+//                             fullWidth
+//                             label="Banque"
+//                             name="bankCode"
+//                             value={values.bankCode}
+//                             onChange={(e) => {
+//                               handleChange(e);
+//                               setRibSuffix(values.tireRib.slice(2));
+//                             }}
+//                             onBlur={handleBlur}
+//                             error={touched.bankCode && Boolean(errors.bankCode)}
+//                             helperText={touched.bankCode && errors.bankCode}
+//                         >
+//                           {banques.map((b) => (
+//                               <MenuItem key={b.code} value={b.code}>{b.nom}</MenuItem>
+//                           ))}
+//                         </TextField>
+//                         <TextField
+//                             fullWidth
+//                             label="RIB du Tire"
+//                             name="tireRib"
+//                             value={values.tireRib}
+//                             onChange={(e) => {
+//                               const val = e.target.value;
+//                               handleChange({ target: { name: 'tireRib', value: val } });
+//                             }}
+//                             onBlur={handleBlur}
+//                             error={touched.tireRib && Boolean(errors.tireRib)}
+//                             helperText={touched.tireRib && errors.tireRib}
+//                         />
+//                       </Box>
+//                     </Box>
+//
+//                     <TextField
+//                         fullWidth
+//                         label="Nom du Tire"
+//                         name="tireNom"
+//                         value={values.tireNom}
+//                         onChange={handleChange}
+//                         onBlur={handleBlur}
+//                         error={touched.tireNom && Boolean(errors.tireNom)}
+//                         helperText={touched.tireNom && errors.tireNom}
+//                     />
+//                     <TextField
+//                         fullWidth
+//                         label="Montant"
+//                         name="montant"
+//                         type="number"
+//                         value={values.montant}
+//                         onChange={handleChange}
+//                         onBlur={handleBlur}
+//                         error={touched.montant && Boolean(errors.montant)}
+//                         helperText={touched.montant && errors.montant}
+//                     />
+//
+//                     <TextField
+//                         fullWidth
+//                         label="Date Tire Émis"
+//                         type="date"
+//                         name="tireEmisDate"
+//                         value={values.tireEmisDate}
+//                         onChange={handleChange}
+//                         onBlur={handleBlur}
+//                         error={touched.tireEmisDate && Boolean(errors.tireEmisDate)}
+//                         helperText={touched.tireEmisDate && errors.tireEmisDate}
+//                         InputLabelProps={{ shrink: true }}
+//                     />
+//                     <TextField
+//                         fullWidth
+//                         label="Lieu Tire Émis"
+//                         name="tireEmisLieu"
+//                         value={values.tireEmisLieu}
+//                         onChange={handleChange}
+//                         onBlur={handleBlur}
+//                         error={touched.tireEmisLieu && Boolean(errors.tireEmisLieu)}
+//                         helperText={touched.tireEmisLieu && errors.tireEmisLieu}
+//                     />
+//
+//                     <TextField
+//                         select
+//                         fullWidth
+//                         label="Adhérent"
+//                         name="adherFactorCode"
+//                         value={values.adherFactorCode}
+//                         onChange={(e) => {
+//                           handleChange(e);
+//                           dispatch(fetchContratByAdherentIdAsync(e.target.value));
+//                         }}
+//                         onBlur={handleBlur}
+//                         error={touched.adherFactorCode && Boolean(errors.adherFactorCode)}
+//                         helperText={touched.adherFactorCode && errors.adherFactorCode}
+//                         disabled={!!values.achetFactorCode}
+//                     >
+//                       {adherents.map((adh) => (
+//                           <MenuItem key={adh.id} value={adh.id.toString()}>
+//                             {adh.raisonSocial || `${adh.nom} ${adh.prenom}`}
+//                           </MenuItem>
+//                       ))}
+//                     </TextField>
+//
+//                     <TextField
+//                         select
+//                         fullWidth
+//                         label="Acheteur"
+//                         name="achetFactorCode"
+//                         value={values.achetFactorCode}
+//                         onChange={(e) => {
+//                           handleChange(e);
+//                           dispatch(fetchAdherentsByAcheteur(e.target.value));
+//                         }}
+//                         onBlur={handleBlur}
+//                         error={touched.achetFactorCode && Boolean(errors.achetFactorCode)}
+//                         helperText={touched.achetFactorCode && errors.achetFactorCode}
+//                         disabled={!!values.adherFactorCode}
+//                     >
+//                       {combinedAcheteurs.map((ach) => (
+//                           <MenuItem key={ach.id} value={ach.id.toString()}>
+//                             {ach.raisonSocial || `${ach.nom} ${ach.prenom}`}
+//                           </MenuItem>
+//                       ))}
+//                     </TextField>
+//
+//                     {values.achetFactorCode && (
+//                         <TextField
+//                             select
+//                             fullWidth
+//                             label="Adhérent lié"
+//                             name="linkedAdherent"
+//                             value={values.linkedAdherent}
+//                             onChange={(e) => {
+//                               handleChange(e);
+//                               dispatch(fetchContratByAdherentIdAsync(e.target.value));
+//                             }}
+//                             onBlur={handleBlur}
+//                             error={touched.linkedAdherent && Boolean(errors.linkedAdherent)}
+//                             helperText={touched.linkedAdherent && errors.linkedAdherent}
+//                             sx={{ gridColumn: 'span 2' }}
+//                         >
+//                           {adherents.map((adh) => (
+//                               <MenuItem key={adh.id} value={adh.id.toString()}>
+//                                 {adh.raisonSocial || `${adh.nom} ${adh.prenom}`}
+//                               </MenuItem>
+//                           ))}
+//                         </TextField>
+//                     )}
+//
+//                     <TextField
+//                         fullWidth
+//                         label="Date 1ère Échéance"
+//                         type="date"
+//                         name="echFirst"
+//                         value={values.echFirst}
+//                         onChange={handleChange}
+//                         onBlur={handleBlur}
+//                         error={touched.echFirst && Boolean(errors.echFirst)}
+//                         helperText={touched.echFirst && errors.echFirst}
+//                         InputLabelProps={{ shrink: true }}
+//                     />
+//
+//                     <TextField
+//                         fullWidth
+//                         label="Devise"
+//                         name="devise"
+//                         value={currentContrat?.devise?.dsg || ''}
+//                         InputProps={{ readOnly: true }}
+//                         helperText="Devise liée au contrat sélectionné"
+//                     />
+//
+//
+//                     <Box sx={{ gridColumn: 'span 2', textAlign: 'center', mt: 3 }}>
+//                       <Button
+//                           type="submit"
+//                           variant="contained"
+//                           color="secondary"
+//                           size="large"
+//                           disabled={submitting}
+//                           sx={{
+//                             px: 6,
+//                             fontSize: '1.1rem',
+//                             fontWeight: 'bold',
+//                             textTransform: 'none',
+//                             borderRadius: '8px'
+//                           }}
+//                       >
+//                         {submitting ? (
+//                             <CircularProgress size={24} sx={{ color: 'white' }} />
+//                         ) : (
+//                             'Valider la Traite'
+//                         )}
+//                       </Button>
+//                     </Box>
+//                   </Box>
+//                 </form>
+//             )}
+//           </Formik>
+//         </Card>
+//
+//         <Dialog
+//             open={fraudDialogOpen}
+//             onClose={handleCloseFraudDialog}
+//             maxWidth="md"
+//             fullWidth
+//         >
+//           <DialogTitle sx={{
+//             backgroundColor: fraudPrediction?.critical_risk
+//                 ? colors.redAccent[700]
+//                 : fraudPrediction?.risk_level === 'HIGH'
+//                     ? colors.redAccent[700]
+//                     : "#ff6a00",
+//             color: "white",
+//             display: "flex",
+//             alignItems: "center"
+//           }}>
+//             <ErrorOutlineIcon sx={{ mr: 1 }} />
+//             {fraudPrediction?.critical_risk
+//                 ? "Risque Critique de Fraude Détecté"
+//                 : "Risque de Fraude Détecté"}
+//           </DialogTitle>
+//
+//           <DialogContent dividers>
+//             <Box mb={2}>
+//               <Typography variant="h6" color="error" sx={{ display: "flex", alignItems: "center" }}>
+//                 <WarningIcon sx={{ mr: 1 }} />
+//                 {fraudPrediction?.critical_risk
+//                     ? "Cette traite présente un risque critique de fraude"
+//                     : `Cette traite présente un risque de fraude ${translateRiskLevel(fraudPrediction?.risk_level)}`}
+//               </Typography>
+//             </Box>
+//
+//             <Grid container spacing={2} mb={3}>
+//               <Grid item xs={4}>
+//                 <Typography variant="subtitle1">
+//                   <strong>Probabilité de fraude:</strong>
+//                 </Typography>
+//                 <Typography variant="h4" color={colors.redAccent[500]}>
+//                   {fraudPrediction ? (fraudPrediction.probability * 100).toFixed(1) + '%' : 'N/A'}
+//                 </Typography>
+//               </Grid>
+//
+//               <Grid item xs={4}>
+//                 <Typography variant="subtitle1">
+//                   <strong>Niveau de risque:</strong>
+//                 </Typography>
+//                 <Typography variant="h5" color={colors.redAccent[500]}>
+//                   {fraudPrediction ? translateRiskLevel(fraudPrediction.risk_level) : 'N/A'}
+//                 </Typography>
+//               </Grid>
+//
+//               <Grid item xs={4}>
+//                 <Typography variant="subtitle1">
+//                   <strong>Décision:</strong>
+//                 </Typography>
+//                 <Typography variant="h5" color={colors.redAccent[500]}>
+//                   {fraudPrediction?.predicted_label ? "Frauduleuse" : "Légitime"}
+//                 </Typography>
+//               </Grid>
+//             </Grid>
+//
+//             <Box mb={3}>
+//               <Typography variant="h6" gutterBottom sx={{ display: "flex", alignItems: "center" }}>
+//                 <ListIcon sx={{ mr: 1 }} />
+//                 Analyse Détailée
+//               </Typography>
+//
+//               <Grid container spacing={2}>
+//                 <Grid item xs={6}>
+//                   <Typography variant="subtitle1" color="error" gutterBottom>
+//                     <strong>Indicateurs de fraude:</strong>
+//                   </Typography>
+//                   <List dense>
+//                     {fraudPrediction?.reasons_for_fraud?.map((reason, i) => (
+//                         <ListItem key={i}>
+//                           <ListItemIcon>
+//                             <CancelIcon color="error" />
+//                           </ListItemIcon>
+//                           <SafeListItemText primary={reason.message} />
+//                         </ListItem>
+//                     ))}
+//                     {(!fraudPrediction?.reasons_for_fraud || fraudPrediction.reasons_for_fraud.length === 0) && (
+//                         <ListItem>
+//                           <ListItemIcon>
+//                             <CheckCircleIcon sx={{ color: colors.greenAccent[500] }} />
+//                           </ListItemIcon>
+//                           <SafeListItemText primary="Aucun indicateur de fraude détecté" />
+//                         </ListItem>
+//                     )}
+//                   </List>
+//                 </Grid>
+//
+//                 <Grid item xs={6}>
+//                   <Typography variant="subtitle1" sx={{ color: colors.greenAccent[500] }} gutterBottom>
+//                     <strong>Éléments rassurants:</strong>
+//                   </Typography>
+//                   <List dense>
+//                     {fraudPrediction?.reasons_against_fraud?.map((reason, i) => (
+//                         <ListItem key={i}>
+//                           <ListItemIcon>
+//                             <CheckCircleIcon sx={{ color: colors.greenAccent[500] }} />
+//                           </ListItemIcon>
+//                           <SafeListItemText primary={reason.message} />
+//                         </ListItem>
+//                     ))}
+//                     {(!fraudPrediction?.reasons_against_fraud || fraudPrediction.reasons_against_fraud.length === 0) && (
+//                         <ListItem>
+//                           <ListItemIcon>
+//                             <CancelIcon color="error" />
+//                           </ListItemIcon>
+//                           <SafeListItemText primary="Aucun élément rassurant détecté" />
+//                         </ListItem>
+//                     )}
+//                   </List>
+//                 </Grid>
+//               </Grid>
+//             </Box>
+//
+//             <Box p={2} sx={{ backgroundColor: colors.blueAccent[900], borderRadius: "4px" }}>
+//               <Typography variant="body1" sx={{ display: "flex", alignItems: "flex-start" }}>
+//                 <InfoIcon sx={{ mr: 1, mt: 0.5 }} />
+//                 <span>
+//                 <strong>Résumé analytique:</strong> {fraudPrediction?.summary ||
+//                     "L'analyse n'a pas fourni de résumé."
+//                 }
+//               </span>
+//               </Typography>
+//             </Box>
+//           </DialogContent>
+//
+//           <DialogActions>
+//             <Button
+//                 onClick={handleCloseFraudDialog}
+//                 variant="contained"
+//                 sx={{ backgroundColor: colors.grey[700], color: "white" }}
+//             >
+//               Fermer
+//             </Button>
+//           </DialogActions>
+//         </Dialog>
+//       </Box>
+//   );
+// };
+//
+// export default OcrAddTraite;

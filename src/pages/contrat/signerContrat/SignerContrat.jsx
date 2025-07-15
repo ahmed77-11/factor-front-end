@@ -29,6 +29,7 @@ import { Check } from "@mui/icons-material";
 import { useCommision } from "../../../customeHooks/useCommision";
 import { useContratFonds } from "../../../customeHooks/useContratFonds";
 import {useContratDoc} from "../../../customeHooks/useContratDoc.jsx";
+import {getPPById} from "../../../redux/personne/PersonnePhysiqueSlice.js";
 
 const steps = [
     "Sélectionner la Personne Morale",
@@ -53,6 +54,7 @@ const SignerContrat = () => {
     const formData = useSelector((state) => state.form.formData);
     const { currentContrat, loading: contratLoading } = useSelector((state) => state.contrat);
     const { currentPM, loading: loadingPM } = useSelector((state) => state.personneMorale);
+    const {currentPP, loading: loadingPP} = useSelector((state) => state.personnePhysique);
 
     const { fetchCommission, commisions, loading: commLoading } = useCommision();
     const { fetchContratFonds, contratFonds, loading: fondsLoading } = useContratFonds();
@@ -70,7 +72,19 @@ const SignerContrat = () => {
         const fetchDependentData = async () => {
             if (currentContrat?.adherent) {
                 try {
-                    await dispatch(getPMById(currentContrat.adherent));
+                    if (!currentContrat?.contratNo?.startsWith("PATENTE") && !currentContrat?.contratNo?.startsWith("RNE")) {
+                        console.warn("Unknown contrat type; skipping PM/PP fetch.");
+                    }
+
+                    if(currentContrat.contratNo.startsWith("PATENTE")){
+                        await dispatch(getPPById(currentContrat.adherent));
+                        console.log("pass1")
+                    }
+                    if(currentContrat.contratNo.startsWith("RNE")){
+                        await dispatch(getPMById(currentContrat.adherent));
+                        console.log("pass2")
+                    }
+                    console.log("pass3")
                     await fetchCommission(contratId);
                     await fetchContratFonds(contratId);
                     await fetchDocContrat(contratId);
@@ -117,7 +131,7 @@ const SignerContrat = () => {
         // const updatedContrat = {
         //     ...currentContrat,
         //     ...formData,
-        //     contratSigner: decision === "accept",    
+        //     contratSigner: decision === "accept",
         //     description: JSON.stringify(description)
         // };
         dispatch(signerContratAsync(contratId, navigate));
@@ -125,7 +139,8 @@ const SignerContrat = () => {
 
     const renderStepContent = (step) => {
         // Show loading state for all dependent data
-        if (contratLoading || loadingPM || commLoading || fondsLoading) {
+        if (contratLoading || loadingPM  || loadingPP ) {
+            console.log(loadingPP)
             return (
                 <Box display="flex" justifyContent="center" height="100vh">
                     <CircularProgress size={80} />
@@ -139,7 +154,7 @@ const SignerContrat = () => {
                 return (
                     <Box width="100%" maxWidth="500px" p={3}>
                         <Typography variant="h6">L&#39;Adhérent Associé au Contrat</Typography>
-                        {currentPM ? (
+                        {currentPM  ? (
                             <TextField
                                 fullWidth
                                 label="Personne Morale Sélectionnée"
@@ -147,7 +162,15 @@ const SignerContrat = () => {
                                 margin="normal"
                                 disabled
                             />
-                        ) : (
+                        ) : currentPP ? (
+                            <TextField
+                                fullWidth
+                                label="Personne Physique Sélectionnée"
+                                value={`${currentPP.nom} ${currentPP.prenom} - ${currentPP.numeroPieceIdentite}`}
+                                margin="normal"
+                                disabled
+                            />)
+                            : (
                             <Box textAlign="center" p={2}>
                                 <CircularProgress />
                                 <Typography>Chargement des informations de l'adhérent...</Typography>
@@ -268,7 +291,7 @@ const SignerContrat = () => {
                         color="primary"
                         sx={{ backgroundColor: colors.greenAccent[700] }}
                         onClick={handleNext}
-                        disabled={contratLoading || loadingPM}
+                        disabled={contratLoading || loadingPM || loadingPP }
                     >
                         Suivant
                     </Button>

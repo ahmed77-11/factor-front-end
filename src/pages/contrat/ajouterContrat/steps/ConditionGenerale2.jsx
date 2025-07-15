@@ -15,6 +15,9 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
         previsionChiffreLocal: formData.previsionChiffreLocal || "",
         previsionChiffreExport: formData.previsionChiffreExport || "",
         nombreAcheteur: formData.nombreAcheteur || "",
+        nombreAcheteurHorsComm: formData.nombreAcheteurHorsComm || "",
+        nombreFourn: formData.nombreFourn || "",
+        nombreFournHorsComm: formData.nombreFournHorsComm || "",
         nombreRemise: formData.nombreRemise || "",
         nombreDocumentRemise: formData.nombreDocumentRemise || "",
         tauxConcentration: formData.tauxConcentration || "",
@@ -26,7 +29,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
         // scannerPath: formData.scannerPath || "",
         // nomFichierScanner: formData.nomFichierScanner || "",
         dateAcceptationRemise: formData.dateAcceptationRemise || "",
-        exigenceLittrage: formData.exigenceLittrage || "",
+        // exigenceLittrage: formData.exigenceLittrage || "",
     };
 
     const validationSchema = yup.object().shape({
@@ -55,6 +58,9 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
                 }
             ),
         nombreAcheteur: yup.string().required("Champ requis"),
+        nombreAcheteurHorsComm: yup.string().required("Champ requis"),
+        nombreFourn: yup.string().required("Champ requis"),
+        nombreFournHorsComm: yup.string().required("Champ requis"),
         nombreRemise: yup.string().required("Champ requis"),
         nombreDocumentRemise: yup.string().required("Champ requis"),
         tauxConcentration: yup.string().required("Champ requis"),
@@ -66,7 +72,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
         // scannerPath: yup.string().required("Champ requis"),
         // nomFichierScanner: yup.string().required("Champ requis"),
         dateAcceptationRemise: yup.string().required("Champ requis"),
-        exigenceLittrage: yup.string().required("L'exigence de littrage est requise"),
+        // exigenceLittrage: yup.string().required("L'exigence de littrage est requise"),
     });
 
 
@@ -112,6 +118,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
                         async submit() {
                             await submitForm();
                             const formErrors = await validateForm();
+                            console.log(errors)
                             return Object.keys(formErrors).length === 0;
                         },
                     }));
@@ -168,6 +175,18 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
                                 <TextField fullWidth name="nombreAcheteur" value={values.nombreAcheteur} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.nombreAcheteur && errors.nombreAcheteur)} helperText={touched.nombreAcheteur && errors.nombreAcheteur} />
                             </Box>
                             <Box mb={2}>
+                                <Typography>Nombre acheteur Hors Commission</Typography>
+                                <TextField fullWidth name="nombreAcheteurHorsComm" value={values.nombreAcheteurHorsComm} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.nombreAcheteur && errors.nombreAcheteur)} helperText={touched.nombreAcheteur && errors.nombreAcheteur} />
+                            </Box>
+                            <Box mb={2}>
+                                <Typography>Nombre Fournisseur</Typography>
+                                <TextField fullWidth name="nombreFourn" value={values.nombreFourn} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.nombreAcheteur && errors.nombreAcheteur)} helperText={touched.nombreAcheteur && errors.nombreAcheteur} />
+                            </Box>
+                            <Box mb={2}>
+                                <Typography>Nombre Fournisseur Hors Commission</Typography>
+                                <TextField fullWidth name="nombreFournHorsComm" value={values.nombreFournHorsComm} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.nombreAcheteur && errors.nombreAcheteur)} helperText={touched.nombreAcheteur && errors.nombreAcheteur} />
+                            </Box>
+                            <Box mb={2}>
                                 <Typography>Nombre Remise</Typography>
                                 <TextField  disabled={values.nombreAcheteur<1} fullWidth name="nombreRemise" value={values.nombreRemise} onChange={handleChange} onBlur={handleBlur} error={Boolean(touched.nombreRemise && errors.nombreRemise)} helperText={touched.nombreRemise && errors.nombreRemise} />
                             </Box>
@@ -211,22 +230,22 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData }, ref) => {
                                 <Typography>Date d'acceptation de remise</Typography>
                                 <TextField fullWidth name="dateAcceptationRemise" value={values.dateAcceptationRemise} onChange={handleChange} onBlur={handleBlur} type="date" InputLabelProps={{ shrink: true }} error={Boolean(touched.dateAcceptationRemise && errors.dateAcceptationRemise)} helperText={touched.dateAcceptationRemise && errors.dateAcceptationRemise} />
                             </Box>
-                            <Box mb={2}>
-                                <Typography>Exigence de littrage</Typography>
-                                <TextField
-                                    select
-                                    fullWidth
-                                    name="exigenceLittrage"
-                                    value={values.exigenceLittrage}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    error={Boolean(touched.exigenceLittrage && errors.exigenceLittrage)}
-                                    helperText={touched.exigenceLittrage && errors.exigenceLittrage}
-                                >
-                                    <MenuItem value="Oui">Oui</MenuItem>
-                                    <MenuItem value="Non">Non</MenuItem>
-                                </TextField>
-                            </Box>
+                            {/*<Box mb={2}>*/}
+                            {/*    <Typography>Exigence de littrage</Typography>*/}
+                            {/*    <TextField*/}
+                            {/*        select*/}
+                            {/*        fullWidth*/}
+                            {/*        name="exigenceLittrage"*/}
+                            {/*        value={values.exigenceLittrage}*/}
+                            {/*        onChange={handleChange}*/}
+                            {/*        onBlur={handleBlur}*/}
+                            {/*        error={Boolean(touched.exigenceLittrage && errors.exigenceLittrage)}*/}
+                            {/*        helperText={touched.exigenceLittrage && errors.exigenceLittrage}*/}
+                            {/*    >*/}
+                            {/*        <MenuItem value="Oui">Oui</MenuItem>*/}
+                            {/*        <MenuItem value="Non">Non</MenuItem>*/}
+                            {/*    </TextField>*/}
+                            {/*</Box>*/}
                         </form>
                     );
                 }}

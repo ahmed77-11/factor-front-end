@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react/display-name */
 
-import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle, useState, useEffect } from "react";
 import {
     Box,
     TextField,
@@ -14,7 +14,11 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Paper, useTheme, Button
+    Paper,
+    useTheme,
+    Button,
+    InputAdornment,
+    Tooltip
 } from "@mui/material";
 import { Formik, FieldArray } from "formik";
 import * as yup from "yup";
@@ -22,15 +26,14 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { useTypeCommission } from "../../../../customeHooks/useTypeCommission.jsx";
 import { useTypeEvent } from "../../../../customeHooks/useTypeEvent.jsx";
 import { useTypeDoc } from "../../../../customeHooks/useTypeDoc.jsx";
 import {tokens} from "../../../../theme.js";
 import {useTypeDocContrat} from "../../../../customeHooks/useTypeDocContrat.jsx";
-import axios from "axios";
-import {DescriptionOutlined} from "@mui/icons-material";
 import {uploadFile} from "../../../../helpers/saveFile.js";
-import {Link} from "react-router-dom";
+import {DescriptionOutlined} from "@mui/icons-material";
 
 const periodicites = ["par mois", "par 4 mois", "par an"];
 
@@ -42,8 +45,8 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
     const { typeDoc, loading: docLoading, error: docErr } = useTypeDoc();
     const {typeDocContrat,loading:tDocCLoading,error:tDocCErr}=useTypeDocContrat();
 
+    const [fieldTouched, setFieldTouched] = useState({});
 
-    console.log("Type Doc Contrat",typeDocContrat);
     const initialValues = {
         commissions: formData.commissions || [
             {
@@ -83,7 +86,20 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
         commissions: yup.array().of(
             yup.object({
                 TypeEvent: yup.object().required("Type Evenement requis"),
-                TypeDocRemise: yup.object().required("Type Document requis"),
+                TypeDocRemise: yup
+                    .object()
+                    .nullable()
+                    .test(
+                        'is-required',
+                        "Type Document requis",
+                        function(value) {
+                            const { TypeEvent } = this.parent;
+                            if (!TypeEvent || !TypeEvent.boolContrat) {
+                                return !!value;
+                            }
+                            return true;
+                        }
+                    ),
                 TypeCommission: yup.object().required("Type Commission requis"),
                 Periodicite: yup.string().required("Periodicité requise"),
                 Minorant: yup.number().required("Minorant requis"),
@@ -127,12 +143,13 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
     });
 
     return (
-        <Box width="100%" maxWidth="1400px" p={3}> {/* Increased maxWidth */}
+        <Box width="100%" maxWidth="1400px" p={3}>
             <Formik
                 initialValues={initialValues}
                 validationSchema={validationSchema}
                 onSubmit={(values) => updateData(values)}
                 enableReinitialize
+                validateOnChange={false}
             >
                 {({
                       values,
@@ -144,6 +161,8 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                       submitForm,
                       validateForm,
                       setFieldValue,
+                      validateField,
+                      setTouched,
                   }) => {
                     useImperativeHandle(ref, () => ({
                         async submit() {
@@ -153,13 +172,47 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                         },
                     }));
 
-                    // Helper function to check if a value is already used in a specific table field
                     const isValueUsedInTable = (tableValues, fieldName, value, currentIndex) => {
                         if (!value || !value.id) return false;
                         return tableValues.some((item, idx) =>
                             idx !== currentIndex &&
                             item[fieldName]?.id === value.id
                         );
+                    };
+
+                    const handleEventChange = async (e, index) => {
+                        const selected = typeEvent.find(te => te.id === e.target.value);
+                        setFieldValue(`commissions.${index}.TypeEvent`, selected);
+
+                        // Reset document when event changes
+                        setFieldValue(`commissions.${index}.TypeDocRemise`, null);
+
+                        // Mark document as touched to show errors if needed
+                        const newTouched = { ...touched };
+                        if (!newTouched.commissions) newTouched.commissions = [];
+                        if (!newTouched.commissions[index]) newTouched.commissions[index] = {};
+                        newTouched.commissions[index].TypeDocRemise = true;
+                        setTouched(newTouched);
+
+                        // Validate after state updates
+                        setTimeout(() => {
+                            validateField(`commissions.${index}.TypeDocRemise`);
+                        }, 10);
+                    };
+
+                    const isDocumentRequired = (index) => {
+                        const event = values.commissions[index]?.TypeEvent;
+                        return !(event && event.boolContrat);
+                    };
+
+                    const shouldShowError = (index, field) => {
+                        if (!touched.commissions?.[index]?.[field]) return false;
+
+                        if (field === 'TypeDocRemise') {
+                            return isDocumentRequired(index) && !values.commissions[index]?.TypeDocRemise;
+                        }
+
+                        return !!errors.commissions?.[index]?.[field];
                     };
 
                     return (
@@ -194,9 +247,9 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
 
                                         <TableContainer component={Paper} sx={{
                                             backgroundColor: colors.grey[700],
-                                            overflowX: 'auto' // Added horizontal scrolling for smaller screens
+                                            overflowX: 'auto'
                                         }}>
-                                            <Table sx={{ minWidth: 1200 }}> {/* Increased minWidth */}
+                                            <Table sx={{ minWidth: 1200 }}>
                                                 <TableHead>
                                                     <TableRow>
                                                         <TableCell sx={{ minWidth: 180 }}>Type Événement</TableCell>
@@ -223,20 +276,14 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                     fullWidth
                                                                     size="small"
                                                                     value={commission.TypeEvent?.id || ""}
-                                                                    onChange={(e) => {
-                                                                        const selected = typeEvent.find(te => te.id === e.target.value);
-                                                                        setFieldValue(`commissions.${index}.TypeEvent`, selected);
-                                                                    }}
-                                                                    error={touched.commissions?.[index]?.TypeEvent && !!errors.commissions?.[index]?.TypeEvent}
-                                                                    helperText={touched.commissions?.[index]?.TypeEvent && errors.commissions?.[index]?.TypeEvent}
+                                                                    onChange={(e) => handleEventChange(e, index)}
+                                                                    error={shouldShowError(index, 'TypeEvent')}
+                                                                    helperText={shouldShowError(index, 'TypeEvent') && errors.commissions?.[index]?.TypeEvent}
                                                                     sx={{ minWidth: 180 }}
                                                                 >
                                                                     {typeEvent
                                                                         .filter(item => {
-                                                                            // Allow current selection
                                                                             if (commission.TypeEvent?.id === item.id) return true;
-
-                                                                            // Filter out already selected in this table
                                                                             return !isValueUsedInTable(values.commissions, 'TypeEvent', item, index);
                                                                         })
                                                                         .map((item) => (
@@ -255,18 +302,31 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                     size="small"
                                                                     value={commission.TypeDocRemise?.id || ""}
                                                                     onChange={(e) => {
-                                                                        const selected = typeDoc.find(td => td.id === e.target.value);
-                                                                        setFieldValue(`commissions.${index}.TypeDocRemise`, selected);
+                                                                        const value = e.target.value;
+                                                                        if (value === "") {
+                                                                            setFieldValue(`commissions.${index}.TypeDocRemise`, null);
+                                                                        } else {
+                                                                            const selected = typeDoc.find(td => td.id === value);
+                                                                            setFieldValue(`commissions.${index}.TypeDocRemise`, selected);
+                                                                        }
                                                                     }}
-                                                                    error={touched.commissions?.[index]?.TypeDocRemise && !!errors.commissions?.[index]?.TypeDocRemise}
+                                                                    onBlur={handleBlur}
+                                                                    error={shouldShowError(index, 'TypeDocRemise')}
+                                                                    helperText={shouldShowError(index, 'TypeDocRemise') && errors.commissions?.[index]?.TypeDocRemise}
                                                                     sx={{ minWidth: 180 }}
+                                                                    InputProps={{
+                                                                        startAdornment: !isDocumentRequired(index) && (
+                                                                            <InputAdornment position="start">
+                                                                                <Tooltip title="Optionnel">
+                                                                                    <HelpOutlineIcon fontSize="small" color="info" />
+                                                                                </Tooltip>
+                                                                            </InputAdornment>
+                                                                        ),
+                                                                    }}
                                                                 >
                                                                     {typeDoc
                                                                         .filter(item => {
-                                                                            // Allow current selection
                                                                             if (commission.TypeDocRemise?.id === item.id) return true;
-
-                                                                            // Filter out already selected in this table
                                                                             return !isValueUsedInTable(values.commissions, 'TypeDocRemise', item, index);
                                                                         })
                                                                         .map((item) => (
@@ -288,15 +348,13 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                         const selected = typeCommission.find(tc => tc.id === e.target.value);
                                                                         setFieldValue(`commissions.${index}.TypeCommission`, selected);
                                                                     }}
-                                                                    error={touched.commissions?.[index]?.TypeCommission && !!errors.commissions?.[index]?.TypeCommission}
+                                                                    error={shouldShowError(index, 'TypeCommission')}
+                                                                    helperText={shouldShowError(index, 'TypeCommission') && errors.commissions?.[index]?.TypeCommission}
                                                                     sx={{ minWidth: 180 }}
                                                                 >
                                                                     {typeCommission
                                                                         .filter(item => {
-                                                                            // Allow current selection
                                                                             if (commission.TypeCommission?.id === item.id) return true;
-
-                                                                            // Filter out already selected in this table
                                                                             return !isValueUsedInTable(values.commissions, 'TypeCommission', item, index);
                                                                         })
                                                                         .map((item) => (
@@ -315,7 +373,9 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                     name={`commissions.${index}.Periodicite`}
                                                                     value={commission.Periodicite}
                                                                     onChange={handleChange}
-                                                                    error={touched.commissions?.[index]?.Periodicite && !!errors.commissions?.[index]?.Periodicite}
+                                                                    onBlur={handleBlur}
+                                                                    error={shouldShowError(index, 'Periodicite')}
+                                                                    helperText={shouldShowError(index, 'Periodicite') && errors.commissions?.[index]?.Periodicite}
                                                                     sx={{ minWidth: 120 }}
                                                                 />
                                                             </TableCell>
@@ -330,7 +390,9 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                         name={`commissions.${index}.${field}`}
                                                                         value={commission[field]}
                                                                         onChange={handleChange}
-                                                                        error={touched.commissions?.[index]?.[field] && !!errors.commissions?.[index]?.[field]}
+                                                                        onBlur={handleBlur}
+                                                                        error={shouldShowError(index, field)}
+                                                                        helperText={shouldShowError(index, field) && errors.commissions?.[index]?.[field]}
                                                                         sx={{ minWidth: 100 }}
                                                                     />
                                                                 </TableCell>
@@ -346,8 +408,10 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                         name={`commissions.${index}.${field}`}
                                                                         value={commission[field]}
                                                                         onChange={handleChange}
+                                                                        onBlur={handleBlur}
                                                                         InputLabelProps={{ shrink: true }}
-                                                                        error={touched.commissions?.[index]?.[field] && !!errors.commissions?.[index]?.[field]}
+                                                                        error={shouldShowError(index, field)}
+                                                                        helperText={shouldShowError(index, field) && errors.commissions?.[index]?.[field]}
                                                                         sx={{ minWidth: 150 }}
                                                                     />
                                                                 </TableCell>
@@ -415,10 +479,7 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                 >
                                                                     {typeDoc
                                                                         .filter(item => {
-                                                                            // Allow current selection
                                                                             if (frais.TypeDocRemise?.id === item.id) return true;
-
-                                                                            // Filter out already selected in this table
                                                                             return !isValueUsedInTable(values.fondGaranti, 'TypeDocRemise', item, index);
                                                                         })
                                                                         .map((item) => (
@@ -465,6 +526,8 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                     </Box>
                                 )}
                             </FieldArray>
+
+                            {/* Documents Contrat Table */}
                             <FieldArray name="docContrats">
                                 {({ push, remove }) => (
                                     <Box mt={4}>
@@ -520,10 +583,7 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                 >
                                                                     {typeDocContrat
                                                                         .filter(item => {
-                                                                            // Allow current selection
                                                                             if (doc.typeDocContrat?.id === item.id) return true;
-
-                                                                            // Filter out already selected in this table
                                                                             return !isValueUsedInTable(values.docContrats, 'typeDocContrat', item, index);
                                                                         })
                                                                         .map((item) => (
@@ -573,7 +633,7 @@ const ConditionsParticulieres = forwardRef(({ formData, updateData }, ref) => {
                                                                                     console.error("Upload failed:", error);
                                                                                 }
                                                                             }
-                                                                            e.target.value = null; // Reset input
+                                                                            e.target.value = null;
                                                                         }}
                                                                     />
                                                                 </Button>

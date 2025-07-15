@@ -28,6 +28,7 @@ import {useCommision} from "../../../customeHooks/useCommision.jsx";
 import {useContratFonds} from "../../../customeHooks/useContratFonds.jsx";
 import {getNotesForStep} from "../../../helpers/getNotesForStep.js";
 import {useContratDoc} from "../../../customeHooks/useContratDoc.jsx";
+import {getPPById} from "../../../redux/personne/PersonnePhysiqueSlice.js";
 
 const steps = [
     "Sélectionner la Personne Morale",
@@ -50,6 +51,7 @@ const UpdateContrat = () => {
 
     const { notification, findNotificationByNotes,  loading, notifErr: notifError } = useNotification();
     const { currentPM, loading: loadingPM } = useSelector((state) => state.personneMorale);
+    const {currentPP, loading: loadingPP} = useSelector((state) => state.personnePhysique);
     const {fetchCommission, commisions, loading: commLoading} = useCommision();
     const {fetchContratFonds, contratFonds, loading: fondsLoading} = useContratFonds();
     const {fetchDocContrat, docContrat, loading: docLoading} = useContratDoc();
@@ -81,6 +83,7 @@ const UpdateContrat = () => {
             if (notification?.contrat) {
                 console.log(notification.contrat)
                 dispatch(getPMById(notification.contrat.adherent));
+                dispatch(getPPById(notification.contrat.adherent));
                 fetchCommission(notification?.contrat.id)
                 fetchContratFonds(notification?.contrat.id);
                 fetchDocContrat(notification?.contrat.id);
@@ -96,29 +99,47 @@ const UpdateContrat = () => {
     }, [dispatch, notification]);
 
     useEffect(() => {
+        // whenever the PM arrives from the PM API, select it
         if (currentPM) {
-            handlePMSelection();
+            handlePMSelection(currentPM);
         }
-    }, [currentPM]);
+        // whenever the PP arrives from the PP API, select that instead
+        else if (currentPP) {
+            handlePMSelection(currentPP);
+        }
+    }, [currentPM, currentPP]);
+
 
 
 
     console.log(commisions,contratFonds,docContrat)
 
 
-    const handlePMSelection = () => {
-        if (currentPM) {
-            const { id, raisonSocial, email, typePieceIdentite, sigle, telNo, numeroPieceIdentite } = currentPM;
-            dispatch(setFormData({
-                raisonSocial,
-                email,
-                typePieceIdentite,
-                sigle,
-                telNo,
-                numeroPieceIdentite,
-                pmIdFK: id
-            }));
-        }
+    const handlePMSelection = (pm) => {
+        const {
+            id,
+            raisonSocial,
+            nom,
+            prenom,
+            email,
+            typePieceIdentite,
+            sigle,
+            telNo,
+            numeroPieceIdentite,
+        } = pm;
+
+        dispatch(setFormData({
+            // if it’s a morale, use raisonSocial, otherwise fallback to nom+prenom
+            raisonSocial: raisonSocial || `${nom} ${prenom}`,
+            nom,
+            prenom,
+            email,
+            typePieceIdentite,
+            sigle,
+            telNo,
+            numeroPieceIdentite,
+            pmIdFK: id,
+        }));
     };
 
     const handleNext = async () => {
@@ -173,7 +194,11 @@ const UpdateContrat = () => {
             contratPrevChiffreTotal: parseField(formData.previsionChiffreTotal, 'number'),
             contratPrevChiffreLocal: parseField(formData.previsionChiffreLocal, 'number'),
             contratPrevChiffreExport: parseField(formData.previsionChiffreExport, 'number'),
-            contratPrevAchet: parseField(formData.nombreAcheteur, 'number'),
+            contratPrevNbrAchet: parseField(formData.nombreAcheteur, 'number'),
+            contratHorsCommNbrAchet: parseField(formData.nombreAcheteurHorsComm, 'number'),
+            contratPrevNbrFourn: parseField(formData.nombreFourn,'number'),
+            contratHorsCommNbrFourn: parseField(formData.nombreFournHorsComm, 'number'),
+
             contratPrevNbrRemise: parseField(formData.nombreRemise, 'number'),
             contratPrevNbrDocRemise: parseField(formData.nombreDocumentRemise, 'number'),
             contratTauxConcentration: parseField(formData.tauxConcentration, 'number'),
@@ -183,7 +208,6 @@ const UpdateContrat = () => {
             contratMargeFin: parseField(formData.finMarge, 'number'),
             contratMargeRet: parseField(formData.margeRet, 'number'),
             contratAcceptRemiseDate: parseField(formData.dateAcceptationRemise, 'string'),
-            contratBoolLettrage: parseField(formData.exigenceLittrage, 'boolean'),
 
             // commissions: Array.isArray(formData.commissions)
             //     ? formData.commissions.map(commission => ({
@@ -247,8 +271,10 @@ const UpdateContrat = () => {
             typeFactoring: formData.typeFactoring || null,
             contratBoolRecours: formData.typeContrat !== undefined ? parseField(formData.typeContrat, 'boolean') : null,
             contratNo: parseField(formData.NumContrat, 'string'),
-            contratComiteRisqueTexte: parseField(formData.comiteRisque, 'string'),
-            contratComiteDerogTexte: parseField(formData.comiteDerogation, 'string'),
+            contratBoolLettrage: parseField(formData.exigenceLittrage, 'boolean'),
+            contratBoolFinDebiteur: parseField(formData.contratBoolFinDebiteur, 'boolean'),
+            // contratComiteRisqueTexte: parseField(formData.comiteRisque, 'string'),
+            // contratComiteDerogTexte: parseField(formData.comiteDerogation, 'string'),
             adherentData: {
                 raisonSocial: parseField(formData.raisonSocial, 'string'),
                 email: parseField(formData.email, 'string'),
@@ -285,7 +311,7 @@ const UpdateContrat = () => {
         dispatch(updateContratAsync(formFields, navigate,notification.notification?.notificationTaskId));
 
 
-        if (loading || loadingPM) {
+        if (loading || loadingPM||loadingPP ) {
             return (
                 <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
                     <CircularProgress/>
@@ -315,7 +341,9 @@ const UpdateContrat = () => {
                             value={
                                 currentPM
                                     ? `${currentPM?.raisonSocial} - ${currentPM?.typePieceIdentite?.dsg} ${currentPM?.numeroPieceIdentite}`
-                                    : ""
+                                    : currentPP
+                                        ?`${currentPP?.nom} ${currentPP.prenom} - ${currentPP?.typePieceIdentite?.dsg} ${currentPP?.numeroPieceIdentite}`
+                                        :""
                             }
                             margin="normal"
                             disabled
@@ -414,7 +442,7 @@ const UpdateContrat = () => {
                     ))}
                 </Stepper>
             </Box>
-            {(loading || loadingPM || commLoading || fondsLoading) && (
+            {(loading || loadingPM ||loadingPP || commLoading || fondsLoading) && (
                 <Box display="flex" justifyContent="center" p={4}>
                     <CircularProgress />
                     <Typography variant="h6" ml={2}>Loading contract data...</Typography>
@@ -435,7 +463,7 @@ const UpdateContrat = () => {
                     color="primary"
                     sx={{ backgroundColor: colors.greenAccent[700] }}
                     onClick={handleNext}
-                    disabled={loading || loadingPM}
+                    disabled={loading || loadingPM || loadingPP}
                 >
                     Suivant
                 </Button>

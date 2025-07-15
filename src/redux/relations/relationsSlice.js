@@ -35,6 +35,32 @@ const relationsSlice = createSlice({
             state.loading = false;
             state.acheteurs = action.payload;
         },
+        fetchRelationsStart: (state) => {
+            state.loading = true;
+        },
+        fetchRelationsSuccess: (state, action) => {
+            state.loading = false;
+            state.currentRelation = action.payload;
+        },
+        fetchRelationsFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+        updateRelationStart: (state) => {
+            state.loading = true;
+        },
+        updateRelationSuccess: (state, action) => {
+            state.loading = false;
+            // Update the specific relation in the state
+            // const index = state.relations.findIndex(relation => relation.id === action.payload.id);
+            // if (index !== -1) {
+            //     state.relations[index] = action.payload;
+            // }
+        },
+        updateRelationFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
         allAcheteurFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
@@ -107,7 +133,13 @@ export const {
     fetchPerAcheteurByIdFailure,
     allAdherentByAcheteurStart,
     allAdherentByAcheteurSuccess,
-    allAdherentByAcheteurFailure
+    allAdherentByAcheteurFailure,
+    fetchRelationsStart,
+    fetchRelationsSuccess,
+    fetchRelationsFailure,
+    updateRelationStart,
+    updateRelationSuccess,
+    updateRelationFailure,
 } = relationsSlice.actions;
 
 
@@ -216,5 +248,39 @@ export const fetchAdherentsByAcheteur=(id)=>async (dispatch)=>{
         dispatch(allAdherentByAcheteurSuccess(response.data));
     } catch (error) {
         dispatch(allAdherentByAcheteurFailure(error.message));
+    }
+}
+export const fetchRelationAsync = (id) => async (dispatch) => {
+    dispatch(fetchRelationsStart());
+    try {
+        const response = await axios.get(
+            `http://localhost:8081/factoring/api/relations/${id}`,
+            { withCredentials: true }
+        );
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        console.log(response)
+
+        dispatch(fetchRelationsSuccess(response.data));
+    } catch (error) {
+        dispatch(fetchRelationsFailure(error.message));
+    }
+}
+export const updateRelationAsync = (data) => async (dispatch) => {
+    dispatch(updateRelationStart());
+    try {
+        const response = await axios.post(
+            `http://localhost:8081/factoring/api/relations/modifier-relations`,
+            data,
+            { withCredentials: true }
+        );
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+
+        dispatch(updateRelationSuccess(response.data));
+    } catch (error) {
+        dispatch(updateRelationFailure(error.message));
     }
 }

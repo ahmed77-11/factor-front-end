@@ -25,6 +25,9 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData }, ref) => {
         chiffreAffaire: formData.chiffreAffaire || "",
         comiteRisque: formData.comiteRisque || "",
         comiteDerogation: formData.comiteDerogation || "",
+        exigenceLittrage: formData.exigenceLittrage || "",
+        contratBoolFinDebiteur: formData.contratBoolFinDebiteur || "",
+
     };
 
     const validationSchema = yup.object().shape({
@@ -35,8 +38,10 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData }, ref) => {
             .boolean()
             .typeError("Le type de contrat est requis")
             .required("Le type de contrat est requis"),
-        comiteRisque: yup.string().required("Le comité de risque est requis"),
-        comiteDerogation: yup.string(),
+        // comiteRisque: yup.string().required("Le comité de risque est requis"),
+        // comiteDerogation: yup.string(),
+        exigenceLittrage: yup.string().required("L'exigence de littrage est requise"),
+        contratBoolFinDebiteur: yup.string().required("Le Financement Debiteur est requis"),
     });
 
     return (
@@ -156,30 +161,63 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData }, ref) => {
                                 </TextField>
                             </Box>
 
+                            {/*<Box mb={2}>*/}
+                            {/*    <Typography>Comité de risque</Typography>*/}
+                            {/*    <TextField*/}
+                            {/*        fullWidth*/}
+                            {/*        name="comiteRisque"*/}
+                            {/*        value={values.comiteRisque}*/}
+                            {/*        onChange={handleChange}*/}
+                            {/*        onBlur={handleBlur}*/}
+                            {/*        error={Boolean(touched.comiteRisque && errors.comiteRisque)}*/}
+                            {/*        helperText={touched.comiteRisque && errors.comiteRisque}*/}
+                            {/*    />*/}
+                            {/*</Box>*/}
+                            {/*<Box mb={2}>*/}
+                            {/*    <Typography>Comité dérogation</Typography>*/}
+                            {/*    <TextField*/}
+                            {/*        fullWidth*/}
+                            {/*        name="comiteDerogation"*/}
+                            {/*        value={values.comiteDerogation}*/}
+                            {/*        onChange={handleChange}*/}
+                            {/*        onBlur={handleBlur}*/}
+                            {/*        error={Boolean(touched.comiteDerogation && errors.comiteDerogation)}*/}
+                            {/*        helperText={touched.comiteDerogation && errors.comiteDerogation}*/}
+                            {/*    />*/}
+                            {/*</Box>*/}
                             <Box mb={2}>
-                                <Typography>Comité de risque</Typography>
+                                <Typography>Exigence de littrage</Typography>
                                 <TextField
+                                    select
                                     fullWidth
-                                    name="comiteRisque"
-                                    value={values.comiteRisque}
+                                    name="exigenceLittrage"
+                                    value={values.exigenceLittrage}
                                     onChange={handleChange}
                                     onBlur={handleBlur}
-                                    error={Boolean(touched.comiteRisque && errors.comiteRisque)}
-                                    helperText={touched.comiteRisque && errors.comiteRisque}
-                                />
+                                    error={Boolean(touched.exigenceLittrage && errors.exigenceLittrage)}
+                                    helperText={touched.exigenceLittrage && errors.exigenceLittrage}
+                                >
+                                    <MenuItem value="Oui">Oui</MenuItem>
+                                    <MenuItem value="Non">Non</MenuItem>
+                                </TextField>
                             </Box>
                             <Box mb={2}>
-                                <Typography>Comité dérogation</Typography>
+                                <Typography>Financement de Debiteur</Typography>
                                 <TextField
+                                    select
                                     fullWidth
-                                    name="comiteDerogation"
-                                    value={values.comiteDerogation}
+                                    name="contratBoolFinDebiteur"
+                                    value={values.contratBoolFinDebiteur}
                                     onChange={handleChange}
                                     onBlur={handleBlur}
-                                    error={Boolean(touched.comiteDerogation && errors.comiteDerogation)}
-                                    helperText={touched.comiteDerogation && errors.comiteDerogation}
-                                />
+                                    error={Boolean(touched.contratBoolFinDebiteur && errors.contratBoolFinDebiteur)}
+                                    helperText={touched.contratBoolFinDebiteur && errors.contratBoolFinDebiteur}
+                                >
+                                    <MenuItem value="Oui">Oui</MenuItem>
+                                    <MenuItem value="Non">Non</MenuItem>
+                                </TextField>
                             </Box>
+
                         </form>
                     );
                 }}

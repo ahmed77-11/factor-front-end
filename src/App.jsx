@@ -53,7 +53,8 @@ import PieChartDetailedView from './pages/pieChart/PieChartDetailedView.jsx';
 import FunnelChartDetailView from "./pages/funnelChartDetailView/FunnelChartDetailView.jsx";
 import TopAdherentDetailView from "./pages/topAdherenDetailView/TopAdherentDetailView.jsx";
 import Forbidden from "./pages/Global/forbidden/Forbidden.jsx";
-import RolesBasedRoute from "./pages/Global/RolesBasedRoutes.jsx"; // Import the new component
+import RolesBasedRoute from "./pages/Global/RolesBasedRoutes.jsx";
+import UpdateAdherAchat from "./pages/relations/adherAchat/updateAdherAchat.jsx"; // Import the new component
 
 function App() {
     const [theme, colorMode] = useMode();
@@ -140,6 +141,11 @@ function App() {
                         <Route path="/ajouter-acheteurs" element={
                             <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
                                 <AdherAchet/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/update-relations/:relationId" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <UpdateAdherAchat/>
                             </RolesBasedRoute>
                         }/>
 

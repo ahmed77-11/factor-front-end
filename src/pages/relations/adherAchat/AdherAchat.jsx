@@ -23,6 +23,8 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { localeText, tokens } from "../../../theme.js";
 import DeletePopup from "../../../components/DeletePopup.jsx";
+import EditIcon from "@mui/icons-material/Edit";
+import {useNavigate} from "react-router-dom";
 
 const validationSchema = Yup.object().shape({
     adherent: Yup.object().required('Adhérent requis'),
@@ -41,6 +43,7 @@ const validationSchema = Yup.object().shape({
 
 const AdherAchet = () => {
     const dispatch = useDispatch();
+    const navigate =useNavigate();
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const { adherents, acheteurs, relations,loading,error } = useSelector((state) => state.relations);
@@ -89,10 +92,13 @@ const AdherAchet = () => {
         dispatch(fetchAcheteursAsync());
     }, [dispatch]);
 
+    console.log(adherents)
+
     useEffect(() => {
         if (formik.values.adherent?.id) {
             dispatch(fetchRelationsAsync(formik.values.adherent.id));
         }
+        console.log(relations)
     }, [dispatch, formik.values.adherent]);
 
     const associatedAcheteurIds = useMemo(() => {
@@ -134,6 +140,11 @@ const AdherAchet = () => {
             dispatch(fetchRelationsAsync(formik.values.adherent.id));
         }
     };
+
+    function handleUpdate(id) {
+        console.log(id)
+        navigate("/update-relations/"+id);
+    }
 
     const columns = [
         {
@@ -196,10 +207,13 @@ const AdherAchet = () => {
             renderCell: (params) => (
                 <Box display="flex" justifyContent="center" width="100%">
                     <IconButton
-                        color="error"
-                        onClick={() => handleDeleteClick(params.row.id)}
+                        color="success"
+                        onClick={() => {
+                            console.log(params.row)
+                            return handleUpdate(params.row.id);
+                        }}
                     >
-                        <DeleteIcon />
+                        <EditIcon />
                     </IconButton>
                 </Box>
             ),
@@ -220,7 +234,9 @@ const AdherAchet = () => {
                                 value={formik.values.adherent}
                                 onChange={(_, value) => formik.setFieldValue('adherent', value)}
                                 getOptionLabel={(option) =>
-                                    `${option.typePieceIdentite?.dsg || ''} ${option.numeroPieceIdentite} - ${option.raisonSocial}`
+                                   (option.nom)
+                                     ?`${option.typePieceIdentite?.dsg || ''} ${option.numeroPieceIdentite} - ${option.nom} ${option.prenom} `
+                                    :`${option.typePieceIdentite?.dsg || ''} ${option.numeroPieceIdentite} - ${option.raisonSocial}`
                                 }
                                 renderInput={(params) => (
                                     <TextField

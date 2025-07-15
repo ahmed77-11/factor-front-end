@@ -24,6 +24,9 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description,
         previsionChiffreLocal: formData?.previsionChiffreLocal || data?.contrat?.contratPrevChiffreLocal?.toString() || "",
         previsionChiffreExport: formData?.previsionChiffreExport || data?.contrat?.contratPrevChiffreExport?.toString() || "",
         nombreAcheteur: formData?.nombreAcheteur || data?.contrat?.contratPrevNbrAchet?.toString() || "",
+        nombreAcheteurHorsComm: formData.nombreAcheteurHorsComm || data?.contrat?.contratHorsCommNbrAchet?.toString() || "",
+        nombreFourn: formData.nombreFourn || data?.contrat?.contratPrevNbrFourn?.toString()||"",
+        nombreFournHorsComm: formData.nombreFournHorsComm || data?.contrat?.contratHorsCommNbrFourn?.toString() || "",
         nombreRemise: formData?.nombreRemise || data?.contrat?.contratPrevNbrRemise?.toString() || "",
         nombreDocumentRemise: formData?.nombreDocumentRemise || data?.contrat?.contratPrevNbrDocRemise?.toString() || "",
         tauxConcentration: formData?.tauxConcentration || data?.contrat?.contratTauxConcentration?.toString() || "",
@@ -35,7 +38,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description,
         // scannerPath: formData?.scannerPath || data?.contrat?.contratScanPath || "",
         // nomFichierScanner: formData?.nomFichierScanner || data?.contrat?.contratScanFileName || "",
         dateAcceptationRemise: formData?.dateAcceptationRemise || data?.contrat?.contratAcceptRemiseDate?.split('T')[0] || "",
-        exigenceLittrage: formData?.exigenceLittrage || data?.contrat?.contratBoolLettrage?.toString() || "",
+        // exigenceLittrage: formData?.exigenceLittrage || data?.contrat?.contratBoolLettrage?.toString() || "",
     };
 
     // Validation schema
@@ -65,6 +68,9 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description,
                 }
             ),
         nombreAcheteur: yup.string().required("Le nombre d'acheteur est requis"),
+        nombreAcheteurHorsComm: yup.string().required("Champ requis"),
+        nombreFourn: yup.string().required("Champ requis"),
+        nombreFournHorsComm: yup.string().required("Champ requis"),
         nombreRemise: yup.string().required("Le nombre de remise est requis"),
         nombreDocumentRemise: yup.string().required("Le nombre de document de remise est requis"),
         tauxConcentration: yup.string().required("Le taux de concentration est requis"),
@@ -76,7 +82,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description,
         // scannerPath: yup.string(),
         // nomFichierScanner: yup.string(),
         dateAcceptationRemise: yup.string().required("La date d'acceptation de remise est requise"),
-        exigenceLittrage: yup.string().required("L'exigence de littrage est requise"),
+        // exigenceLittrage: yup.string().required("L'exigence de littrage est requise"),
     });
     console.log(formData)
 
@@ -239,6 +245,72 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description,
                                 />
                                 {description.nombreAcheteur && (
                                     <NotesDescription msg={description.nombreAcheteur} />
+                                )}
+                            </Box>
+                            <Box mb={2}>
+                                <Typography>Nombre acheteur hors commission</Typography>
+                                <TextField
+                                    fullWidth
+                                    name="nombreAcheteurHorsComm"
+                                    value={values.nombreAcheteurHorsComm}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.nombreAcheteurHorsComm) {
+
+                                            delete description.nombreAcheteurHorsComm;
+                                            updateDescription(description);
+                                        }
+                                    }}
+                                    onBlur={handleBlur}
+                                    error={Boolean(touched.nombreAcheteurHorsComm && errors.nombreAcheteurHorsComm)}
+                                    helperText={touched.nombreAcheteurHorsComm && errors.nombreAcheteurHorsComm}
+                                />
+                                {description.nombreAcheteurHorsComm && (
+                                    <NotesDescription msg={description.nombreAcheteurHorsComm} />
+                                )}
+                            </Box>
+                            <Box mb={2}>
+                                <Typography>Nombre fournisseur</Typography>
+                                <TextField
+                                    fullWidth
+                                    name="nombreFourn"
+                                    value={values.nombreFourn}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.nombreFourn) {
+
+                                            delete description.nombreFourn;
+                                            updateDescription(description);
+                                        }
+                                    }}
+                                    onBlur={handleBlur}
+                                    error={Boolean(touched.nombreFourn && errors.nombreFourn)}
+                                    helperText={touched.nombreFourn && errors.nombreFourn}
+                                />
+                                {description.nombreFourn && (
+                                    <NotesDescription msg={description.nombreFourn} />
+                                )}
+                            </Box>
+                            <Box mb={2}>
+                                <Typography>Nombre fournisseur hors commission</Typography>
+                                <TextField
+                                    fullWidth
+                                    name="nombreFournHorsComm"
+                                    value={values.nombreFournHorsComm}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        if (description.nombreFournHorsComm) {
+
+                                            delete description.nombreFournHorsComm;
+                                            updateDescription(description);
+                                        }
+                                    }}
+                                    onBlur={handleBlur}
+                                    error={Boolean(touched.nombreFournHorsComm && errors.nombreFournHorsComm)}
+                                    helperText={touched.nombreFournHorsComm && errors.nombreFournHorsComm}
+                                />
+                                {description.nombreFournHorsComm && (
+                                    <NotesDescription msg={description.nombreFournHorsComm} />
                                 )}
                             </Box>
 
@@ -501,33 +573,33 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data,description,
                             </Box>
 
                             {/* Exigence littrage */}
-                            <Box mb={2}>
-                                <Typography>Exigence littrage</Typography>
-                                <TextField
-                                    select
-                                    fullWidth
-                                    name="exigenceLittrage"
-                                    value={values.exigenceLittrage}
-                                    onChange={(e) => {
-                                        handleChange(e);
-                                        if (description.exigenceLittrage) {
-                                           
-                                            delete description.exigenceLittrage;
-                                            updateDescription(description);
-                                        }
-                                    }}
-                                    onBlur={handleBlur}
-                                    error={Boolean(touched.exigenceLittrage && errors.exigenceLittrage)}
-                                    helperText={touched.exigenceLittrage && errors.exigenceLittrage}
-                                >
-                                    <MenuItem value="">Sélectionnez une option</MenuItem>
-                                    <MenuItem value={true}>Oui</MenuItem>
-                                    <MenuItem value={false}>Non</MenuItem>
-                                </TextField>
-                                {description.exigenceLittrage && (
-                                    <NotesDescription msg={description.exigenceLittrage} />
-                                )}
-                            </Box>
+                            {/*<Box mb={2}>*/}
+                            {/*    <Typography>Exigence littrage</Typography>*/}
+                            {/*    <TextField*/}
+                            {/*        select*/}
+                            {/*        fullWidth*/}
+                            {/*        name="exigenceLittrage"*/}
+                            {/*        value={values.exigenceLittrage}*/}
+                            {/*        onChange={(e) => {*/}
+                            {/*            handleChange(e);*/}
+                            {/*            if (description.exigenceLittrage) {*/}
+                            {/*               */}
+                            {/*                delete description.exigenceLittrage;*/}
+                            {/*                updateDescription(description);*/}
+                            {/*            }*/}
+                            {/*        }}*/}
+                            {/*        onBlur={handleBlur}*/}
+                            {/*        error={Boolean(touched.exigenceLittrage && errors.exigenceLittrage)}*/}
+                            {/*        helperText={touched.exigenceLittrage && errors.exigenceLittrage}*/}
+                            {/*    >*/}
+                            {/*        <MenuItem value="">Sélectionnez une option</MenuItem>*/}
+                            {/*        <MenuItem value={true}>Oui</MenuItem>*/}
+                            {/*        <MenuItem value={false}>Non</MenuItem>*/}
+                            {/*    </TextField>*/}
+                            {/*    {description.exigenceLittrage && (*/}
+                            {/*        <NotesDescription msg={description.exigenceLittrage} />*/}
+                            {/*    )}*/}
+                            {/*</Box>*/}
                         </form>
                     );
                 }}

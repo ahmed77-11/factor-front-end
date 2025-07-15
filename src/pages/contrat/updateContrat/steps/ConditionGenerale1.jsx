@@ -24,8 +24,11 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data ,description
         NumContrat: formData?.NumContrat || data?.contrat?.contratNo || "",
         typeFactoring: formData?.typeFactoring || data?.contrat?.typeFactoring || {},
         typeContrat: formData?.typeContrat ?? data?.contrat?.contratBoolRecours ?? null,
-        comiteRisque: formData?.comiteRisque || data?.contrat?.contratComiteRisqueTexte || "",
-        comiteDerogation: formData?.comiteDerogation || data?.contrat?.contratComiteDerogTexte || "",
+        // comiteRisque: formData?.comiteRisque || data?.contrat?.contratComiteRisqueTexte || "",
+        // comiteDerogation: formData?.comiteDerogation || data?.contrat?.contratComiteDerogTexte || "",
+        exigenceLittrage: formData?.exigenceLittrage || data?.contrat?.contratBoolLettrage?.toString() || "",
+        contratBoolFinDebiteur: formData?.contratBoolFinDebiteur ?? data?.contrat?.contratBoolFinDebiteur?.toString() ?? "",
+
     };
 
     // Validation schema
@@ -36,8 +39,10 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data ,description
             .boolean()
             .typeError("Le type de contrat est requis")
             .required("Le type de contrat est requis"),
-        comiteRisque: yup.string().required("Le comité de risque est requis"),
-        comiteDerogation: yup.string(),
+        exigenceLittrage: yup.string().required("L'exigence de littrage est requise"),
+        contratBoolFinDebiteur: yup.string().required("Le champ Finacement de Debiteur est requis"),
+        // comiteRisque: yup.string().required("Le comité de risque est requis"),
+        // comiteDerogation: yup.string(),
     });
 
     return (
@@ -165,50 +170,104 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data ,description
                             </Box>
 
                             {/* Comité de risque */}
+                            {/*<Box mb={2}>*/}
+                            {/*    <Typography>Comité de risque</Typography>*/}
+                            {/*    <TextField*/}
+                            {/*        fullWidth*/}
+                            {/*        name="comiteRisque"*/}
+                            {/*        value={values.comiteRisque}*/}
+                            {/*        onChange={(e) => {*/}
+                            {/*            handleChange(e);*/}
+                            {/*            if (description.comiteRisque) {*/}
+                            {/*               */}
+                            {/*                delete description.comiteRisque;*/}
+                            {/*                updateDescription(description);*/}
+                            {/*            }*/}
+                            {/*        }}*/}
+                            {/*        onBlur={handleBlur}*/}
+                            {/*        error={Boolean(touched.comiteRisque && errors.comiteRisque)}*/}
+                            {/*        helperText={touched.comiteRisque && errors.comiteRisque}*/}
+                            {/*    />*/}
+                            {/*    {description.comiteRisque && (*/}
+                            {/*       <NotesDescription msg={description.comiteRisque} />*/}
+                            {/*    )}*/}
+                            {/*</Box>*/}
+
+                            {/*/!* Comité de dérogation *!/*/}
+                            {/*<Box mb={2}>*/}
+                            {/*    <Typography>Comité de dérogation</Typography>*/}
+                            {/*    <TextField*/}
+                            {/*        fullWidth*/}
+                            {/*        name="comiteDerogation"*/}
+                            {/*        value={values.comiteDerogation}*/}
+                            {/*        onChange={(e) => {*/}
+                            {/*            handleChange(e);*/}
+                            {/*            if (description.comiteDerogation) {*/}
+                            {/*               */}
+                            {/*                delete description.comiteDerogation;*/}
+                            {/*                updateDescription(description);*/}
+                            {/*            }*/}
+                            {/*        }}*/}
+                            {/*        onBlur={handleBlur}*/}
+                            {/*        error={Boolean(touched.comiteDerogation && errors.comiteDerogation)}*/}
+                            {/*        helperText={touched.comiteDerogation && errors.comiteDerogation}*/}
+                            {/*    />*/}
+                            {/*    {description.comiteDerogation && (*/}
+                            {/*        <NotesDescription msg={description.comiteDerogation} />*/}
+                            {/*    )}*/}
+                            {/*</Box>*/}
                             <Box mb={2}>
-                                <Typography>Comité de risque</Typography>
+                                <Typography>Exigence littrage</Typography>
                                 <TextField
+                                    select
                                     fullWidth
-                                    name="comiteRisque"
-                                    value={values.comiteRisque}
+                                    name="exigenceLittrage"
+                                    value={values.exigenceLittrage}
                                     onChange={(e) => {
                                         handleChange(e);
-                                        if (description.comiteRisque) {
-                                           
-                                            delete description.comiteRisque;
+                                        if (description.exigenceLittrage) {
+
+                                            delete description.exigenceLittrage;
                                             updateDescription(description);
                                         }
                                     }}
                                     onBlur={handleBlur}
-                                    error={Boolean(touched.comiteRisque && errors.comiteRisque)}
-                                    helperText={touched.comiteRisque && errors.comiteRisque}
-                                />
-                                {description.comiteRisque && (
-                                   <NotesDescription msg={description.comiteRisque} />
+                                    error={Boolean(touched.exigenceLittrage && errors.exigenceLittrage)}
+                                    helperText={touched.exigenceLittrage && errors.exigenceLittrage}
+                                >
+                                    <MenuItem value="">Sélectionnez une option</MenuItem>
+                                    <MenuItem value={true}>Oui</MenuItem>
+                                    <MenuItem value={false}>Non</MenuItem>
+                                </TextField>
+                                {description.exigenceLittrage && (
+                                    <NotesDescription msg={description.exigenceLittrage} />
                                 )}
                             </Box>
-
-                            {/* Comité de dérogation */}
                             <Box mb={2}>
-                                <Typography>Comité de dérogation</Typography>
+                                <Typography>Financement Debiteur</Typography>
                                 <TextField
+                                    select
                                     fullWidth
-                                    name="comiteDerogation"
-                                    value={values.comiteDerogation}
+                                    name="contratBoolFinDebiteur"
+                                    value={values.contratBoolFinDebiteur}
                                     onChange={(e) => {
                                         handleChange(e);
-                                        if (description.comiteDerogation) {
-                                           
-                                            delete description.comiteDerogation;
+                                        if (description.contratBoolFinDebiteur) {
+
+                                            delete description.contratBoolFinDebiteur;
                                             updateDescription(description);
                                         }
                                     }}
                                     onBlur={handleBlur}
-                                    error={Boolean(touched.comiteDerogation && errors.comiteDerogation)}
-                                    helperText={touched.comiteDerogation && errors.comiteDerogation}
-                                />
-                                {description.comiteDerogation && (
-                                    <NotesDescription msg={description.comiteDerogation} />
+                                    error={Boolean(touched.contratBoolFinDebiteur && errors.contratBoolFinDebiteur)}
+                                    helperText={touched.contratBoolFinDebiteur && errors.contratBoolFinDebiteur}
+                                >
+                                    <MenuItem value="">Sélectionnez une option</MenuItem>
+                                    <MenuItem value={true}>Oui</MenuItem>
+                                    <MenuItem value={false}>Non</MenuItem>
+                                </TextField>
+                                {description.contratBoolFinDebiteur && (
+                                    <NotesDescription msg={description.contratBoolFinDebiteur} />
                                 )}
                             </Box>
                         </form>

@@ -22,10 +22,11 @@ const NewAddTraite = () => {
             formData.append("file", file);
 
             const response = await axios.post(`http://localhost:5000/${apiEndpoint}`, formData);
-            
-            const processedData = processOCRData(response.data.extracted_data);
-            console.log(response.data.extracted_data);
-            
+            console.log(response.data);
+            // console.log(response.data.extracted_data)
+            const processedData = processOCRData(response.data.extracted_data,response.data.barcode_validates_traite,response.data.signature_detected);
+
+            console.log(processedData);
 
             navigate("/ajouter-traite-extracter", { state: { extractedData: processedData } });
         } catch (error) {
@@ -35,7 +36,7 @@ const NewAddTraite = () => {
         }
     };
 
-    const processOCRData = (data) => (
+    const processOCRData = (data,barcode_validates_traite,signature_detected) => (
         {
         numero: data.traite_num || "",
         tireEmisDate: formatDate(data.date_created) || "",
@@ -47,8 +48,8 @@ const NewAddTraite = () => {
         echFirst: formatDate(data.date_due) || "",
         factorDate: formatDate(data.date_created) || "",
         amount_words: data.amount_words,
-        barcode_matches_traite:data.barcode_matches_traite,
-        signature_detected:data.signature_detected,
+            barcode_validates_traite:barcode_validates_traite,
+        signature_detected:signature_detected,
         bank:data.bank
     });
     

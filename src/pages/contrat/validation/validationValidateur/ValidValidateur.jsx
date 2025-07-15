@@ -463,6 +463,7 @@ import { useContratFonds } from "../../../../customeHooks/useContratFonds.jsx";
 import useWebSocket from "../../../../customeHooks/useWebSocket.jsx";
 import EditIcon from "@mui/icons-material/Edit";
 import {useContratDoc} from "../../../../customeHooks/useContratDoc.jsx";
+import {getPPById} from "../../../../redux/personne/PersonnePhysiqueSlice.js";
 
 const steps = [
     "Sélectionner la Personne Morale",
@@ -489,7 +490,9 @@ const ValidValidateur = () => {
     const { sendTaskAction } = useWebSocket();
 
     const { notification, findNotificationById, loading, notifErr: notifError } = useNotification();
-    const { currentPM, loading: loadingPM } = useSelector((state) => state.personneMorale);
+    let { currentPM, loading: loadingPM } = useSelector((state) => state.personneMorale);
+    const { currentPP, loading: loadingPP } = useSelector((state) => state.personnePhysique);
+
     const { fetchCommission, commisions, loading: commLoading } = useCommision();
     const { fetchContratFonds, contratFonds, loading: fondsLoading } = useContratFonds();
     const {fetchDocContrat, docContrat, loading: docLoading} = useContratDoc();
@@ -514,17 +517,25 @@ const ValidValidateur = () => {
     useEffect(() => {
         if (notification?.notificationContratId) {
             dispatch(getPMById(notification.notificationContratId.adherent));
+            dispatch(getPPById(notification.notificationContratId.adherent));
             fetchCommission(notification?.notificationContratId.id);
             fetchContratFonds(notification?.notificationContratId.id);
             fetchDocContrat(notification?.notificationContratId.id);
         }
     }, [dispatch, notification]);
 
+    console.log(currentPP)
     useEffect(() => {
+        // whenever the PM arrives from the PM API, select it
         if (currentPM) {
-            handlePMSelection();
+            handlePMSelection(currentPM);
         }
-    }, [currentPM]);
+        // whenever the PP arrives from the PP API, select that instead
+        else if (currentPP) {
+            handlePMSelection(currentPP);
+        }
+    }, [currentPM, currentPP]);
+
 
 
     let loadSubmit;
@@ -537,20 +548,33 @@ const ValidValidateur = () => {
         navigate("/")
 
     };
-    const handlePMSelection = () => {
-        if (currentPM) {
-            const { id, raisonSocial, email, typePieceIdentite, sigle, telNo, numeroPieceIdentite } = currentPM;
-            dispatch(setFormData({
-                raisonSocial,
-                email,
-                typePieceIdentite,
-                sigle,
-                telNo,
-                numeroPieceIdentite,
-                pmIdFK: id
-            }));
-        }
+    const handlePMSelection = (pm) => {
+        const {
+            id,
+            raisonSocial,
+            nom,
+            prenom,
+            email,
+            typePieceIdentite,
+            sigle,
+            telNo,
+            numeroPieceIdentite,
+        } = pm;
+
+        dispatch(setFormData({
+            // if it’s a morale, use raisonSocial, otherwise fallback to nom+prenom
+            raisonSocial: raisonSocial || `${nom} ${prenom}`,
+            nom,
+            prenom,
+            email,
+            typePieceIdentite,
+            sigle,
+            telNo,
+            numeroPieceIdentite,
+            pmIdFK: id,
+        }));
     };
+
 
     const handleOpenNoteModal = (fieldName) => {
         setActiveField(fieldName);
@@ -608,11 +632,13 @@ const ValidValidateur = () => {
                         <Typography variant="h6">L&#39;Adhérent Associé au Contrat</Typography>
                         <TextField
                             fullWidth
-                            label="Personne Morale Sélectionnée"
+                            label="Personne  Sélectionnée"
                             value={
                                 currentPM
                                     ? `${currentPM?.raisonSocial} - ${currentPM?.typePieceIdentite?.dsg} ${currentPM?.numeroPieceIdentite}`
-                                    : ""
+                                    : currentPP
+                                    ?`${currentPP?.nom} ${currentPP.prenom} - ${currentPP?.typePieceIdentite?.dsg} ${currentPP?.numeroPieceIdentite}`
+                                    :""
                             }
                             margin="normal"
                             disabled
@@ -731,7 +757,7 @@ const ValidValidateur = () => {
                 </DialogActions>
             </Dialog>
 
-            {(loading || loadingPM || commLoading || fondsLoading) && (
+            {(loading || loadingPM  ||loadingPP || commLoading || fondsLoading) && (
                 <Box display="flex" justifyContent="center" p={4}>
                     <CircularProgress />
                     <Typography variant="h6" ml={2}>Chargement du contrat...</Typography>
@@ -755,7 +781,7 @@ const ValidValidateur = () => {
                         color="primary"
                         sx={{ backgroundColor: colors.greenAccent[700] }}
                         onClick={handleNext}
-                        disabled={loading || loadingPM}
+                        disabled={loading || loadingPM||loadingPP}
                     >
                         Suivant
                     </Button>
@@ -766,7 +792,7 @@ const ValidValidateur = () => {
                             color="primary"
                             sx={{ backgroundColor: colors.greenAccent[700] }}
                             onClick={()=>handleTaskEvent("accept")}
-                            disabled={loading || loadingPM || !isEmpty(description)}
+                            disabled={loading || loadingPM||loadingPP || !isEmpty(description)}
                         >
                             Valider
                         </Button>
@@ -775,7 +801,7 @@ const ValidValidateur = () => {
                             color="error"
                             sx={{ backgroundColor: colors.redAccent[700] }}
                             onClick={()=>handleTaskEvent("reject")}
-                            disabled={loading || loadingPM}
+                            disabled={loading || loadingPM ||loadingPP}
                         >
                             Rejeter
                         </Button>

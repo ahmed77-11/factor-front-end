@@ -31,6 +31,9 @@ const ListPm = () => {
 
     const columns = [
         { field: "id", headerName: "ID", flex: 0.5, hideable: false, disableColumnMenu: true },
+        {field:"typePieceIdentite", headerName: "Type d'Identité", flex: 0.5,renderCell: (params) => (
+                params.row.typePieceIdentite.dsg
+            )},
         { field: "numeroPieceIdentite", headerName: "Numéro d'Identité", flex: 1 },
         { field: "raisonSocial", headerName: "Raison Sociale", flex: 1 },
         { field: "email", headerName: "Email", flex: 1 },

@@ -24,6 +24,7 @@ import ConditionParticulieres from "./steps/ConditionParticulieres.jsx";
 import { getPM } from "../../../redux/personne/PersonneMoraleSlice.js";
 import { tokens } from "../../../theme.js";
 import {addContratAsync} from "../../../redux/contrat/ContratSlice.js";
+import {getPP} from "../../../redux/personne/PersonnePhysiqueSlice.js";
 
 const steps = [
     "Sélectionner la Personne Morale",
@@ -43,9 +44,27 @@ const AjoutContrat = () => {
     let { personneMorales, loading } = useSelector(
         (state) => state.personneMorale
     );
+    let {personnePhysiques,loading:loadPP} = useSelector((state) => state.personnePhysique);
     personneMorales = personneMorales || []; // Ensure personneMorales is always an array
-    personneMorales = personneMorales
-        .filter(pm => !pm.indviduRoles.includes("ADHERENT"));
+    personnePhysiques = personnePhysiques || []; // Ensure personnePhysiques is always an array
+    personneMorales= personneMorales.concat(personnePhysiques); // Combine both arrays
+    personneMorales = personneMorales.filter(pm => {
+        const isMorale = pm.raisonSocial !== undefined;
+        const isPhysique = pm.nom !== undefined && pm.prenom !== undefined;
+
+        if (isMorale) {
+            // Exclude ADHERENT roles
+            return !pm.indviduRoles.includes("ADHERENT");
+        }
+
+        if (isPhysique) {
+            // Only include Personne Physique with typePieceIdentite.code === 'PATENTE'
+            return pm.typePieceIdentite?.code === "PATENTE" && !pm.indviduRoles.includes("ADHERENT");
+        }
+
+        return false;
+    });
+
 
     const {loading:loadingContrat,error:errContrat} = useSelector((state) => state.contrat);
     // Reference for the form step (ConditionGenerale1)
@@ -55,6 +74,7 @@ const AjoutContrat = () => {
     const selectedPMId = formData.pmIdFK || "";
     useEffect(() => {
         dispatch(getPM());
+        dispatch(getPP())
     }, [dispatch]);
 
     // When a PM is selected, update Redux with the flat PM data.
@@ -62,8 +82,20 @@ const AjoutContrat = () => {
         const selectedId = Number(e.target.value);
         const selectedPM = personneMorales.find((pm) => pm.id === selectedId);
         if (selectedPM) {
-            const { id, raisonSocial,email,typePieceIdentite,sigle,telNo,numeroPieceIdentite } = selectedPM;
-            dispatch(setFormData({ raisonSocial,email,typePieceIdentite,sigle,telNo,numeroPieceIdentite, pmIdFK: id }));
+            // const { id, raisonSocial,email,typePieceIdentite,sigle,telNo,numeroPieceIdentite } = selectedPM;
+            const { id, raisonSocial, nom, prenom, email, typePieceIdentite, sigle, telNo, numeroPieceIdentite } = selectedPM;
+            dispatch(setFormData({
+                raisonSocial: raisonSocial || `${nom} ${prenom}`,
+                nom,
+                prenom,
+                email,
+                typePieceIdentite,
+                sigle: sigle || "",
+                telNo: telNo || "",
+                numeroPieceIdentite,
+                pmIdFK: id,
+            }));
+
         }
     };
 
@@ -128,6 +160,9 @@ const AjoutContrat = () => {
             contratPrevChiffreLocal: parseField(formData.previsionChiffreLocal, 'number'),
             contratPrevChiffreExport: parseField(formData.previsionChiffreExport, 'number'),
             contratPrevNbrAchet: parseField(formData.nombreAcheteur, 'number'),
+            contratHorsCommNbrAchet: parseField(formData.nombreAcheteurHorsComm, 'number'),
+            contratPrevNbrFourn: parseField(formData.nombreFourn, 'number'),
+            contratHorsCommNbrFourn: parseField(formData.nombreFournHorsComm, 'number'),
             contratPrevNbrRemise: parseField(formData.nombreRemise, 'number'),
             contratPrevNbrDocRemise: parseField(formData.nombreDocumentRemise, 'number'),
             contratTauxConcentration: parseField(formData.tauxConcentration, 'number'),
@@ -137,7 +172,6 @@ const AjoutContrat = () => {
             contratMargeFin: parseField(formData.finMarge, 'number'),
             contratMargeRet: parseField(formData.margeRet, 'number'),
             contratAcceptRemiseDate: parseField(formData.dateAcceptationRemise, 'string'),
-            contratBoolLettrage: parseField(formData.exigenceLittrage, 'boolean'),
 
             commissions: Array.isArray(formData.commissions) ? formData.commissions.map(commission => ({
                 // typeEvent: {
@@ -190,8 +224,10 @@ const AjoutContrat = () => {
             typeFactoring: formData.typeFactoring || null,
             contratBoolRecours: formData.typeContrat !== undefined ? parseField(formData.typeContrat, 'boolean') : null,
             contratNo: parseField(formData.NumContrat, 'string'),
-            contratComiteRisqueTexte: parseField(formData.comiteRisque, 'string'),
-            contratComiteDerogTexte: parseField(formData.comiteDerogation, 'string'),
+            // contratComiteRisqueTexte: parseField(formData.comiteRisque, 'string'),
+            // contratComiteDerogTexte: parseField(formData.comiteDerogation, 'string'),
+            contratBoolLettrage: parseField(formData.exigenceLittrage, 'boolean'),
+            contratBoolFinDebiteur: parseField(formData.contratBoolFinDebiteur, 'boolean'),
             adherentData: {
                 raisonSocial: parseField(formData.raisonSocial, 'string'),
                 email: parseField(formData.email, 'string'),
@@ -219,7 +255,7 @@ const AjoutContrat = () => {
             case 0:
                 return (
                     <Box width="100%" maxWidth="500px" p={3}>
-                        <Typography variant="h6">Sélectionner une Personne Morale</Typography>
+                        <Typography variant="h6">Sélectionner une Personne </Typography>
                         <TextField
                             select
                             fullWidth
@@ -235,7 +271,10 @@ const AjoutContrat = () => {
                             ) : (
                                 personneMorales.map((pm) => (
                                     <MenuItem key={pm.id} value={pm.id}>
-                                        {pm.raisonSocial} - {pm.typePieceIdentite?.dsg} {pm.numeroPieceIdentite}
+                                        {pm.raisonSocial
+                                            ? `${pm.raisonSocial} - ${pm.typePieceIdentite?.dsg} ${pm.numeroPieceIdentite}`
+                                            : `${pm.nom} ${pm.prenom} - ${pm.typePieceIdentite?.dsg} ${pm.numeroPieceIdentite}`
+                                        }
                                     </MenuItem>
                                 ))
                             )}

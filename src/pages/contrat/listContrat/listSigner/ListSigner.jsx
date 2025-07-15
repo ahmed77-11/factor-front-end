@@ -90,7 +90,7 @@ const ListSigner = () => {
             field: "contratPrevChiffreTotal",
             headerName: "Montant Total",
             flex: 1,
-            valueFormatter: ({ value }) => `$${value?.toLocaleString() || 0}`
+            renderCell: ({ value }) => `$${value?.toLocaleString() ?? "0"}`
         },
         {
             field: "actions",

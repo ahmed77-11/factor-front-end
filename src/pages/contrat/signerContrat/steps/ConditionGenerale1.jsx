@@ -214,12 +214,20 @@ import { useTypeFactoring } from "../../../../customeHooks/useTypeFactoring.jsx"
 import { useDispatch } from "react-redux";
 import { setFormData } from "../../../../redux/formSteperSlice/FormSlice.js";
 import NotesDescription from "../../../../helpers/NotesDescription.jsx";
+import * as PropTypes from "prop-types";
 
 const contratOptions = [
     { label: "Contrat avec recours", value: true },
     { label: "Contrat sans recours", value: false },
 ];
+const DisabledField = ({ children }) => (
+    <Box position="relative">
+        {children}
+    </Box>
+);
 
+
+DisabledField.propTypes = {children: PropTypes.node};
 const ConditionGenerale1 = forwardRef(({ formData, updateData, data, handleOpenNoteModal, description }, ref) => {
     const { typeFactorings, loading, error } = useTypeFactoring();
     const dispatch = useDispatch();
@@ -228,8 +236,10 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data, handleOpenN
         NumContrat: formData?.NumContrat || data?.contratNo || "",
         typeFactoring: formData?.typeFactoring || data?.typeFactoring || {},
         typeContrat: formData?.typeContrat ?? data?.contratBoolRecours ?? null,
-        comiteRisque: formData?.comiteRisque || data?.contratComiteRisqueTexte || "",
-        comiteDerogation: formData?.comiteDerogation || data?.contratComiteDerogTexte || "",
+        // comiteRisque: formData?.comiteRisque || data?.contratComiteRisqueTexte || "",
+        // comiteDerogation: formData?.comiteDerogation || data?.contratComiteDerogTexte || ""
+        exigenceLittrage: formData?.exigenceLittrage || data?.contratBoolLettrage?.toString() || "",
+        contratBoolFinDebiteur: formData?.contratBoolFinDebiteur ?? data?.contratBoolFinDebiteur?.toString() ?? "",
     };
 
     const validationSchema = yup.object().shape({
@@ -239,8 +249,10 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data, handleOpenN
             .boolean()
             .typeError("Le type de contrat est requis")
             .required("Le type de contrat est requis"),
-        comiteRisque: yup.string().required("Le comité de risque est requis"),
-        comiteDerogation: yup.string().required("Le comité de dérogation est requis"),
+        // comiteRisque: yup.string().required("Le comité de risque est requis"),
+        // comiteDerogation: yup.string().required("Le comité de dérogation est requis"),
+        exigenceLittrage: yup.string().required("L'exigence de littrage est requise"),
+        contratBoolFinDebiteur:yup.string().required("Le Financement De Dibteur est requis"),
     });
 
     return (
@@ -359,54 +371,118 @@ const ConditionGenerale1 = forwardRef(({ formData, updateData, data, handleOpenN
                             </Box>
 
                             {/* Comité de risque */}
+                            {/*<Box mb={2}>*/}
+                            {/*    <Box display="flex" alignItems="center" justifyContent="space-between">*/}
+                            {/*        <Typography>Comité de risque</Typography>*/}
+                            {/*        <IconButton*/}
+                            {/*            onClick={() => handleOpenNoteModal('comiteRisque')}*/}
+                            {/*            size="small"*/}
+                            {/*            sx={{ ml: 1 }}*/}
+                            {/*        >*/}
+                            {/*            <EditIcon fontSize="small" />*/}
+                            {/*        </IconButton>*/}
+                            {/*    </Box>*/}
+                            {/*    <TextField*/}
+                            {/*        fullWidth*/}
+                            {/*        name="comiteRisque"*/}
+                            {/*        value={values.comiteRisque}*/}
+                            {/*        disabled*/}
+                            {/*        error={Boolean(touched.comiteRisque && errors.comiteRisque)}*/}
+                            {/*        helperText={touched.comiteRisque && errors.comiteRisque}*/}
+                            {/*    />*/}
+                            {/*    {description.comiteRisque && (*/}
+                            {/*        <NotesDescription msg={description.comiteRisque}/>*/}
+                            {/*    )}*/}
+                            {/*</Box>*/}
+
+                            {/*/!* Comité de dérogation *!/*/}
+                            {/*<Box mb={2}>*/}
+                            {/*    <Box display="flex" alignItems="center" justifyContent="space-between">*/}
+                            {/*        <Typography>Comité de dérogation</Typography>*/}
+                            {/*        <IconButton*/}
+                            {/*            onClick={() => handleOpenNoteModal('comiteDerogation')}*/}
+                            {/*            size="small"*/}
+                            {/*            sx={{ ml: 1 }}*/}
+                            {/*        >*/}
+                            {/*            <EditIcon fontSize="small" />*/}
+                            {/*        </IconButton>*/}
+                            {/*    </Box>*/}
+                            {/*    <TextField*/}
+                            {/*        fullWidth*/}
+                            {/*        name="comiteDerogation"*/}
+                            {/*        value={values.comiteDerogation}*/}
+                            {/*        disabled*/}
+                            {/*        error={Boolean(touched.comiteDerogation && errors.comiteDerogation)}*/}
+                            {/*        helperText={touched.comiteDerogation && errors.comiteDerogation}*/}
+                            {/*    />*/}
+                            {/*    {description.comiteDerogation && (*/}
+                            {/*        <NotesDescription msg={description.comiteDerogation}/>*/}
+                            {/*    )}*/}
+                            {/*</Box>*/}
+                            {/* Exigence littrage */}
+
                             <Box mb={2}>
                                 <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography>Comité de risque</Typography>
+                                    <Typography>Exigence littrage</Typography>
                                     <IconButton
-                                        onClick={() => handleOpenNoteModal('comiteRisque')}
+                                        onClick={() => handleOpenNoteModal('exigenceLittrage')}
                                         size="small"
                                         sx={{ ml: 1 }}
                                     >
                                         <EditIcon fontSize="small" />
                                     </IconButton>
                                 </Box>
-                                <TextField
-                                    fullWidth
-                                    name="comiteRisque"
-                                    value={values.comiteRisque}
-                                    disabled
-                                    error={Boolean(touched.comiteRisque && errors.comiteRisque)}
-                                    helperText={touched.comiteRisque && errors.comiteRisque}
-                                />
-                                {description.comiteRisque && (
-                                    <NotesDescription msg={description.comiteRisque}/>
+                                <DisabledField>
+                                    <TextField
+                                        select
+                                        fullWidth
+                                        name="exigenceLittrage"
+                                        value={values.exigenceLittrage}
+                                        disabled
+                                        error={Boolean(touched.exigenceLittrage && errors.exigenceLittrage)}
+                                        helperText={touched.exigenceLittrage && errors.exigenceLittrage}
+                                    >
+                                        <MenuItem value="">Sélectionnez une option</MenuItem>
+                                        <MenuItem value="true">Oui</MenuItem>
+                                        <MenuItem value="false">Non</MenuItem>
+                                    </TextField>
+                                </DisabledField>
+                                {description.exigenceLittrage && (
+                                    <NotesDescription msg={description.exigenceLittrage}/>
+                                )}
+                            </Box>
+                            {/* fin debiteur */}
+                            <Box mb={2}>
+                                <Box display="flex" alignItems="center" justifyContent="space-between">
+                                    <Typography>Financment  Debiteur</Typography>
+                                    <IconButton
+                                        onClick={() => handleOpenNoteModal('contratBoolFinDebiteur')}
+                                        size="small"
+                                        sx={{ ml: 1 }}
+                                    >
+                                        <EditIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
+                                <DisabledField>
+                                    <TextField
+                                        select
+                                        fullWidth
+                                        name="contratBoolFinDebiteur"
+                                        value={values.contratBoolFinDebiteur}
+                                        disabled
+                                        error={Boolean(touched.contratBoolFinDebiteur && errors.contratBoolFinDebiteur)}
+                                        helperText={touched.contratBoolFinDebiteur && errors.contratBoolFinDebiteur}
+                                    >
+                                        <MenuItem value="">Sélectionnez une option</MenuItem>
+                                        <MenuItem value="true">Oui</MenuItem>
+                                        <MenuItem value="false">Non</MenuItem>
+                                    </TextField>
+                                </DisabledField>
+                                {description.contratBoolFinDebiteur && (
+                                    <NotesDescription msg={description.contratBoolFinDebiteur}/>
                                 )}
                             </Box>
 
-                            {/* Comité de dérogation */}
-                            <Box mb={2}>
-                                <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography>Comité de dérogation</Typography>
-                                    <IconButton
-                                        onClick={() => handleOpenNoteModal('comiteDerogation')}
-                                        size="small"
-                                        sx={{ ml: 1 }}
-                                    >
-                                        <EditIcon fontSize="small" />
-                                    </IconButton>
-                                </Box>
-                                <TextField
-                                    fullWidth
-                                    name="comiteDerogation"
-                                    value={values.comiteDerogation}
-                                    disabled
-                                    error={Boolean(touched.comiteDerogation && errors.comiteDerogation)}
-                                    helperText={touched.comiteDerogation && errors.comiteDerogation}
-                                />
-                                {description.comiteDerogation && (
-                                    <NotesDescription msg={description.comiteDerogation}/>
-                                )}
-                            </Box>
                         </form>
                     );
                 }}

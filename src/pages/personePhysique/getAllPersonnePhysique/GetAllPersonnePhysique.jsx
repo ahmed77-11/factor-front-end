@@ -31,6 +31,9 @@ const ListPp = () => {
         {
             field: "id", headerName: "ID", flex: 0.5, hide: true,hideable: false, disableColumnMenu: true
         },
+        {field:"typePieceIdentite", headerName: "Type d'Identité", flex: 0.5,renderCell: (params) => (
+                params.row.typePieceIdentite.dsg
+            )},
         {field: "numeroPieceIdentite", headerName: "Numéro d'Identité", flex: 1},
         {field: "nom", headerName: "Nom", flex: 1},
         {field: "prenom", headerName: "Prénom", flex: 1},

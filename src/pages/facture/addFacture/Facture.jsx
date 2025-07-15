@@ -2,15 +2,31 @@ import { useEffect, useState } from "react";
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import {
-    TextField, Button, Card, CardContent, Typography,
-    Grid, MenuItem, Select, FormControl,
-    Box, Table, TableBody, TableCell, TableHead,
-    TableRow, Paper, Autocomplete, TableContainer, InputAdornment,
-    useTheme, Alert
+    TextField,
+    Button,
+    Card,
+    CardContent,
+    Typography,
+    Grid,
+    MenuItem,
+    Select,
+    FormControl,
+    Box,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+    Paper,
+    Autocomplete,
+    TableContainer,
+    InputAdornment,
+    useTheme,
+    Alert
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAdherentsAsync, fetchRelationsAsync } from "../../../redux/relations/relationsSlice.js";
-import { fetchContratByAdherentIdAsync } from "../../../redux/contrat/ContratSlice.js";
+import { fetchContratsByAdherentAsync } from "../../../redux/contrat/ContratSlice.js";
 import { addFacture, getNbFac } from "../../../redux/facture/FactureSlice.js";
 import { useTypeDoc } from "../../../customeHooks/useTypeDoc.jsx";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +34,7 @@ import { formatDate } from "../../../helpers/timeConvert.js";
 import Header from "../../../components/Header.jsx";
 import { tokens } from "../../../theme.js";
 
+// Validation schema
 const validationSchema = Yup.object().shape({
     bordRemiseNo: Yup.string().required('Numéro de bordereau requis'),
     bordRemiseFactorDate1v: Yup.date().required('Date du bordereau requise'),
@@ -28,12 +45,15 @@ const validationSchema = Yup.object().shape({
         .required('Nombre de documents requis'),
     bordRemiseMontantBrut: Yup.number().min(0, 'Montant doit être positif').required('Montant total requis'),
     devise: Yup.mixed().required('Devise requise'),
+    contrat: Yup.mixed().required('Contrat requis'),
     docRemises: Yup.array().of(
         Yup.object().shape({
             acheteurFactorCode: Yup.string().required('Acheteur requis'),
             typeDocRemise: Yup.mixed().required('Type de document requis'),
             docRemiseNo: Yup.string().required('Numéro de document requis'),
-            createDate: Yup.date().required('Date du document requise').max(new Date(), 'La date de creation ne peut pas être dans le futur'),
+            createDate: Yup.date()
+                .required('Date du document requise')
+                .max(new Date(), 'La date de creation ne peut pas être dans le futur'),
             montantBrut: Yup.number().min(0, 'Montant doit être positif').required('Montant requis'),
             echeanceFirst: Yup.date()
                 .min(new Date(), 'La date d\'échéance ne peut pas être dans le passé')
@@ -46,42 +66,33 @@ const validationSchema = Yup.object().shape({
 const SaisieBordereau = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const theme=useTheme();
-    const colors=tokens(theme.palette.mode)
+    const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
     const { typeDoc } = useTypeDoc();
     const { adherents, relations } = useSelector(state => state.relations);
-    const { currentContrat } = useSelector(state => state.contrat);
-    const { nbFac,loading,error } = useSelector(state => state.facture);
-    const [validation1, setValidation1] = useState(false);
-    const [validation2, setValidation2] = useState(false);
+    const { contrats } = useSelector(state => state.contrat);
+    const { nbFac, loading, error } = useSelector(state => state.facture);
     const [selectedAdherent, setSelectedAdherent] = useState(null);
     const [acheteurOptions, setAcheteurOptions] = useState([]);
+    const [validation1, setValidation1] = useState(false);
 
     // Prepare acheteur options from relations
     useEffect(() => {
-        if (relations) {
-            const options = relations.map(relation => {
-                const acheteur = relation.acheteurPhysique || relation.acheteurMorale;
+        if (!relations) return;
+        const options = relations
+            .map(rel => {
+                const acheteur = rel.acheteurPhysique || rel.acheteurMorale;
                 if (!acheteur) return null;
-
-                let label = '';
-                if (relation.acheteurPhysique) {
-                    label = `${acheteur.nom} ${acheteur.prenom} - ${acheteur.typePieceIdentite?.dsg} ${acheteur.numeroPieceIdentite}`;
-                } else if (relation.acheteurMorale) {
-                    label = `${acheteur.raisonSocial} - ${acheteur.typePieceIdentite?.dsg} ${acheteur.numeroPieceIdentite}`;
-                }
-
-                return {
-                    id: acheteur.id,
-                    label: label,
-                    acheteur: acheteur
-                };
-            }).filter(option => option !== null);
-
-            setAcheteurOptions(options);
-        }
+                const label = rel.acheteurPhysique
+                    ? `${acheteur.nom} ${acheteur.prenom} - ${acheteur.typePieceIdentite?.dsg} ${acheteur.numeroPieceIdentite}`
+                    : `${acheteur.raisonSocial} - ${acheteur.typePieceIdentite?.dsg} ${acheteur.numeroPieceIdentite}`;
+                return { id: acheteur.id, label, acheteur };
+            })
+            .filter(Boolean);
+        setAcheteurOptions(options);
     }, [relations]);
 
+    // Formik setup
     const formik = useFormik({
         initialValues: {
             bordRemiseNo: nbFac || 0,
@@ -95,94 +106,66 @@ const SaisieBordereau = () => {
             docRemises: [createEmptyDocument(null)]
         },
         validationSchema,
-        onSubmit: (values) => {
-            if (!values.contrat) {
-                alert("Veuillez sélectionner un contrat valide");
-                return;
-            }
-
-            if (!values.devise) {
-                formik.setFieldError('devise', 'La devise est requise');
-                alert("La devise est requise pour le bordereau");
-                return;
-            }
-
-            if (values.docRemises.length !== Number(values.bordRemiseNbrLigne)) {
-                formik.setFieldError('bordRemiseNbrLigne', 'Nombre de lignes ≠ nombre de documents indiqué');
-                return;
-            }
-
+        onSubmit: values => {
+            const totalMontant = values.docRemises.reduce((sum, d) => sum + Number(d.montantBrut || 0), 0);
+            if (Math.abs(totalMontant - Number(values.bordRemiseMontantBrut)) > 0.001) return;
             const formData = {
                 ...values,
                 bordRemiseFactorDate1v: formatDate(values.bordRemiseFactorDate1v),
                 bordRemiseFactorDate2v: formatDate(values.bordRemiseFactorDate2v),
-                contrat: values.contrat,
-                docRemises: values.docRemises.map((doc, index) => ({
+                docRemises: values.docRemises.map((doc, idx) => ({
                     ...doc,
+                    bordRemiseLigneNo: idx + 1,
                     createDate: formatDate(doc.createDate),
                     echeanceFirst: formatDate(doc.echeanceFirst),
-                    bordRemiseLigneNo: index + 1,
-                    devise: doc.devise || values.devise,
-                    contrat: values.contrat
+                    contrat: values.contrat,
+                    devise: doc.devise || values.devise
                 }))
             };
-
-            const totalMontant = values.docRemises.reduce((sum, doc) => sum + Number(doc.montantBrut || 0), 0);
-
-            formData.bordRemiseMontantBrut = Number(formData.bordRemiseMontantBrut);
-
-            if (Math.abs(totalMontant - Number(formData.bordRemiseMontantBrut)) > 0.001) {
-                return;
-            }
-
-            console.log("Form submitted with values:", formData);
+            console.log(formData)
             dispatch(addFacture(formData, navigate));
         }
     });
 
+    // Load adherents & next facture number
     useEffect(() => {
         dispatch(fetchAdherentsAsync());
         dispatch(getNbFac());
     }, [dispatch]);
 
+    // When nbFac updates
     useEffect(() => {
-        if (currentContrat) {
-            formik.setFieldValue('contrat', currentContrat);
-            if (currentContrat.devise) {
-                formik.setFieldValue('devise', currentContrat.devise);
-                formik.setFieldValue('docRemises',
-                    formik.values.docRemises.map(doc => ({
-                        ...doc,
-                        devise: currentContrat.devise
-                    }))
-                );
-            }
-        }
-    }, [currentContrat]);
-
-    useEffect(() => {
-        if (nbFac) {
-            formik.setFieldValue('bordRemiseNo', nbFac);
-        }
+        if (nbFac) formik.setFieldValue('bordRemiseNo', nbFac);
     }, [nbFac]);
 
-    const handleAdherentChange = (event, newValue) => {
-        setSelectedAdherent(newValue);
-        if (newValue && newValue.id) {
-            dispatch(fetchContratByAdherentIdAsync(newValue.id));
-            dispatch(fetchRelationsAsync(newValue.id));
+    // When contrats list changes: auto‑select if one
+    useEffect(() => {
+        if (!contrats) return;
+        if (contrats.length === 1) {
+            const c = contrats[0];
+            formik.setFieldValue('contrat', c);
+            formik.setFieldValue('devise', c.devise);
         } else {
             formik.setFieldValue('contrat', null);
             formik.setFieldValue('devise', null);
-            setAcheteurOptions([]);
+        }
+    }, [contrats]);
+
+    const handleAdherentChange = (_, newVal) => {
+        setSelectedAdherent(newVal);
+        if (newVal?.id) {
+            dispatch(fetchContratsByAdherentAsync(newVal.id));
+            dispatch(fetchRelationsAsync(newVal.id));
+        } else {
+            formik.resetForm();
         }
     };
 
-    const handleAcheteurChange = (index, newValue) => {
-        formik.setFieldValue(`docRemises[${index}].acheteurFactorCode`, newValue?.id || "");
+    const handleAcheteurChange = (idx, newVal) => {
+        formik.setFieldValue(`docRemises[${idx}].acheteurFactorCode`, newVal?.id || '');
     };
 
-    function createEmptyDocument(devise) {
+    function createEmptyDocument(dev) {
         return {
             acheteurFactorCode: "",
             typeDocRemise: null,
@@ -190,45 +173,32 @@ const SaisieBordereau = () => {
             createDate: formatDate(new Date()),
             montantBrut: 0,
             echeanceFirst: formatDate(new Date(Date.now() + 86400000)),
-            devise: devise || null,
+            devise: dev,
             bordRemiseLigneNo: 0
         };
     }
 
-    const addedAmount = formik.values.docRemises.reduce(
-        (sum, doc) => sum + Number(doc.montantBrut || 0),
-        0
-    );
-
+    const addedAmount = formik.values.docRemises.reduce((sum, d) => sum + Number(d.montantBrut || 0), 0);
     const targetAmount = Number(formik.values.bordRemiseMontantBrut);
     const isComplete = Math.abs(addedAmount - targetAmount) <= 0.001;
 
-    const updateDocument = (index, field, value) => {
-        formik.setFieldValue(`docRemises[${index}].${field}`, value);
-
+    const updateDocument = (idx, field, val) => {
+        formik.setFieldValue(`docRemises[${idx}].${field}`, val);
         if (formik.values.devise) {
-            formik.setFieldValue(`docRemises[${index}].devise`, formik.values.devise);
+            formik.setFieldValue(`docRemises[${idx}].devise`, formik.values.devise);
         }
     };
 
-    const handleNbDocsChange = (e) => {
-        let newNbDocs = parseInt(e.target.value, 10) || 0;
-        newNbDocs = Math.min(10, Math.max(0, newNbDocs));
-
-        formik.setFieldValue('bordRemiseNbrLigne', newNbDocs);
-
-        if (newNbDocs > formik.values.docRemises.length) {
-            const newDocuments = [
-                ...formik.values.docRemises,
-                ...Array.from({ length: newNbDocs - formik.values.docRemises.length },
-                    (_, index) => ({
-                        ...createEmptyDocument(formik.values.devise),
-                        bordRemiseLigneNo: formik.values.docRemises.length + index + 1
-                    }))
-            ];
-            formik.setFieldValue('docRemises', newDocuments);
-        } else if (newNbDocs < formik.values.docRemises.length) {
-            formik.setFieldValue('docRemises', formik.values.docRemises.slice(0, newNbDocs));
+    const handleNbDocsChange = e => {
+        let n = parseInt(e.target.value, 10) || 0;
+        n = Math.max(0, Math.min(10, n));
+        formik.setFieldValue('bordRemiseNbrLigne', n);
+        const docs = formik.values.docRemises;
+        if (n > docs.length) {
+            const add = Array.from({ length: n - docs.length }, () => createEmptyDocument(formik.values.devise));
+            formik.setFieldValue('docRemises', [...docs, ...add]);
+        } else {
+            formik.setFieldValue('docRemises', docs.slice(0, n));
         }
     };
 
@@ -237,76 +207,84 @@ const SaisieBordereau = () => {
         formik.setFieldValue('bordRemiseFactorDate2v', formatDate(new Date()));
     };
 
-    const validerParDeuxiemeAgent = () => {
-        setValidation2(true);
-    };
-
-
-
     return (
         <Box p={4} maxWidth="1200px" margin="auto">
-            <Header title={"Bordreaux"} subtitle={"Ajouter Bordreaux"}/>
-            {loading && (
-                <div className="loader-overlay">
-                    <div className="loader"></div>
-                </div>
-            )}
-
-
+            <Header title="Bordereaux" subtitle="Ajouter Bordereau" />
+            {loading && <div className="loader-overlay"><div className="loader" /></div>}
             <form onSubmit={formik.handleSubmit}>
                 {error && (
-                    <Box  my={2}>
-                        <Alert  severity="error" sx={{fontSize:"14px"}}>
-                            {error || "Une erreur s'est produite lors de la création de la personne physique !"}
-                        </Alert>
+                    <Box my={2}>
+                        <Alert severity="error" sx={{ fontSize: '14px' }}>{error}</Alert>
                     </Box>
                 )}
+
                 <Card sx={{ mb: 3 }}>
-
                     <CardContent>
-
                         <Grid container spacing={2}>
                             <Grid item xs={3}>
                                 <Autocomplete
                                     options={adherents}
-                                    getOptionLabel={(option) => option.raisonSocial}
+                                    getOptionLabel={opt => opt.raisonSocial? opt.raisonSocial : `${opt.nom} ${opt.prenom}`}
                                     value={selectedAdherent}
                                     onChange={handleAdherentChange}
-                                    renderInput={(params) => (
+                                    renderInput={params => (
                                         <TextField
                                             {...params}
                                             label="Choisir un adhérent"
                                             error={!selectedAdherent && formik.submitCount > 0}
-                                            helperText={!selectedAdherent && formik.submitCount > 0 ? "Adhérent requis" : ""}
+                                            helperText={!selectedAdherent && formik.submitCount > 0 ? 'Adhérent requis' : ''}
                                         />
                                     )}
-                                    isOptionEqualToValue={(option, value) => option.id === value?.id}
+                                    isOptionEqualToValue={(opt, val) => opt.id === val?.id}
                                 />
                             </Grid>
                             <Grid item xs={3}>
-                                <TextField
-                                    fullWidth
-                                    label="Nom Adhérent"
-                                    value={selectedAdherent?.raisonSocial || ""}
-                                    disabled
-                                />
+                                <TextField fullWidth label="Nom Adhérent"
+
+                                           value={selectedAdherent?.raisonSocial ? selectedAdherent?.raisonSocial :selectedAdherent?.nom? `${selectedAdherent?.nom} ${selectedAdherent?.prenom}`: ''}
+                                           disabled />
                             </Grid>
+
+                            {Array.isArray(contrats) && contrats.length > 1 && (
+                                <Grid item xs={3}>
+                                    <FormControl fullWidth>
+                                        <Select
+                                            displayEmpty
+                                            value={formik.values.contrat?.id || ''}
+                                            onChange={e => {
+                                                const sel = contrats.find(c => c.id === e.target.value);
+                                                formik.setFieldValue('contrat', sel);
+                                                formik.setFieldValue('devise', sel.devise);
+                                                // propagate to documents
+                                                formik.setFieldValue(
+                                                    'docRemises',
+                                                    formik.values.docRemises.map(d => ({ ...d, devise: sel.devise }))
+                                                );
+                                            }}
+                                        >
+                                            <MenuItem value="" disabled>Choisir un contrat</MenuItem>
+                                            {contrats.map(c => (
+                                                <MenuItem key={c.id} value={c.id}>{c.contratNo}</MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                            )}
+
                             <Grid item xs={3}>
                                 <TextField
                                     fullWidth
-                                    label="Contrat n°"
+                                    label="N° Contrat"
+                                    value={formik.values.contrat?.contratNo || ''}
                                     disabled
-                                    value={formik.values.contrat?.contratNo || ""}
                                 />
                             </Grid>
                             <Grid item xs={3}>
                                 <TextField
                                     fullWidth
                                     label="Devise"
+                                    value={formik.values.devise?.dsg || ''}
                                     disabled
-                                    value={formik.values.devise?.dsg || ""}
-                                    error={formik.touched.devise && !formik.values.devise}
-                                    helperText={formik.touched.devise && !formik.values.devise ? "Devise requise" : ""}
                                 />
                             </Grid>
                         </Grid>
@@ -360,16 +338,8 @@ const SaisieBordereau = () => {
                                     onBlur={formik.handleBlur}
                                     error={formik.touched.bordRemiseNbrLigne && Boolean(formik.errors.bordRemiseNbrLigne)}
                                     helperText={formik.touched.bordRemiseNbrLigne && formik.errors.bordRemiseNbrLigne}
-                                    inputProps={{
-                                        min: 0,
-                                        max: 10,
-                                        step: 1
-                                    }}
-                                    onKeyPress={(e) => {
-                                        if (!/[0-9]/.test(e.key)) {
-                                            e.preventDefault();
-                                        }
-                                    }}
+                                    inputProps={{ min: 0, max: 10, step: 1 }}
+                                    onKeyPress={e => { if (!/[0-9]/.test(e.key)) e.preventDefault(); }}
                                 />
                             </Grid>
                             <Grid item xs={2}>
@@ -381,10 +351,7 @@ const SaisieBordereau = () => {
                                     value={formik.values.bordRemiseMontantBrut}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    inputProps={{
-                                        min: 0,
-                                        step: 0.01
-                                    }}
+                                    inputProps={{ min: 0, step: 0.01 }}
                                     error={formik.touched.bordRemiseMontantBrut && Boolean(formik.errors.bordRemiseMontantBrut)}
                                     helperText={formik.touched.bordRemiseMontantBrut && formik.errors.bordRemiseMontantBrut}
                                 />
@@ -395,196 +362,103 @@ const SaisieBordereau = () => {
                                     label="Montant ajouté"
                                     value={addedAmount.toFixed(2)}
                                     disabled
-                                    InputProps={{
-                                        readOnly: true,
-                                        style: {
-                                            color: isComplete ? 'green' : 'red',
-                                            fontWeight: 'bold',
-                                            // fontSize: "16px", // Smaller font size
-                                        }
-                                    }}
-                                    helperText={isComplete ?
-                                        "Montant total atteint" :
-                                        `Encore ${ (targetAmount - addedAmount).toFixed(2) } à ajouter`}
-                                    FormHelperTextProps={{
-                                        style: {
-                                            color: isComplete ? colors.greenAccent[400] : colors.redAccent[500],
-                                            fontWeight: 'bold',
-                                            fontSize: '0.9rem', // Smaller font size
-                                        }
-                                    }}
+                                    InputProps={{ readOnly: true, style: { color: isComplete ? 'green' : 'red', fontWeight: 'bold' } }}
+                                    helperText={isComplete ? "Montant total atteint" : `Encore ${(targetAmount - addedAmount).toFixed(2)} à ajouter`}
+                                    FormHelperTextProps={{ style: { color: isComplete ? colors.greenAccent[400] : colors.redAccent[500], fontWeight: 'bold', fontSize: '0.9rem' } }}
                                 />
-
                             </Grid>
                         </Grid>
                     </CardContent>
                 </Card>
 
-                <Typography
-                variant="h4" // Smaller font size for both title and subtitle
-                color={colors.grey[100]} // Single color for both
-                fontWeight="bold"
-                sx={{ marginBottom: "5px" }}
-            >
-                   Ajouter Facture
-            </Typography>
-
+                <Typography variant="h4" color={colors.grey[100]} fontWeight="bold" sx={{ mb: 1 }}>
+                    Ajouter Facture
+                </Typography>
 
                 <TableContainer component={Paper} sx={{ mb: 2 }}>
                     <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell sx={{minWidth:"80px"}}>Ligne</TableCell>
-                                <TableCell>Acheteur</TableCell>
-                                <TableCell>Type Document</TableCell>
-                                <TableCell>N° Document</TableCell>
-                                <TableCell>Date</TableCell>
-                                <TableCell>Montant</TableCell>
-                                <TableCell>Échéance</TableCell>
-                            </TableRow>
-                        </TableHead>
+                        <TableHead><TableRow>
+                            <TableCell>Ligne</TableCell>
+                            <TableCell>Acheteur</TableCell>
+                            <TableCell>Type Document</TableCell>
+                            <TableCell>N° Document</TableCell>
+                            <TableCell>Date</TableCell>
+                            <TableCell>Montant</TableCell>
+                            <TableCell>Échéance</TableCell>
+                        </TableRow></TableHead>
                         <TableBody>
-                            {formik.values.docRemises.map((doc, index) => {
-                                function calculateDays() {
-                                    try {
-                                        const startDate = new Date(formik.values.bordRemiseFactorDate1v);
-                                        const endDate = new Date(doc.echeanceFirst);
-                                        const diffTime = endDate - startDate;
-                                        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                    } catch {
-                                        return '';
-                                    }
-                                }
+                            {formik.values.docRemises.map((doc, idx) => {
+                                const calcDays = () => {
+                                    const sd = new Date(formik.values.bordRemiseFactorDate1v);
+                                    const ed = new Date(doc.echeanceFirst);
+                                    return Math.ceil((ed - sd) / (1000 * 60 * 60 * 24));
+                                };
                                 return (
-                                <TableRow key={index}>
-                                    <TableCell>
-                                        <TextField value={index + 1} disabled size="medium" />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Autocomplete
-                                            options={acheteurOptions}
-                                            getOptionLabel={(option) => option.label}
-                                            value={acheteurOptions.find(opt => opt.id === doc.acheteurFactorCode) || null}
-                                            onChange={(event, newValue) => handleAcheteurChange(index, newValue)}
-                                            renderInput={(params) => (
-                                                <TextField
-                                                    {...params}
-                                                    error={formik.touched.docRemises?.[index]?.acheteurFactorCode && Boolean(formik.errors.docRemises?.[index]?.acheteurFactorCode)}
-                                                    helperText={formik.touched.docRemises?.[index]?.acheteurFactorCode && formik.errors.docRemises?.[index]?.acheteurFactorCode}
-                                                />
-                                            )}
-                                            isOptionEqualToValue={(option, value) => option.id === value?.id}
-                                            sx={{ width: 300 }}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <FormControl fullWidth>
-                                            <Select
-                                                value={doc.typeDocRemise || ""}
-                                                onChange={(e) => updateDocument(index, "typeDocRemise", e.target.value)}
-                                                sx={{ width: '250px' }}
-                                                error={formik.touched.docRemises?.[index]?.typeDocRemise && Boolean(formik.errors.docRemises?.[index]?.typeDocRemise)}
-                                            >
-                                                {typeDoc?.map(t => (
-                                                    <MenuItem key={t.id} value={t}>{t.dsg}</MenuItem>
-                                                ))}
-                                            </Select>
-                                            {formik.touched.docRemises?.[index]?.typeDocRemise && formik.errors.docRemises?.[index]?.typeDocRemise && (
-                                                <Typography color="error" variant="caption">
-                                                    {formik.errors.docRemises[index].typeDocRemise}
-                                                </Typography>
-                                            )}
-                                        </FormControl>
-                                    </TableCell>
-                                    <TableCell>
-                                        <TextField
-                                            fullWidth
-                                            value={doc.docRemiseNo}
-                                            onChange={(e) => updateDocument(index, "docRemiseNo", e.target.value)}
-                                            sx={{ width: '120px' }}
-                                            error={formik.touched.docRemises?.[index]?.docRemiseNo && Boolean(formik.errors.docRemises?.[index]?.docRemiseNo)}
-                                            helperText={formik.touched.docRemises?.[index]?.docRemiseNo && formik.errors.docRemises?.[index]?.docRemiseNo}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <TextField
-                                            fullWidth
-                                            type="date"
-                                            value={doc.createDate}
-                                            onChange={(e) => updateDocument(index, "createDate", e.target.value)}
-                                            sx={{ width: '150px' }}
-                                            error={formik.touched.docRemises?.[index]?.createDate && Boolean(formik.errors.docRemises?.[index]?.createDate)}
-                                            helperText={formik.touched.docRemises?.[index]?.createDate && formik.errors.docRemises?.[index]?.createDate}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <TextField
-                                            fullWidth
-                                            type="number"
-                                            value={doc.montantBrut}
-                                            onChange={(e) => updateDocument(index, "montantBrut", e.target.value)}
-                                            sx={{ width: '120px' }}
-                                            inputProps={{
-                                                min: 0,
-                                                step: 0.01
-                                            }}
-                                            error={formik.touched.docRemises?.[index]?.montantBrut && Boolean(formik.errors.docRemises?.[index]?.montantBrut)}
-                                            helperText={formik.touched.docRemises?.[index]?.montantBrut && formik.errors.docRemises?.[index]?.montantBrut}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Autocomplete
-                                            freeSolo
-                                            options={[90, 120, 180]}
-                                            value={calculateDays()}
-                                            onChange={(event, newValue) => {
-                                                const days = parseInt(newValue, 10);
-                                                if (!isNaN(days)) {
-                                                    const startDate = new Date(formik.values.bordRemiseFactorDate1v);
-                                                    const newDate = new Date(startDate);
-                                                    newDate.setDate(startDate.getDate() + days);
-                                                    updateDocument(index, "echeanceFirst", formatDate(newDate));
-                                                }
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField
-                                                    {...params}
-                                                    label="Jours jusqu'à échéance"
-                                                    error={formik.touched.docRemises?.[index]?.echeanceFirst && Boolean(formik.errors.docRemises?.[index]?.echeanceFirst)}
-                                                    helperText={formik.touched.docRemises?.[index]?.echeanceFirst && formik.errors.docRemises?.[index]?.echeanceFirst}
-                                                    InputProps={{
-                                                        ...params.InputProps,
-                                                        endAdornment: (
-                                                            <>
-                                                                {params.InputProps.endAdornment}
-                                                                <InputAdornment position="end">jours</InputAdornment>
-                                                            </>
-                                                        )
-                                                    }}
-                                                />
-                                            )}
-                                        />
-                                    </TableCell>
-                                </TableRow>
-                            )})}
+                                    <TableRow key={idx}>
+                                        <TableCell><TextField value={idx + 1} disabled /></TableCell>
+                                        <TableCell>
+                                            <Autocomplete
+                                                options={acheteurOptions}
+                                                getOptionLabel={o => o.label}
+                                                value={acheteurOptions.find(o => o.id === doc.acheteurFactorCode) || null}
+                                                onChange={(_, v) => handleAcheteurChange(idx, v)}
+                                                renderInput={params => <TextField {...params} error={Boolean(formik.errors.docRemises?.[idx]?.acheteurFactorCode)} helperText={formik.errors.docRemises?.[idx]?.acheteurFactorCode} />}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <FormControl fullWidth>
+                                                <Select
+                                                    value={doc.typeDocRemise || ''}
+                                                    onChange={e => updateDocument(idx, 'typeDocRemise', e.target.value)}
+                                                    error={Boolean(formik.errors.docRemises?.[idx]?.typeDocRemise)}
+                                                >
+                                                    {typeDoc.map(t => <MenuItem key={t.id} value={t}>{t.dsg}</MenuItem>)}
+                                                </Select>
+                                            </FormControl>
+                                        </TableCell>
+                                        <TableCell>
+                                            <TextField value={doc.docRemiseNo} onChange={e => updateDocument(idx, 'docRemiseNo', e.target.value)} error={Boolean(formik.errors.docRemises?.[idx]?.docRemiseNo)} helperText={formik.errors.docRemises?.[idx]?.docRemiseNo} />
+                                        </TableCell>
+                                        <TableCell>
+                                            <TextField type="date" value={doc.createDate} onChange={e => updateDocument(idx, 'createDate', e.target.value)} error={Boolean(formik.errors.docRemises?.[idx]?.createDate)} helperText={formik.errors.docRemises?.[idx]?.createDate} InputLabelProps={{ shrink: true }} />
+                                        </TableCell>
+                                        <TableCell>
+                                            <TextField type="number" value={doc.montantBrut} onChange={e => updateDocument(idx, 'montantBrut', e.target.value)} error={Boolean(formik.errors.docRemises?.[idx]?.montantBrut)} helperText={formik.errors.docRemises?.[idx]?.montantBrut} InputProps={{ inputProps: { min: 0, step: 0.01 } }} />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Autocomplete
+                                                freeSolo
+                                                options={[90, 120, 180]}
+                                                value={calcDays()}
+                                                onChange={(_, v) => {
+                                                    const days = parseInt(v, 10);
+                                                    if (!isNaN(days)) {
+                                                        const base = new Date(formik.values.bordRemiseFactorDate1v);
+                                                        base.setDate(base.getDate() + days);
+                                                        updateDocument(idx, 'echeanceFirst', formatDate(base));
+                                                    }
+                                                }}
+                                                renderInput={params => <TextField {...params} label="Jours échéance" InputAdornmentProps={{ position: 'end' }} helperText={formik.errors.docRemises?.[idx]?.echeanceFirst} error={Boolean(formik.errors.docRemises?.[idx]?.echeanceFirst)} />}
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 </TableContainer>
-
 
                 <Box textAlign="center" mt={2}>
                     <Button
                         type="submit"
                         variant="contained"
-                        sx={{ px:2,py:1.5, backgroundColor: colors.greenAccent[600], color: "#ffffff" }}
+                        sx={{ px: 2, py: 1.5, backgroundColor: colors.greenAccent[600] }}
                         disabled={!formik.values.contrat || !formik.values.devise || !isComplete}
-                        onClick={validation1 ? undefined : handleValidation}
+                        onClick={!validation1 ? handleValidation : undefined}
                     >
-                        Ajotuer
+                        Ajouter
                     </Button>
                 </Box>
-
-                
             </form>
         </Box>
     );

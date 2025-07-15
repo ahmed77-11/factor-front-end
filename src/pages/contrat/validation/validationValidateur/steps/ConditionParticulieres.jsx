@@ -549,7 +549,7 @@ const ConditionsParticulieres = forwardRef(({
     const validationSchema = useMemo(() => yup.object({
         commissions: yup.array().of(yup.object({
             TypeEvent: yup.object().required("Event type is required"),
-            TypeDocRemise: yup.object().required("Document type is required"),
+            TypeDocRemise: yup.object().nullable().notRequired(),
             TypeCommission: yup.object().required("Commission type is required"),
             Periodicite: yup.string(),
             Minorant: yup.number().required("Minimum is required").typeError("Must be a number"),
@@ -584,7 +584,7 @@ const ConditionsParticulieres = forwardRef(({
     const handleSubmit = (values) => {
         const transformedCommissions = values.commissions.map(commission => ({
             typeEvent: { id: commission.TypeEvent.id },
-            typeDocRemise: { id: commission.TypeDocRemise.id },
+            typeDocRemise: { id: commission.TypeDocRemise?.id } ,
             typeComm: { id: commission.TypeCommission.id },
             periodicite: commission.Periodicite,
             commMinorant: Number(commission.Minorant),

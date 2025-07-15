@@ -474,7 +474,7 @@ const Financement = () => {
                     <Grid item xs={12} md={6}>
                         <Autocomplete
                             options={adherents}
-                            getOptionLabel={(option) => option.raisonSocial}
+                            getOptionLabel={(option) =>option.raisonSocial? option.raisonSocial: option.nom + " " + option.prenom}
                             value={selectedAdherent}
                             onChange={handleAdherentChange}
                             renderInput={(params) => (

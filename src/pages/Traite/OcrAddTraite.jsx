@@ -621,14 +621,16 @@ const OcrAddTraite = () => {
   const handleFormSubmit = async (values, { setSubmitting: setFormikSubmitting }) => {
     setSubmitting(true);
     try {
+      console.log(values)
       const predictPayload = {
         traite_num: values.numero,
         bank: "biat",
         amount_digits: parseFloat(values.montant),
-        amount_words: "dix mille ", // Placeholder - should come from OCR data
+        // amount_words: "dix mille ", // Placeholder - should come from OCR data
+        amount_words: values.amount_words,
         rib: values.tireRib,
-        signature_detected: false, // Placeholder - should come from OCR
-        barcode_validates_traite: false, // Placeholder - should come from OCR
+        signature_detected: values.signature_detected, // Placeholder - should come from OCR
+        barcode_validates_traite: values.barcode_validates_traite, // Placeholder - should come from OCR
         date_created: values.tireEmisDate,
         date_due: values.echFirst,
         place_created:"Tunis",
@@ -705,24 +707,34 @@ const OcrAddTraite = () => {
 
                     <Box sx={{ gridColumn: 'span 2' }}>
                       <Box display="flex" gap={2}>
+                        {/*<TextField*/}
+                        {/*    select*/}
+                        {/*    fullWidth*/}
+                        {/*    label="Banque"*/}
+                        {/*    name="bankCode"*/}
+                        {/*    value={values.bankCode}*/}
+                        {/*    onChange={(e) => {*/}
+                        {/*      handleChange(e);*/}
+                        {/*      setRibSuffix(values.tireRib.slice(2));*/}
+                        {/*    }}*/}
+                        {/*    onBlur={handleBlur}*/}
+                        {/*    error={touched.bankCode && Boolean(errors.bankCode)}*/}
+                        {/*    helperText={touched.bankCode && errors.bankCode}*/}
+                        {/*>*/}
+                        {/*  {banques.map((b) => (*/}
+                        {/*      <MenuItem key={b.code} value={b.code}>{b.nom}</MenuItem>*/}
+                        {/*  ))}*/}
+                        {/*</TextField>*/}
                         <TextField
-                            select
                             fullWidth
-                            label="Banque"
-                            name="bankCode"
-                            value={values.bankCode}
-                            onChange={(e) => {
-                              handleChange(e);
-                              setRibSuffix(values.tireRib.slice(2));
-                            }}
+                            label="montant en lettres"
+                            name="amount_words"
+                            value={values.amount_words}
+                            onChange={handleChange}
                             onBlur={handleBlur}
-                            error={touched.bankCode && Boolean(errors.bankCode)}
-                            helperText={touched.bankCode && errors.bankCode}
-                        >
-                          {banques.map((b) => (
-                              <MenuItem key={b.code} value={b.code}>{b.nom}</MenuItem>
-                          ))}
-                        </TextField>
+                            error={touched.amount_words && Boolean(errors.amount_words)}
+                            helperText={touched.amount_words && errors.amount_words}
+                        />
                         <TextField
                             fullWidth
                             label="RIB du Tire"
@@ -873,6 +885,7 @@ const OcrAddTraite = () => {
                         InputProps={{ readOnly: true }}
                         helperText="Devise liée au contrat sélectionné"
                     />
+
 
                     <Box sx={{ gridColumn: 'span 2', textAlign: 'center', mt: 3 }}>
                       <Button

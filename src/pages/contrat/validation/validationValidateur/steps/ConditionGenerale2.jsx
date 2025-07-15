@@ -26,6 +26,9 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
         previsionChiffreExport: formData?.previsionChiffreExport || data?.notificationContratId?.contratPrevChiffreExport?.toString() || "",
         nombreAcheteur: formData?.nombreAcheteur || data?.notificationContratId?.contratPrevNbrAchet?.toString() || "",
         nombreRemise: formData?.nombreRemise || data?.notificationContratId?.contratPrevNbrRemise?.toString() || "",
+        nombreFourn: formData?.nombreAcheteur || data?.notificationContratId?.contratPrevNbrFourn?.toString() || "",
+        nombreAcheteurHorsComm: formData?.nombreAcheteur || data?.notificationContratId?.contratHorsCommNbrAchet?.toString() || "",
+        nombreFournHorsComm: formData?.nombreAcheteur || data?.notificationContratId?.contratHorsCommNbrFourn?.toString() || "",
         nombreDocumentRemise: formData?.nombreDocumentRemise || data?.notificationContratId?.contratPrevNbrDocRemise?.toString() || "",
         tauxConcentration: formData?.tauxConcentration || data?.notificationContratId?.contratTauxConcentration?.toString() || "",
         nombreAvoir: formData?.nombreAvoir || data?.notificationContratId?.contratPrevNbrAvoir?.toString() || "",
@@ -36,7 +39,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
         scannerPath: formData?.scannerPath || data?.notificationContratId?.contratScanPath || "",
         nomFichierScanner: formData?.nomFichierScanner || data?.notificationContratId?.contratScanFileName || "",
         dateAcceptationRemise: formData?.dateAcceptationRemise || data?.notificationContratId?.contratAcceptRemiseDate?.split('T')[0] || "",
-        exigenceLittrage: formData?.exigenceLittrage || data?.notificationContratId?.contratBoolLettrage?.toString() || "",
+        // exigenceLittrage: formData?.exigenceLittrage || data?.notificationContratId?.contratBoolLettrage?.toString() || "",
     };
 
     const validationSchema = yup.object().shape({
@@ -45,6 +48,9 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
         previsionChiffreLocal: yup.string().required("Le chiffre local prévisionnel est requis"),
         previsionChiffreExport: yup.string().required("Le chiffre export prévisionnel est requis"),
         nombreAcheteur: yup.string().required("Le nombre d'acheteur est requis"),
+        nombreAcheteurHorsComm: yup.string().required("Champ requis"),
+        nombreFourn: yup.string().required("Champ requis"),
+        nombreFournHorsComm: yup.string().required("Champ requis"),
         nombreRemise: yup.string().required("Le nombre de remise est requis"),
         nombreDocumentRemise: yup.string().required("Le nombre de document de remise est requis"),
         tauxConcentration: yup.string().required("Le taux de concentration est requis"),
@@ -56,7 +62,7 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
         scannerPath: yup.string(),
         nomFichierScanner: yup.string(),
         dateAcceptationRemise: yup.string().required("La date d'acceptation de remise est requise"),
-        exigenceLittrage: yup.string().required("L'exigence de littrage est requise"),
+        // exigenceLittrage: yup.string().required("L'exigence de littrage est requise"),
     });
 
     return (
@@ -225,6 +231,86 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                                 </DisabledField>
                                 {description.nombreAcheteur && (
                                     <NotesDescription msg={description.nombreAcheteur}/>
+                                )}
+                            </Box>
+                            {/* Nombre Acheteur Hors Comm */}
+                            <Box mb={2}>
+                                <Box display="flex" alignItems="center" justifyContent="space-between">
+                                    <Typography>Nombre acheteur Hors Commission</Typography>
+                                    <IconButton
+                                        onClick={() => handleOpenNoteModal('nombreAcheteurHorsComm')}
+                                        size="small"
+                                        sx={{ ml: 1 }}
+                                    >
+                                        <EditIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
+                                <DisabledField>
+                                    <TextField
+                                        fullWidth
+                                        name="nombreAcheteurHorsComm"
+                                        value={values.nombreAcheteurHorsComm}
+                                        disabled
+                                        error={Boolean(touched.nombreAcheteurHorsComm && errors.nombreAcheteurHorsComm)}
+                                        helperText={touched.nombreAcheteurHorsComm && errors.nombreAcheteurHorsComm}
+                                    />
+                                </DisabledField>
+                                {description.nombreAcheteurHorsComm && (
+                                    <NotesDescription msg={description.nombreAcheteurHorsComm}/>
+                                )}
+                            </Box>
+
+                            {/* Nombre Fourn */}
+                            <Box mb={2}>
+                                <Box display="flex" alignItems="center" justifyContent="space-between">
+                                    <Typography>Nombre Fournisseur</Typography>
+                                    <IconButton
+                                        onClick={() => handleOpenNoteModal('nombreFourn')}
+                                        size="small"
+                                        sx={{ ml: 1 }}
+                                    >
+                                        <EditIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
+                                <DisabledField>
+                                    <TextField
+                                        fullWidth
+                                        name="nombreFourn"
+                                        value={values.nombreFourn}
+                                        disabled
+                                        error={Boolean(touched.nombreFourn && errors.nombreFourn)}
+                                        helperText={touched.nombreFourn && errors.nombreFourn}
+                                    />
+                                </DisabledField>
+                                {description.nombreFourn && (
+                                    <NotesDescription msg={description.nombreFourn}/>
+                                )}
+                            </Box>
+
+                            {/* Nombre Fourn hors comm */}
+                            <Box mb={2}>
+                                <Box display="flex" alignItems="center" justifyContent="space-between">
+                                    <Typography>Nombre Fournisseur Hors Commission</Typography>
+                                    <IconButton
+                                        onClick={() => handleOpenNoteModal('nombreFournHorsComm')}
+                                        size="small"
+                                        sx={{ ml: 1 }}
+                                    >
+                                        <EditIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
+                                <DisabledField>
+                                    <TextField
+                                        fullWidth
+                                        name="nombreFournHorsComm"
+                                        value={values.nombreFourn}
+                                        disabled
+                                        error={Boolean(touched.nombreFournHorsComm && errors.nombreFournHorsComm)}
+                                        helperText={touched.nombreFournHorsComm && errors.nombreFournHorsComm}
+                                    />
+                                </DisabledField>
+                                {description.nombreFournHorsComm && (
+                                    <NotesDescription msg={description.nombreFournHorsComm}/>
                                 )}
                             </Box>
 
@@ -528,36 +614,36 @@ const ConditionGenerale2 = forwardRef(({ formData, updateData, data, handleOpenN
                             </Box>
 
                             {/* Exigence littrage */}
-                            <Box mb={2}>
-                                <Box display="flex" alignItems="center" justifyContent="space-between">
-                                    <Typography>Exigence littrage</Typography>
-                                    <IconButton
-                                        onClick={() => handleOpenNoteModal('exigenceLittrage')}
-                                        size="small"
-                                        sx={{ ml: 1 }}
-                                    >
-                                        <EditIcon fontSize="small" />
-                                    </IconButton>
-                                </Box>
-                                <DisabledField>
-                                    <TextField
-                                        select
-                                        fullWidth
-                                        name="exigenceLittrage"
-                                        value={values.exigenceLittrage}
-                                        disabled
-                                        error={Boolean(touched.exigenceLittrage && errors.exigenceLittrage)}
-                                        helperText={touched.exigenceLittrage && errors.exigenceLittrage}
-                                    >
-                                        <MenuItem value="">Sélectionnez une option</MenuItem>
-                                        <MenuItem value="true">Oui</MenuItem>
-                                        <MenuItem value="false">Non</MenuItem>
-                                    </TextField>
-                                </DisabledField>
-                                {description.exigenceLittrage && (
-                                    <NotesDescription msg={description.exigenceLittrage}/>
-                                )}
-                            </Box>
+                            {/*<Box mb={2}>*/}
+                            {/*    <Box display="flex" alignItems="center" justifyContent="space-between">*/}
+                            {/*        <Typography>Exigence littrage</Typography>*/}
+                            {/*        <IconButton*/}
+                            {/*            onClick={() => handleOpenNoteModal('exigenceLittrage')}*/}
+                            {/*            size="small"*/}
+                            {/*            sx={{ ml: 1 }}*/}
+                            {/*        >*/}
+                            {/*            <EditIcon fontSize="small" />*/}
+                            {/*        </IconButton>*/}
+                            {/*    </Box>*/}
+                            {/*    <DisabledField>*/}
+                            {/*        <TextField*/}
+                            {/*            select*/}
+                            {/*            fullWidth*/}
+                            {/*            name="exigenceLittrage"*/}
+                            {/*            value={values.exigenceLittrage}*/}
+                            {/*            disabled*/}
+                            {/*            error={Boolean(touched.exigenceLittrage && errors.exigenceLittrage)}*/}
+                            {/*            helperText={touched.exigenceLittrage && errors.exigenceLittrage}*/}
+                            {/*        >*/}
+                            {/*            <MenuItem value="">Sélectionnez une option</MenuItem>*/}
+                            {/*            <MenuItem value="true">Oui</MenuItem>*/}
+                            {/*            <MenuItem value="false">Non</MenuItem>*/}
+                            {/*        </TextField>*/}
+                            {/*    </DisabledField>*/}
+                            {/*    {description.exigenceLittrage && (*/}
+                            {/*        <NotesDescription msg={description.exigenceLittrage}/>*/}
+                            {/*    )}*/}
+                            {/*</Box>*/}
                         </form>
                     );
                 }}
