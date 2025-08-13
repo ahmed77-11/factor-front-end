@@ -177,3 +177,34 @@ export const deletePM=(id,navigate)=>async (dispatch)=>{
         dispatch(deletePMFailure(e.response.data));
     }
 }
+
+export const fetchAllAdherSansAccord = () => async (dispatch) => {
+    dispatch(allPMStart());
+    try {
+        const response = await axios.get("http://localhost:8081/factoring/api/pm/all-by-adher-sans-accord", {
+            withCredentials: true,
+        });
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(allPMSuccess(response.data));
+    } catch (e) {
+        dispatch(allPMFailure(e.response.data));
+    }
+}
+
+export const fetchAllAchetSansAccord = () => async (dispatch) => {
+    dispatch(allPMStart());
+    try {
+        const response = await axios.get("http://localhost:8081/factoring/api/pm/all-by-achet-sans-accord", {
+            withCredentials: true,
+        });
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        console.log(response.data);
+        dispatch(allPMSuccess(response.data));
+    } catch (e) {
+        dispatch(allPMFailure(e.response.data));
+    }
+}

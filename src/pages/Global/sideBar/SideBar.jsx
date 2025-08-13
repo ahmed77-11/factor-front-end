@@ -53,23 +53,31 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
                 },
             }}
         >
-            <Box className="scrolling-title" sx={{
-                width: '100%',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                position: 'relative',
-                '& > .MuiTypography-root': {
-                    display: 'inline-block',
-                    paddingRight: '100%',
-                    animation: 'scroll-left 7s linear infinite',
-                },
-                '@keyframes scroll-left': {
-                    '0%': { transform: 'translateX(50%)' },
-                    '100%': { transform: 'translateX(-50%)' },
-                }
-            }}>
+            <Box
+                sx={{
+                    width: '100%',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    position: 'relative',
+                    '& > .MuiTypography-root': {
+                        display: 'inline-block',
+                        paddingRight: '100%',
+                        animation: 'none', // no scroll until hover
+                    },
+                    '&:hover > .MuiTypography-root': {
+                        animation: 'scroll-left 10s linear infinite', // start scroll on hover
+                    },
+                    '@keyframes scroll-left': {
+                        '0%': { transform: 'translateX(0%)' },      // fully visible at start
+                        '50%': { transform: 'translateX(-100%)' },  // scrolled completely to left
+                        '65%': { transform: 'translateX(-50%)' },    // back to start
+                        '100%': { transform: 'translateX(0%)' },    // back to start
+                    }
+                }}
+            >
                 <Typography>{title}</Typography>
             </Box>
+
 
 
         </MenuItem>

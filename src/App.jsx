@@ -54,7 +54,24 @@ import FunnelChartDetailView from "./pages/funnelChartDetailView/FunnelChartDeta
 import TopAdherentDetailView from "./pages/topAdherenDetailView/TopAdherentDetailView.jsx";
 import Forbidden from "./pages/Global/forbidden/Forbidden.jsx";
 import RolesBasedRoute from "./pages/Global/RolesBasedRoutes.jsx";
-import UpdateAdherAchat from "./pages/relations/adherAchat/updateAdherAchat.jsx"; // Import the new component
+import UpdateAdherAchat from "./pages/relations/adherAchat/updateAdherAchat.jsx";
+import AddEnquete from "./pages/enquete/AddEnquete.jsx";
+import ListEnquetes from "./pages/enquete/ListEnquetes.jsx";
+import UpdateEnquete from "./pages/enquete/UpdateEnquete.jsx";
+import AddAccord from "./pages/accord/AddAccord.jsx";
+import ListAccord from "./pages/accord/ListAccords.jsx";
+import UpdateAccord from "./pages/accord/UpdateAccord.jsx";
+import AddMereFiliale from "./pages/mereFiliale/AddMereFiliale.jsx";
+import GetAllFilialeByMere from "./pages/mereFiliale/GetAllFilialeByMere.jsx";
+import UpdateMereFilialeForm from "./pages/mereFiliale/updateMereFiliale.jsx";
+import AddBlackList from "./pages/blacklist/AddBlackList.jsx";
+import BlackList from "./pages/blacklist/BlackList.jsx";
+import EditBlackList from "./pages/blacklist/EditBlackList.jsx";
+import AddRib from "./pages/rib/AddRib.jsx";
+import UpdateAdherFourn from "./pages/relations/adherFourn/updateAdherFourn.jsx";
+import AdherFourn from "./pages/relations/adherFourn/AdherFourn.jsx";
+import ListRib from "./pages/rib/ListRib.jsx";
+import UpdateRib from "./pages/rib/UpdateRib.jsx"; // Import the new component
 
 function App() {
     const [theme, colorMode] = useMode();
@@ -138,6 +155,55 @@ function App() {
                                 <UpdatePM/>
                             </RolesBasedRoute>
                         }/>
+                        <Route path="/ajouter-mere-filiale" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <AddMereFiliale/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        <Route path="/societe-mere-filiale" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <GetAllFilialeByMere/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/modifier-mere-filiale/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <UpdateMereFilialeForm/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        <Route path="/ajouter-blacklist" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <AddBlackList/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        <Route path="/blacklists" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <BlackList/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/modifier-blacklist/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <EditBlackList/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/ajouter-rib" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <AddRib/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        <Route path="/modifier-rib/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <UpdateRib/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/list-ribs" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <ListRib/>
+                            </RolesBasedRoute>
+                        }/>
                         <Route path="/ajouter-acheteurs" element={
                             <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
                                 <AdherAchet/>
@@ -146,6 +212,50 @@ function App() {
                         <Route path="/update-relations/:relationId" element={
                             <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
                                 <UpdateAdherAchat/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/ajouter-fournisseurs" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <AdherFourn/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/update-relations-fourn/:relationId" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <UpdateAdherFourn/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        {/* Enquete Routes*/}
+                        <Route path="/ajouter-enquete" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <AddEnquete/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        <Route path="/list-enquetes" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <ListEnquetes/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/modifier-enquete/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <UpdateEnquete/>
+                            </RolesBasedRoute>
+                        }/>
+                        {/* accord routes */}
+                        <Route path="/ajouter-accord" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <AddAccord/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/list-accords" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <ListAccord/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/modifier-accord/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_COMERCIAL"]}>
+                                <UpdateAccord/>
                             </RolesBasedRoute>
                         }/>
 

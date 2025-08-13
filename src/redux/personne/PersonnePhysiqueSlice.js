@@ -146,6 +146,34 @@ export const deletePP=(id,navigate)=>async (dispatch)=>{
         dispatch(deletePPFailure(e.response.data));
     }
 }
+export const getPPByAdherSansAccord=()=>async (dispatch)=>{
+    dispatch(allPPStart());
+    try {
+        const response=await axios.get("http://localhost:8081/factoring/api/pp/all-by-adher-sans-accord",{
+            withCredentials:true
+        });
+        if(response.status!==200){
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(allPPSuccess(response.data));
+    }catch (e) {
+        dispatch(allPPFailure(e.response.data));
+    }
+}
+export const getPPByAchetSansAccord=()=>async (dispatch)=>{
+    dispatch(allPPStart());
+    try {
+        const response=await axios.get("http://localhost:8081/factoring/api/pp/all-by-achet-sans-accord",{
+            withCredentials:true
+        });
+        if(response.status!==200){
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(allPPSuccess(response.data));
+    }catch (e) {
+        dispatch(allPPFailure(e.response.data));
+    }
+}
 
 export const {addPPStart,addPPSuccess,addPPFailure,allPPStart,allPPSuccess,allPPFailure,findPPByIdStart,findPPByIdSuccess,findPPByIdFailure,updatePPStart,updatePPSuccess,updatePPFailure,deletePPStart,deletePPSuccess,deletePPFailure}=ppSlice.actions;
 export default ppSlice.reducer;

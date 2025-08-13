@@ -12,6 +12,11 @@ import relationsReducer from "./relations/relationsSlice.js"
 import factureReducer from "./facture/FactureSlice.js"
 import traiteReducer from "./traite/traiteSlice.js"
 import demFinReducer from "./demFin/demFinSlice.js"
+import enqueteReducer from "./enquete/enqueteSlice.js";
+import accordReducer from "./accord/accordSlice.js";
+import mereFilialeReducer from "./MereFiliale/MereFilialeSlice.js";
+import blackListReducer from "./blackList/blackListSlice.js";
+import ribReducer from "./rib/ribSlice.js";
 import {persistReducer,persistStore} from "redux-persist";
 import {createTransform} from "redux-persist";
 
@@ -59,6 +64,11 @@ const rootReducer = combineReducers({
     facture:factureReducer,
     traite:traiteReducer,
     demFin:demFinReducer,
+    enquete:enqueteReducer,
+    accord:accordReducer,
+    mereFiliale:mereFilialeReducer,
+    blackList:blackListReducer,
+    rib:ribReducer,
 });
 
 const persistConfig = {

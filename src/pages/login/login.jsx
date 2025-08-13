@@ -62,7 +62,7 @@ const Login = () => {
                         mb: 3,
                     }}
                 >
-                    <img src={'/public/assets/logoMf.jpg'} width="60px" height="60px" alt="logo" />
+                    <img src={'/assets/logoMf.jpg'} width="60px" height="60px" alt="logo" />
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Typography
                             variant="h6"

@@ -112,10 +112,10 @@ const Financement = () => {
             renderCell:(params)=>{
                 return (
                     <Box display="flex"  py={2} width="100%" >
-                        {params.row.desicion === "ACCEPTE" ? (
-                            <Typography color="green">{params.row.desicion}</Typography>
-                        ) : params.row.desicion === "REJETE" ? (
-                            <Typography color="red">{params.row.desicion}</Typography>
+                        {params.row.desicion.code === "ACCEPTE" ? (
+                            <Typography color="green">{params.row.desicion.dsg}</Typography>
+                        ) : params.row.desicion.code === "REJETE" ? (
+                            <Typography color="red">{params.row.desicion.dsg}</Typography>
                         ) : (
                             <Typography color="orange">En Attente</Typography>
                         )}
@@ -200,10 +200,10 @@ const Financement = () => {
             renderCell:(params)=>{
                 return (
                     <Box display="flex"  py={2} width="100%" >
-                        {params.row.desicion === "ACCEPTE" ? (
-                            <Typography color="green">{params.row.desicion}</Typography>
-                        ) : params.row.desicion === "REJETER" ? (
-                            <Typography color="red">{params.row.desicion}</Typography>
+                        {params.row.desicion.code === "ACCEPTE" ? (
+                            <Typography color="green">{params.row.desicion.dsg}</Typography>
+                        ) : params.row.desicion.code === "REJETER" ? (
+                            <Typography color="red">{params.row.desicion.dsg}</Typography>
                         ) : (
                             <Typography color="orange">En Attente</Typography>
                         )}
@@ -315,10 +315,10 @@ const Financement = () => {
             renderCell:(params)=>{
                 return (
                     <Box display="flex"  py={2} width="100%" >
-                        {params.row.desicion === "VALIDER" ? (
-                            <Typography color="green">{params.row.desicion}</Typography>
-                        ) : params.row.desicion === "REJETER" ? (
-                            <Typography color="red">{params.row.desicion}</Typography>
+                        {params.row.desicion.code === "VALIDER" ? (
+                            <Typography color="green">{params.row.desicion.dsg}</Typography>
+                        ) : params.row.desicion.code === "REJETER" ? (
+                            <Typography color="red">{params.row.desicion.dsg}</Typography>
                         ) : (
                             <Typography color="orange">En Attente</Typography>
                         )}
