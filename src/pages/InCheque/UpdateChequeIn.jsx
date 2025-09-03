@@ -1,5 +1,5 @@
-// src/pages/Traite/UpdateTraite.jsx
-import React, { useEffect, useState } from "react";
+// src/pages/InCheque/UpdateInCheque.jsx
+import { useEffect, useState } from "react";
 import {
     Box,
     Button,
@@ -16,7 +16,6 @@ import {
     FormControlLabel,
     Radio,
     RadioGroup,
-    Alert,
 } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
@@ -25,9 +24,9 @@ import { tokens } from "../../theme.js";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-    getTraiteById,
-    updateTraite,
-} from "../../redux/traite/traiteSlice.js";
+    fetchInChequeByIdAsync,
+    updateInChequeAsync,
+} from "../../redux/inCheque/inChequeSlice.js";
 import {
     getPMById,
     getPMByAchetCode,
@@ -43,7 +42,7 @@ import {
     allAchetPpRibs,
 } from "../../redux/rib/ribSlice.js";
 
-// Validation schema
+// Validation schema - similar to create but without contrat requirement
 const validationSchema = yup.object().shape({
     acheteurPresent: yup.boolean().required("Sélectionnez si un acheteur est présent"),
     acheteur: yup.mixed().when("acheteurPresent", {
@@ -52,109 +51,41 @@ const validationSchema = yup.object().shape({
         otherwise: (schema) => schema.notRequired(),
     }),
     factorDate: yup.date().typeError("Date invalide").required("Date de facture requise"),
-    numero: yup
-        .string()
-        .length(12, "Le numéro doit contenir exactement 12 caractères")
-        .required("Numéro de traite requis"),
-    tireEmisDate: yup.date().typeError("Date invalide").required("Date d'émission requise"),
-    tireEmisLieu: yup.string().required("Lieu d'émission requis"),
+    chequeNo: yup.string().required("Numéro de chèque requis"),
+    tireurEmisDate: yup.date().typeError("Date invalide").required("Date d'émission requise"),
+    tireurEmisLieu: yup.string().required("Lieu d'émission requis"),
     rib: yup.mixed().required("RIB requis"),
-    tireNom: yup.string().required("Nom tireur requis"),
+    tireurEmisNom: yup.string().required("Nom tireur requis"),
     montant: yup.number().typeError("Montant invalide").required("Montant requis").positive("Montant doit être positif"),
-    echeance: yup.date().typeError("Date invalide").required("Date d'échéance requise"),
 });
 
-// Function to convert amount to French words
-const convertAmountToWords = (amount, currencyCode) => {
-    const units = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf'];
-    const teens = ['dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
-    const tens = ['', 'dix', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', 'soixante-dix', 'quatre-vingt', 'quatre-vingt-dix'];
-    const hundreds = ['', 'cent', 'deux cents', 'trois cents', 'quatre cents', 'cinq cents', 'six cents', 'sept cents', 'huit cents', 'neuf cents'];
-
-    // Handle currency names
-    let currencyUnit, currencySubUnit;
-    if (currencyCode === 'TND') {
-        currencyUnit = amount === 1 ? 'dinar' : 'dinars';
-        currencySubUnit = 'millime';
-    } else if (currencyCode === 'EUR') {
-        currencyUnit = amount === 1 ? 'euro' : 'euros';
-        currencySubUnit = 'cent';
-    } else {
-        currencyUnit = 'unité';
-        currencySubUnit = 'sous-unité';
-    }
-
-    // Split amount into integer and fractional parts
-    const integerPart = Math.floor(amount);
-    const fractionalPart = Math.round((amount - integerPart) * (currencyCode === 'TND' ? 1000 : 100));
-
-    // Convert integer part to words
-    const convertInteger = (num) => {
-        if (num === 0) return 'zéro';
-        if (num < 10) return units[num];
-        if (num < 20) return teens[num - 10];
-        if (num < 100) {
-            const ten = Math.floor(num / 10);
-            const unit = num % 10;
-            if (ten === 7 || ten === 9) {
-                return tens[ten - 1] + (unit === 1 ? ' et ' : '-') + teens[unit];
-            }
-            return tens[ten] + (unit > 0 ? '-' + units[unit] : '');
-        }
-        if (num < 1000) {
-            const hundred = Math.floor(num / 100);
-            const remainder = num % 100;
-            return hundreds[hundred] + (remainder > 0 ? ' ' + convertInteger(remainder) : '');
-        }
-        if (num < 1000000) {
-            const thousand = Math.floor(num / 1000);
-            const remainder = num % 1000;
-            return (thousand === 1 ? 'mille' : convertInteger(thousand) + ' mille') +
-                (remainder > 0 ? ' ' + convertInteger(remainder) : '');
-        }
-        return 'montant trop élevé';
-    };
-
-    // Convert fractional part to words
-    const convertFractional = (num) => {
-        if (num === 0) return '';
-        return convertInteger(num) + ' ' + (num === 1 ? currencySubUnit : currencySubUnit + 's');
-    };
-
-    const integerWords = convertInteger(integerPart);
-    const fractionalWords = convertFractional(fractionalPart);
-
-    return integerWords + ' ' + currencyUnit +
-        (fractionalWords ? ' et ' + fractionalWords : '');
-};
-
-const UpdateTraite = () => {
+const UpdateInCheque = () => {
     const { id } = useParams();
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { currentTraite, loadingTraite, errorTraite } = useSelector((state) => state.traite || {});
+    const { currentInCheque, loadingInCheque } = useSelector((state) => state.inCheque || {});
+    // Use the exact state fields from your slices:
     const { currentPMByAchetCode } = useSelector((state) => state.personneMorale || {});
     const { currentPPByAchetCode } = useSelector((state) => state.personnePhysique || {});
-    const { relations } = useSelector((state) => state.relations || {});
-    const { ribs, loadingRib } = useSelector((state) => state.rib || {});
-    const { adherents = [] } = useSelector((state) => state.relations || {});
 
     const [selectedContrat, setSelectedContrat] = useState(null);
     const [adherentName, setAdherentName] = useState("");
     const [acheteurs, setAcheteurs] = useState([]);
     const [selectedAcheteur, setSelectedAcheteur] = useState(null);
     const [adherType, setAdherType] = useState("");
+    const { relations } = useSelector((state) => state.relations || {});
+    const { ribs, loadingRib } = useSelector((state) => state.rib || {});
     const [initialValues, setInitialValues] = useState(null);
+    const { adherents = [] } = useSelector((state) => state.relations || {});
     const [selectedAdherentId, setSelectedAdherentId] = useState(null);
     const [disableAcheteurSelect, setDisableAcheteurSelect] = useState(false);
-    const [montantEnLettres, setMontantEnLettres] = useState("");
 
-    // Fetch traite data and adherents on mount
+    // Fetch cheque data and adherents on mount
     useEffect(() => {
-        dispatch(getTraiteById(id));
+        dispatch(fetchInChequeByIdAsync(id));
         dispatch(fetchAdherentsAsync());
     }, [dispatch, id]);
 
@@ -169,88 +100,69 @@ const UpdateTraite = () => {
         raw: a,
     }));
 
-    // When currentTraite changes, set up form and fetch acheteur by code if available
+    // When currentInCheque changes, set up form and fetch acheteur by code if available
     useEffect(() => {
-        if (!currentTraite) return;
+        if (currentInCheque) {
+            setSelectedContrat(currentInCheque.contrat);
+            setSelectedAdherentId(currentInCheque.contrat?.adherent);
 
-        setSelectedContrat(currentTraite.contrat);
-        setSelectedAdherentId(currentTraite.contrat?.adherent);
+            // Base initial values; acheteur will be set later if fetched by achat code or relations
+            setInitialValues({
+                acheteurPresent: Boolean(currentInCheque.tireurFactorAchetCode),
+                acheteur: null,
+                factorDate: currentInCheque.factorDate?.split("T")[0] || "",
+                chequeNo: currentInCheque.chequeNo,
+                tireurEmisDate: currentInCheque.tireurEmisDate?.split("T")[0] || "",
+                tireurEmisLieu: currentInCheque.tireurEmisLieu || "",
+                rib: currentInCheque.tireurEmisRib ? { rib: currentInCheque.tireurEmisRib } : null,
+                tireurEmisNom: currentInCheque.tireurEmisNom || "",
+                montant: currentInCheque.montant ?? "",
+            });
 
-        // Base initial values; acheteur will be set later if fetched by achat code or relations
-        setInitialValues({
-            acheteurPresent: Boolean(currentTraite.achetFactorCode),
-            acheteur: null,
-            factorDate: currentTraite.factorDate?.split("T")[0] || "",
-            numero: currentTraite.numero,
-            tireEmisDate: currentTraite.tireEmisDate?.split("T")[0] || "",
-            tireEmisLieu: currentTraite.tireEmisLieu || "",
-            rib: currentTraite.tireRib ? { rib: currentTraite.tireRib } : null,
-            tireNom: currentTraite.tireNom || "",
-            montant: currentTraite.montant ?? "",
-            echeance: currentTraite.echFirst?.split("T")[0] || "",
-        });
+            // Fetch adherent details (existing behavior)
+            if (currentInCheque.contrat) {
+                if (currentInCheque.contrat.contratNo?.startsWith("RNE")) {
+                    dispatch(getPMById(currentInCheque.contrat.adherent));
+                    setAdherType("pm");
+                } else {
+                    dispatch(getPPById(currentInCheque.contrat.adherent));
+                    setAdherType("pp");
+                }
 
-        // Fetch adherent details
-        if (currentTraite.contrat) {
-            if (currentTraite.contrat.contratNo?.startsWith("RNE")) {
-                dispatch(getPMById(currentTraite.contrat.adherent));
-                setAdherType("pm");
-            } else {
-                dispatch(getPPById(currentTraite.contrat.adherent));
-                setAdherType("pp");
+                // Fetch relations for this adherent
+                dispatch(fetchRelationsAsync(currentInCheque.contrat.adherent));
             }
 
-            // Fetch relations for this adherent
-            dispatch(fetchRelationsAsync(currentTraite.contrat.adherent));
-        }
-
-        // If there's a achetFactorCode, fetch acheteur by that code
-        const code = currentTraite.achetFactorCode;
-        if (code) {
-            if (/pp/i.test(code)) {
-                dispatch(getPPByAchetCode(code));
-            } else if (/pm/i.test(code)) {
-                dispatch(getPMByAchetCode(code));
+            // If there's a tireurFactorAchetCode, fetch acheteur by that code using your thunks
+            const code = currentInCheque.tireurFactorAchetCode;
+            if (code) {
+                if (/pp/i.test(code)) {
+                    dispatch(getPPByAchetCode(code));
+                } else if (/pm/i.test(code)) {
+                    dispatch(getPMByAchetCode(code));
+                } else {
+                    // if format is not clear, try both (PM first then PP)
+                    dispatch(getPMByAchetCode(code));
+                    dispatch(getPPByAchetCode(code));
+                }
             } else {
-                // if format is not clear, try both (PM then PP)
-                dispatch(getPMByAchetCode(code));
-                dispatch(getPPByAchetCode(code));
+                // no code: keep selects enabled (acheteur may be chosen through relations)
+                setDisableAcheteurSelect(false);
             }
-            // When there's a code, we'll lock the selection later once the acheteur is loaded
-        } else {
-            // no code: keep selects enabled (acheteur may be chosen through relations)
-            setDisableAcheteurSelect(false);
         }
-
-        // Set montant en lettres
-        if (currentTraite.montant && currentTraite.devise?.code) {
-            const amountInWords = convertAmountToWords(currentTraite.montant, currentTraite.devise.code);
-            setMontantEnLettres(amountInWords);
-        } else {
-            setMontantEnLettres("");
-        }
-    }, [currentTraite, dispatch]);
+    }, [currentInCheque, dispatch]);
 
     // If a PP was loaded by achet code, set it into initialValues & disable selection
     useEffect(() => {
-        if (!currentPPByAchetCode || !initialValues) return;
-
-        const pp = currentPPByAchetCode;
-        const acheteurFromCode = {
-            id: pp.id,
-            pieceId: `${pp.typePieceIdentite?.dsg || ""}${pp.numeroPieceIdentite || ""}`,
-            name: `${pp.nom || ""} ${pp.prenom || ""}`.trim(),
-            type: "pp",
-            factorAchetCode: pp.factorAchetCode,
-        };
-
-        // Only update if different
-        const alreadySame =
-            initialValues.acheteur &&
-            initialValues.acheteur.id === acheteurFromCode.id &&
-            initialValues.acheteur.type === acheteurFromCode.type;
-
-        if (!alreadySame) {
+        if (currentPPByAchetCode && initialValues) {
+            const pp = currentPPByAchetCode;
+            const acheteurFromCode = {
+                id: pp.id,
+                pieceId: `${pp.typePieceIdentite?.dsg || ""}${pp.numeroPieceIdentite || ""}`,
+                name: `${pp.nom || ""} ${pp.prenom || ""}`.trim(),
+                type: "pp",
+                factorAchetCode: pp.factorAchetCode,
+            };
             setSelectedAcheteur(acheteurFromCode);
             setInitialValues((prev) => ({
                 ...prev,
@@ -259,28 +171,19 @@ const UpdateTraite = () => {
             }));
             setDisableAcheteurSelect(true);
         }
-    }, [currentPPByAchetCode, initialValues?.acheteur?.id, initialValues?.acheteurPresent]);
+    }, [currentPPByAchetCode, initialValues]);
 
     // If a PM was loaded by achet code, set it into initialValues & disable selection
     useEffect(() => {
-        if (!currentPMByAchetCode || !initialValues) return;
-
-        const pm = currentPMByAchetCode;
-        const acheteurFromCode = {
-            id: pm.id,
-            pieceId: `${pm.typePieceIdentite?.dsg || ""}${pm.numeroPieceIdentite || ""}`,
-            name: pm.raisonSocial || pm.nom || "",
-            type: "pm",
-            factorAchetCode: pm.factorAchetCode,
-        };
-
-        // Only update if different
-        const alreadySame =
-            initialValues.acheteur &&
-            initialValues.acheteur.id === acheteurFromCode.id &&
-            initialValues.acheteur.type === acheteurFromCode.type;
-
-        if (!alreadySame) {
+        if (currentPMByAchetCode && initialValues) {
+            const pm = currentPMByAchetCode;
+            const acheteurFromCode = {
+                id: pm.id,
+                pieceId: `${pm.typePieceIdentite?.dsg || ""}${pm.numeroPieceIdentite || ""}`,
+                name: pm.raisonSocial || pm.nom || "",
+                type: "pm",
+                factorAchetCode: pm.factorAchetCode,
+            };
             setSelectedAcheteur(acheteurFromCode);
             setInitialValues((prev) => ({
                 ...prev,
@@ -289,104 +192,88 @@ const UpdateTraite = () => {
             }));
             setDisableAcheteurSelect(true);
         }
-    }, [currentPMByAchetCode, initialValues?.acheteur?.id, initialValues?.acheteurPresent]);
+    }, [currentPMByAchetCode, initialValues]);
 
-    // Extract acheteurs from relations
+    // Extract acheteurs from relations (existing behavior)
     useEffect(() => {
-        if (!relations || relations.length === 0) {
-            setAcheteurs([]);
-            return;
-        }
+        if (relations && relations.length > 0) {
+            const acheteursList = relations
+                .map((relation) => {
+                    if (relation.acheteurMorale) {
+                        return {
+                            id: relation.acheteurMorale.id,
+                            pieceId: `${relation.acheteurMorale.typePieceIdentite?.dsg || ""}${relation.acheteurMorale.numeroPieceIdentite || ""}`,
+                            name: relation.acheteurMorale.raisonSocial,
+                            type: "pm",
+                            factorAchetCode: relation.acheteurMorale.factorAchetCode,
+                        };
+                    } else if (relation.acheteurPhysique) {
+                        return {
+                            id: relation.acheteurPhysique.id,
+                            pieceId: `${relation.acheteurPhysique.typePieceIdentite?.dsg || ""}${relation.acheteurPhysique.numeroPieceIdentite || ""}`,
+                            name: `${relation.acheteurPhysique.nom} ${relation.acheteurPhysique.prenom}`.trim(),
+                            type: "pp",
+                            factorAchetCode: relation.acheteurPhysique.factorAchetCode,
+                        };
+                    }
+                    return null;
+                })
+                .filter(Boolean);
 
-        const acheteursList = relations
-            .map((relation) => {
-                if (relation.acheteurMorale) {
-                    return {
-                        id: relation.acheteurMorale.id,
-                        pieceId: `${relation.acheteurMorale.typePieceIdentite?.dsg || ""}${relation.acheteurMorale.numeroPieceIdentite || ""}`,
-                        name: relation.acheteurMorale.raisonSocial,
-                        type: "pm",
-                        factorAchetCode: relation.acheteurMorale.factorAchetCode,
-                    };
-                } else if (relation.acheteurPhysique) {
-                    return {
-                        id: relation.acheteurPhysique.id,
-                        pieceId: `${relation.acheteurPhysique.typePieceIdentite?.dsg || ""}${relation.acheteurPhysique.numeroPieceIdentite || ""}`,
-                        name: `${relation.acheteurPhysique.nom} ${relation.acheteurPhysique.prenom}`.trim(),
-                        type: "pp",
-                        factorAchetCode: relation.acheteurPhysique.factorAchetCode,
-                    };
-                }
-                return null;
-            })
-            .filter(Boolean);
+            setAcheteurs(acheteursList);
 
-        setAcheteurs(acheteursList);
-
-        // If there's a achetFactorCode and we don't already have a selectedAcheteur,
-        // try to match from relations and lock it.
-        const code = currentTraite?.achetFactorCode;
-        const alreadySelectedAcheteurId = selectedAcheteur?.id;
-        if (code && acheteursList.length > 0 && !alreadySelectedAcheteurId && initialValues) {
-            const matchingAcheteur = acheteursList.find(
-                (a) => a.factorAchetCode === code
-            );
-            if (matchingAcheteur) {
-                // avoid unnecessary setState if already set
-                setInitialValues((prev) => {
-                    const already = prev?.acheteur && prev.acheteur.id === matchingAcheteur.id;
-                    if (already) return prev;
-                    return {
+            // If there's a tireurFactorAchetCode but we didn't fetch via the achat-code endpoints
+            // try to match from relations and lock it.
+            if (currentInCheque?.tireurFactorAchetCode && initialValues && !selectedAcheteur) {
+                const matchingAcheteur = acheteursList.find(
+                    (a) => a.factorAchetCode === currentInCheque.tireurFactorAchetCode
+                );
+                if (matchingAcheteur) {
+                    setInitialValues((prev) => ({
                         ...prev,
                         acheteurPresent: true,
                         acheteur: matchingAcheteur,
-                    };
-                });
-                setSelectedAcheteur(matchingAcheteur);
-                setDisableAcheteurSelect(true);
+                    }));
+                    setSelectedAcheteur(matchingAcheteur);
+                    setDisableAcheteurSelect(true);
+                }
             }
         }
-    }, [relations, currentTraite?.achetFactorCode, selectedAcheteur?.id, initialValues?.acheteurPresent]);
+    }, [relations, currentInCheque, initialValues, selectedAcheteur]);
 
     // Fetch RIBs when contract or selectedAcheteur changes
     useEffect(() => {
-        if (!selectedContrat?.id) return;
+        if (!selectedContrat) return;
 
-        const acheteurPresent = Boolean(initialValues?.acheteurPresent);
-        const acheteurId = selectedAcheteur?.id;
-        const acheteurType = selectedAcheteur?.type;
-
-        if (acheteurPresent && acheteurId) {
-            if (acheteurType === "pm") {
-                dispatch(allAchetPmRibs(selectedContrat.id, acheteurId));
+        if (initialValues?.acheteurPresent && selectedAcheteur) {
+            if (selectedAcheteur.type === "pm") {
+                dispatch(allAchetPmRibs(selectedContrat.id, selectedAcheteur.id));
             } else {
-                dispatch(allAchetPpRibs(selectedContrat.id, acheteurId));
+                dispatch(allAchetPpRibs(selectedContrat.id, selectedAcheteur.id));
             }
         } else {
             dispatch(allAdherRibs(selectedContrat.id));
         }
-    }, [selectedContrat?.id, selectedAcheteur?.id, selectedAcheteur?.type, initialValues?.acheteurPresent, dispatch]);
+    }, [selectedContrat, selectedAcheteur, initialValues, dispatch]);
 
     // Update adherent name when details are fetched
     useEffect(() => {
-        if (!selectedContrat) {
-            setAdherentName("");
-            return;
-        }
-
-        // prefer explicit properties if present (pm / pp)
-        if (adherType === "pm" && selectedContrat.pm) {
-            setAdherentName(selectedContrat.pm.raisonSocial || "");
-        } else if (adherType === "pp" && selectedContrat.pp) {
-            setAdherentName(
-                `${selectedContrat.pp.nom || ""} ${selectedContrat.pp.prenom || ""}`.trim()
-            );
+        if (selectedContrat) {
+            if (adherType === "pm" && selectedContrat.pm) {
+                setAdherentName(selectedContrat.pm.raisonSocial || "");
+            } else if (adherType === "pp" && selectedContrat.pp) {
+                setAdherentName(
+                    `${selectedContrat.pp.nom || ""} ${selectedContrat.pp.prenom || ""}`.trim()
+                );
+            } else {
+                setAdherentName("");
+            }
         } else {
             setAdherentName("");
         }
-    }, [selectedContrat?.id, adherType, selectedContrat?.pm, selectedContrat?.pp]);
+    }, [selectedContrat, adherType]);
 
-    if (!initialValues || !currentTraite) {
+    if (!initialValues || !currentInCheque) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" height="80vh">
                 <CircularProgress />
@@ -397,8 +284,8 @@ const UpdateTraite = () => {
     return (
         <Box m="20px">
             <Header
-                title="Modifier Traite"
-                subtitle={`Mise à jour de la traite #${currentTraite.numero}`}
+                title="Modifier Chèque Entrant"
+                subtitle={`Mise à jour du chèque #${currentInCheque.chequeNo}`}
             />
 
             <Card
@@ -410,43 +297,35 @@ const UpdateTraite = () => {
                 }}
             >
                 <CardContent>
-                    {errorTraite && (
-                        <Box my={2}>
-                            <Alert severity="error" sx={{ fontSize: "14px" }}>
-                                {errorTraite || "Une erreur s'est produite lors de la mise à jour de la traite !"}
-                            </Alert>
-                        </Box>
-                    )}
-
                     <Formik
                         enableReinitialize
                         initialValues={initialValues}
                         validationSchema={validationSchema}
                         onSubmit={(values) => {
                             const payload = {
-                                id: currentTraite.id,
-                                contrat: currentTraite.contrat,
+                                id: currentInCheque.id,
+                                contrat: currentInCheque.contrat,
                                 acheteurPresent: values.acheteurPresent,
                                 acheteurId: values.acheteurPresent ? values.acheteur.id : null,
                                 acheteurType: values.acheteurPresent ? values.acheteur.type : null,
-                                adherFactorCode: !values.acheteurPresent
+                                tireurFactorAdherCode: !values.acheteurPresent
                                     ? (adherType === "pm"
-                                        ? currentTraite.contrat.pm?.factorAdherCode
-                                        : currentTraite.contrat.pp?.factorAdherCode)
+                                        ? currentInCheque.contrat.pm?.factorAdherCode
+                                        : currentInCheque.contrat.pp?.factorAdherCode)
                                     : null,
-                                achetFactorCode: values.acheteurPresent ? values.acheteur.factorAchetCode : null,
+                                tireurFactorAchetCode: values.acheteurPresent ? values.acheteur.factorAchetCode : null,
                                 factorDate: values.factorDate,
-                                numero: values.numero,
-                                tireEmisDate: values.tireEmisDate,
-                                tireEmisLieu: values.tireEmisLieu,
-                                tireRib: values.rib ? values.rib.rib : null,
-                                tireNom: values.tireNom,
+                                chequeNo: values.chequeNo,
+                                tireurEmisDate: values.tireurEmisDate,
+                                tireurEmisLieu: values.tireurEmisLieu,
+                                tireurEmisRib: values.rib ? values.rib.rib : null,
+                                tireurEmisNom: values.tireurEmisNom,
                                 montant: Number(values.montant),
-                                deviseId: currentTraite.contrat.devise.id,
-                                echFirst: values.echeance,
+                                deviseId: currentInCheque.contrat.devise.id,
+                                statusMoyPai: currentInCheque.statusMoyPai,
                             };
 
-                            dispatch(updateTraite(id, payload, navigate));
+                            dispatch(updateInChequeAsync(id, payload, navigate));
                         }}
                     >
                         {({
@@ -487,9 +366,9 @@ const UpdateTraite = () => {
                                         {/* Contrat Autocomplete */}
                                         <Grid item xs={4}>
                                             <Autocomplete
-                                                options={[currentTraite.contrat]}
+                                                options={[currentInCheque.contrat]}
                                                 getOptionLabel={(option) => option?.contratNo || ""}
-                                                value={currentTraite.contrat}
+                                                value={currentInCheque.contrat}
                                                 disabled
                                                 renderInput={(params) => <TextField {...params} label="Contrat" fullWidth />}
                                             />
@@ -501,7 +380,7 @@ const UpdateTraite = () => {
                                         <TextField
                                             label="Devise"
                                             fullWidth
-                                            value={currentTraite.contrat?.devise?.dsg || ""}
+                                            value={currentInCheque.contrat?.devise?.dsg || ""}
                                             disabled
                                         />
                                     </Grid>
@@ -509,7 +388,7 @@ const UpdateTraite = () => {
                                     {/* Acheteur present (radio) & Acheteur select */}
                                     <Grid item xs={6}>
                                         <FormControl component="fieldset" fullWidth>
-                                            <Typography fontWeight="bold">Tireur De La Traite ?</Typography>
+                                            <Typography fontWeight="bold">Tireur Du Chéque ?</Typography>
                                             <RadioGroup
                                                 row
                                                 name="acheteurPresent"
@@ -591,7 +470,7 @@ const UpdateTraite = () => {
                                         )}
                                     </Grid>
 
-                                    {/* factorDate & numero */}
+                                    {/* factorDate & chequeNo */}
                                     <Grid item xs={6}>
                                         <TextField
                                             label="Date de facture"
@@ -608,30 +487,29 @@ const UpdateTraite = () => {
                                     </Grid>
                                     <Grid item xs={6}>
                                         <TextField
-                                            label="Numéro de traite"
+                                            label="Numéro de chèque"
                                             fullWidth
-                                            name="numero"
-                                            value={values.numero}
+                                            name="chequeNo"
+                                            value={values.chequeNo}
                                             onChange={handleChange}
                                             onBlur={handleBlur}
-                                            error={!!touched.numero && !!errors.numero}
-                                            helperText={touched.numero && errors.numero}
-                                            inputProps={{ maxLength: 12 }}
+                                            error={!!touched.chequeNo && !!errors.chequeNo}
+                                            helperText={touched.chequeNo && errors.chequeNo}
                                         />
                                     </Grid>
 
-                                    {/* tireEmisDate & tireEmisLieu */}
+                                    {/* tireurEmisDate & tireurEmisLieu */}
                                     <Grid item xs={6}>
                                         <TextField
                                             label="Date d'émission"
                                             fullWidth
                                             type="date"
-                                            name="tireEmisDate"
-                                            value={values.tireEmisDate}
+                                            name="tireurEmisDate"
+                                            value={values.tireurEmisDate}
                                             onChange={handleChange}
                                             onBlur={handleBlur}
-                                            error={!!touched.tireEmisDate && !!errors.tireEmisDate}
-                                            helperText={touched.tireEmisDate && errors.tireEmisDate}
+                                            error={!!touched.tireurEmisDate && !!errors.tireurEmisDate}
+                                            helperText={touched.tireurEmisDate && errors.tireurEmisDate}
                                             InputLabelProps={{ shrink: true }}
                                         />
                                     </Grid>
@@ -639,12 +517,12 @@ const UpdateTraite = () => {
                                         <TextField
                                             label="Lieu d'émission"
                                             fullWidth
-                                            name="tireEmisLieu"
-                                            value={values.tireEmisLieu}
+                                            name="tireurEmisLieu"
+                                            value={values.tireurEmisLieu}
                                             onChange={handleChange}
                                             onBlur={handleBlur}
-                                            error={!!touched.tireEmisLieu && !!errors.tireEmisLieu}
-                                            helperText={touched.tireEmisLieu && errors.tireEmisLieu}
+                                            error={!!touched.tireurEmisLieu && !!errors.tireurEmisLieu}
+                                            helperText={touched.tireurEmisLieu && errors.tireurEmisLieu}
                                         />
                                     </Grid>
 
@@ -683,68 +561,27 @@ const UpdateTraite = () => {
                                         <TextField
                                             label="Nom tireur"
                                             fullWidth
-                                            name="tireNom"
-                                            value={values.tireNom}
+                                            name="tireurEmisNom"
+                                            value={values.tireurEmisNom}
                                             onChange={handleChange}
                                             onBlur={handleBlur}
-                                            error={!!touched.tireNom && !!errors.tireNom}
-                                            helperText={touched.tireNom && errors.tireNom}
+                                            error={!!touched.tireurEmisNom && !!errors.tireurEmisNom}
+                                            helperText={touched.tireurEmisNom && errors.tireurEmisNom}
                                         />
                                     </Grid>
 
-                                    {/* montant & montant en lettres */}
-                                    <Grid item xs={6}>
+                                    {/* montant */}
+                                    <Grid item xs={12}>
                                         <TextField
                                             label="Montant"
                                             fullWidth
                                             type="number"
                                             name="montant"
                                             value={values.montant}
-                                            onChange={(e) => {
-                                                handleChange(e);
-                                                // Calculate amount in words when montant changes
-                                                if (currentTraite.devise?.code && e.target.value) {
-                                                    const amount = parseFloat(e.target.value);
-                                                    if (!isNaN(amount)) {
-                                                        const currencyCode = currentTraite.devise.code;
-                                                        const amountInWords = convertAmountToWords(amount, currencyCode);
-                                                        setMontantEnLettres(amountInWords);
-                                                    } else {
-                                                        setMontantEnLettres("");
-                                                    }
-                                                } else {
-                                                    setMontantEnLettres("");
-                                                }
-                                            }}
+                                            onChange={handleChange}
                                             onBlur={handleBlur}
                                             error={!!touched.montant && !!errors.montant}
                                             helperText={touched.montant && errors.montant}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={6}>
-                                        <TextField
-                                            label="Montant en lettres"
-                                            fullWidth
-                                            value={montantEnLettres}
-                                            disabled
-                                            multiline
-                                            rows={2}
-                                        />
-                                    </Grid>
-
-                                    {/* échéance */}
-                                    <Grid item xs={12}>
-                                        <TextField
-                                            label="Date d'échéance"
-                                            fullWidth
-                                            type="date"
-                                            name="echeance"
-                                            value={values.echeance}
-                                            onChange={handleChange}
-                                            onBlur={handleBlur}
-                                            error={!!touched.echeance && !!errors.echeance}
-                                            helperText={touched.echeance && errors.echeance}
-                                            InputLabelProps={{ shrink: true }}
                                         />
                                     </Grid>
 
@@ -755,10 +592,10 @@ const UpdateTraite = () => {
                                                 type="submit"
                                                 variant="contained"
                                                 color="secondary"
-                                                disabled={loadingTraite}
+                                                disabled={loadingInCheque}
                                                 sx={{ mr: 2 }}
                                             >
-                                                {loadingTraite ? <CircularProgress size={24} /> : "Mettre à jour"}
+                                                {loadingInCheque ? <CircularProgress size={24} /> : "Mettre à jour"}
                                             </Button>
                                             <Button variant="outlined" color="error" onClick={() => navigate(-1)}>
                                                 Annuler
@@ -775,4 +612,4 @@ const UpdateTraite = () => {
     );
 };
 
-export default UpdateTraite;
+export default UpdateInCheque;

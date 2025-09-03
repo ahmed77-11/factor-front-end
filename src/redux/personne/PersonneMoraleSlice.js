@@ -4,6 +4,7 @@ import axios from "axios";
 const initialState = {
     personneMorales: [],
     currentPM: null, // store a single personne morale record
+    currentPMByAchetCode: null, // store a single personne morale by achat code
     errorPM: null,
     loadingPM: false,
 };
@@ -49,6 +50,18 @@ const pmSlice = createSlice({
             state.loadingPM = false;
             state.errorPM = action.payload;
         },
+        // Get personne morale by achat code
+        findPMByIdAchetCodeStart: (state) => {
+            state.loadingPM = true;
+        },
+        findPMByIdAchetCodeSuccess: (state, action) => {
+            state.loadingPM = false;
+            state.currentPMByAchetCode = action.payload;
+        },
+        findPMByIdAchetCodeFailure: (state, action) => {
+            state.loadingPM = false;
+            state.errorPM = action.payload;
+        },
 
         // Update personne morale
         updatePMStart: (state) => {
@@ -86,6 +99,9 @@ export const {
     findPMByIdStart,
     findPMByIdSuccess,
     findPMByIdFailure,
+    findPMByIdAchetCodeStart,
+    findPMByIdAchetCodeSuccess,
+    findPMByIdAchetCodeFailure,
     updatePMStart,
     updateMPSuccess,
     updatePMFailure,
@@ -143,6 +159,25 @@ export const getPMById = (id) => async (dispatch) => {
         dispatch(findPMByIdSuccess(response.data));
     } catch (e) {
         dispatch(findPMByIdFailure(e.response.data));
+    }
+};
+
+export const getPMByAchetCode = (achetCode) => async (dispatch) => {
+    dispatch(findPMByIdAchetCodeStart());
+    try {
+        const response = await axios.get(
+            `http://localhost:8081/factoring/api/pm/get-pm-achet/${achetCode}`,
+            { withCredentials: true }
+        );
+
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+
+        // Make sure response.data is a single PM object
+        dispatch(findPMByIdAchetCodeSuccess(response.data));
+    } catch (e) {
+        dispatch(findPMByIdAchetCodeFailure(e.response?.data || e.message));
     }
 };
 

@@ -4,6 +4,7 @@ import axios from "axios";
 
 const initialState={
     factures: [],
+    docs:[],
     currentFacture:null,
     loading:false,
     error:null,
@@ -75,6 +76,17 @@ const factureSlice=createSlice({
             state.loading=false;
             state.error=action.payload;
         },
+        getAllDocsStart:(state)=>{
+            state.loading=true;
+        },
+        getAllDocsSuccess:(state,action)=>{
+            state.loading=false;
+            state.docs=action.payload;
+        },
+        getAllDocsFailure:(state,action)=>{
+            state.loading=false;
+            state.error=action.payload;
+        },
         getNbFacStart:(state)=>{
             state.loading=true;
         },
@@ -142,6 +154,36 @@ export const getAllFactValiderAsync=()=>async (dispatch)=>{
         dispatch(getAllFactValiderSuccess(response.data));
     } catch (error) {
         dispatch(getAllFactValiderFailure(error.message));
+    }
+}
+
+export const getAllDocsByContratId=(contratId)=>async (dispatch)=>{
+    dispatch(getAllDocsStart());
+    try {
+        const response=await axios.get(`http://localhost:8083/factoring/contrat/api/bord-remises/docs-by-contrat/${contratId}`,{
+            withCredentials:true,
+        });
+        if (response.status !== 200) {
+            throw new Error('Failed to fetch data');
+        }
+        dispatch(getAllDocsSuccess(response.data));
+    } catch (error) {
+        dispatch(getAllDocsFailure(error.message));
+    }
+}
+export const getAllDocsByContratAndAchetCode=(contratId,AchetCode)=>async (dispatch)=>{
+
+    dispatch(getAllDocsStart());
+    try {
+        const response=await axios.get(`http://localhost:8083/factoring/contrat/api/bord-remises/docs-by-contrat/${contratId}/acheteur/${AchetCode}`,{
+            withCredentials:true,
+        });
+        if (response.status !== 200) {
+            throw new Error('Failed to fetch data');
+        }
+        dispatch(getAllDocsSuccess(response.data));
+    } catch (error) {
+        dispatch(getAllDocsFailure(error.message));
     }
 }
 
@@ -239,5 +281,5 @@ export const deleteFacture=(id)=>async (dispatch)=>{
         dispatch(deleteFactureFailure(e.message));
     }
 }
-export const {getNbFacStart,getNbFacSuccess,getNbFacFailure,addFactureStart,addFactureSuccess,addFactureFailure,getFactureByIdStart,getFactureByIdSuccess,getFactureByIdFailure,updateFactureStart,updateFactureSuccess,updateFactureFailure,getAllFactNonValiderStart,getAllFactNonValiderSuccess,getAllFactNonValiderFailure,validerFactureStart,validerFactureSuccess,validerFactureFailure,getAllFactValiderStart,getAllFactValiderSuccess,getAllFactValiderFailure,deleteFactureStart,deleteFactureSuccess,deleteFactureFailure}= factureSlice.actions;
+export const {getNbFacStart,getNbFacSuccess,getNbFacFailure,addFactureStart,addFactureSuccess,addFactureFailure,getFactureByIdStart,getFactureByIdSuccess,getFactureByIdFailure,updateFactureStart,updateFactureSuccess,updateFactureFailure,getAllFactNonValiderStart,getAllFactNonValiderSuccess,getAllFactNonValiderFailure,validerFactureStart,validerFactureSuccess,validerFactureFailure,getAllFactValiderStart,getAllFactValiderSuccess,getAllFactValiderFailure,deleteFactureStart,deleteFactureSuccess,deleteFactureFailure,getAllDocsStart,getAllDocsSuccess,getAllDocsFailure}= factureSlice.actions;
 export default factureSlice.reducer;

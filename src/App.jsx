@@ -71,7 +71,20 @@ import AddRib from "./pages/rib/AddRib.jsx";
 import UpdateAdherFourn from "./pages/relations/adherFourn/updateAdherFourn.jsx";
 import AdherFourn from "./pages/relations/adherFourn/AdherFourn.jsx";
 import ListRib from "./pages/rib/ListRib.jsx";
-import UpdateRib from "./pages/rib/UpdateRib.jsx"; // Import the new component
+import UpdateRib from "./pages/rib/UpdateRib.jsx";
+import AddInCheque from "./pages/InCheque/AddInCheque.jsx";
+import ListInCheque from "./pages/InCheque/ListInCheque.jsx";
+import UpdateChequeIn from "./pages/InCheque/UpdateChequeIn.jsx";
+import AddInsFin from "./pages/insfin/AddInsFin.jsx";
+import ListInsFin from "./pages/insfin/ListInsFin.jsx";
+import UpdateInsFin from "./pages/insfin/updateInsfin.jsx";
+import AddInvirem from "./pages/invirem/AddInvirem.jsx";
+import GetAllInvirem from "./pages/invirem/GetAllInvirem.jsx";
+import UpdateInVirem from "./pages/invirem/updateInVirem.jsx";
+import TraitesLettrage from "./pages/lettrage/TraitesLettrage.jsx";
+import Lettrage from "./pages/lettrage/Lettrage.jsx";
+import AddProrog from "./pages/prorog/AddProrog.jsx";
+import ListProrog from "./pages/prorog/ListProrog.jsx"; // Import the new component
 
 function App() {
     const [theme, colorMode] = useMode();
@@ -354,7 +367,7 @@ function App() {
                                 <UpdateTraite/>
                             </RolesBasedRoute>
                         }/>
-                        <Route path="/all-traite" element={
+                        <Route path="/all-traites" element={
                             <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_ACHAT"]}>
                                 <GetAllTraite/>
                             </RolesBasedRoute>
@@ -386,6 +399,77 @@ function App() {
                                 <AcceptDemFin/>
                             </RolesBasedRoute>
                         }/>
+
+                        <Route path="/ajouter-in-cheque" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <AddInCheque/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        <Route path="/in-cheque" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <ListInCheque/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/modifier-in-cheque/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <UpdateChequeIn/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/ajouter-insfin" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <AddInsFin/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/insfins" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <ListInsFin/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/modifier-insfin/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <UpdateInsFin/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        <Route path="/ajouter-in-virem" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <AddInvirem/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/in-virems" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <GetAllInvirem/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/modifier-in-virem/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <UpdateInVirem/>
+                            </RolesBasedRoute>
+                        }/>
+
+                        <Route path="/list-traite-lettre" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <TraitesLettrage/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/lettrage/:id" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <Lettrage/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/ajouter-prorog" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <AddProrog/>
+                            </RolesBasedRoute>
+                        }/>
+                        <Route path="/list-prorog" element={
+                            <RolesBasedRoute allowedRoles={["ROLE_ADMIN", "ROLE_RES_FINANCEMENT"]}>
+                                <ListProrog/>
+                            </RolesBasedRoute>
+                        }/>
+                        {/* User Management - Admin Only */}
+
 
                         {/* Statistics Routes - Accessible to all authenticated users */}
                         <Route path="/chart-factures" element={<DocRemiseDetailView/>}/>

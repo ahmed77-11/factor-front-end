@@ -1,4 +1,4 @@
-// src/pages/Traite/AddTraite.jsx
+// src/pages/InCheque/CreateInCheque.jsx
 import { useEffect, useState } from "react";
 import {
     Box,
@@ -25,14 +25,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchContratsSigner } from "../../redux/contrat/ContratSlice.js";
 import { getPMById } from "../../redux/personne/PersonneMoraleSlice.js";
 import { getPPById } from "../../redux/personne/PersonnePhysiqueSlice.js";
-import { addTraite } from "../../redux/traite/traiteSlice.js";
+import { addInCheque } from "../../redux/inCheque/inChequeSlice.js";
 import { useNavigate } from "react-router-dom";
-import { fetchRelationsAsync, fetchAdherentsAsync } from "../../redux/relations/relationsSlice.js";
+import { fetchRelationsAsync } from "../../redux/relations/relationsSlice.js";
 import {
     allAdherRibs,
     allAchetPmRibs,
     allAchetPpRibs,
 } from "../../redux/rib/ribSlice.js";
+import { fetchAdherentsAsync } from "../../redux/relations/relationsSlice.js";
 
 // Validation schema
 const validationSchema = yup.object().shape({
@@ -49,26 +50,19 @@ const validationSchema = yup.object().shape({
         .date()
         .typeError("Date invalide")
         .required("Date de facture requise"),
-    numero: yup
-        .string()
-        .length(12, "Le numéro doit contenir exactement 12 caractères")
-        .required("Numéro de traite requis"),
-    tireEmisDate: yup
+    chequeNo: yup.string().max(7,"Numero Du Cheque doit comporter au maximum 7 caractères").required("Numéro de chèque requis"),
+    tireurEmisDate: yup
         .date()
         .typeError("Date invalide")
         .required("Date d'émission requise"),
-    tireEmisLieu: yup.string().required("Lieu d'émission requis"),
+    tireurEmisLieu: yup.string().required("Lieu d'émission requis"),
     rib: yup.mixed().required("RIB requis"),
-    tireNom: yup.string().required("Nom tireur requis"),
+    tireurEmisNom: yup.string().required("Nom tireur requis"),
     montant: yup
         .number()
         .typeError("Montant invalide")
         .required("Montant requis")
         .positive("Montant doit être positif"),
-    echeance: yup
-        .date()
-        .typeError("Date invalide")
-        .required("Date d'échéance requise"),
 });
 
 // Function to convert amount to French words
@@ -133,7 +127,7 @@ const convertAmountToWords = (amount, currencyCode) => {
         (fractionalWords ? ' et ' + fractionalWords : '');
 };
 
-const AddTraite = () => {
+const CreateInCheque = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const dispatch = useDispatch();
@@ -151,15 +145,19 @@ const AddTraite = () => {
     const { currentPM } = useSelector((state) => state.personneMorale);
     const { currentPP } = useSelector((state) => state.personnePhysique);
     const { relations } = useSelector((state) => state.relations);
-    const { loading } = useSelector((state) => state.traite);
+    const { loadingInCheque, errorInCheque } = useSelector(
+        (state) => state.inCheque
+    );
     const { ribs, loadingRib } = useSelector((state) => state.rib || {});
     const { adherents = [] } = useSelector((state) => state.relations);
 
+    // Load contracts and adherents on mount
     useEffect(() => {
         dispatch(fetchContratsSigner());
         dispatch(fetchAdherentsAsync());
     }, [dispatch]);
 
+    // Build adherent options
     const adherentOptions = (adherents || []).map((a) => ({
         id: a.id,
         adherFactorCode: a.adherFactorCode ?? a.factorAdherCode ?? "",
@@ -170,10 +168,12 @@ const AddTraite = () => {
         raw: a,
     }));
 
+    // Filter contrats by selected adherent
     const filteredContrats = (contrats || []).filter(
         (c) => !selectedAdherentId || c.adherent === selectedAdherentId
     );
 
+    // When contrat changes, fetch adherent details
     useEffect(() => {
         if (selectedContrat) {
             const contrat = selectedContrat;
@@ -184,10 +184,13 @@ const AddTraite = () => {
                 dispatch(getPPById(contrat.adherent));
                 setAdherType("pp");
             }
+
+            // Fetch relations for this adherent
             dispatch(fetchRelationsAsync(contrat.adherent));
         }
     }, [selectedContrat, dispatch]);
 
+    // Update adherent name when details are fetched
     useEffect(() => {
         if (selectedContrat) {
             if (
@@ -212,11 +215,13 @@ const AddTraite = () => {
         }
     }, [selectedContrat, currentPM, currentPP]);
 
+    // Extract acheteurs from relations
     useEffect(() => {
         if (relations && relations.length > 0) {
             const acheteursList = relations
                 .map((relation) => {
                     if (relation.acheteurMorale) {
+                        console.log("Acheteur Morale:", relation.acheteurMorale);
                         return {
                             id: relation.acheteurMorale.id,
                             pieceId: `${relation.acheteurMorale.typePieceIdentite?.dsg}${relation.acheteurMorale.numeroPieceIdentite}`,
@@ -243,8 +248,10 @@ const AddTraite = () => {
         }
     }, [relations]);
 
+    // Fetch RIBs depending on contract / acheteur selection
     useEffect(() => {
         if (!selectedContrat) return;
+
         if (selectedAcheteur) {
             if (selectedAcheteur.type === "pm") {
                 dispatch(allAchetPmRibs(selectedContrat.id, selectedAcheteur.id));
@@ -256,6 +263,7 @@ const AddTraite = () => {
         }
     }, [selectedContrat, selectedAcheteur, dispatch]);
 
+    // Apply adherent selection
     const applyAdherentSelection = (adherObj) => {
         if (!adherObj) {
             setSelectedAdherentId(null);
@@ -267,7 +275,7 @@ const AddTraite = () => {
 
     return (
         <Box m="20px">
-            <Header title="Traite" subtitle="Créer une nouvelle traite" />
+            <Header title="Chèque Entrant" subtitle="Créer un nouveau chèque entrant" />
             <Card
                 sx={{
                     p: 3,
@@ -283,13 +291,12 @@ const AddTraite = () => {
                             acheteurPresent: false,
                             acheteur: null,
                             factorDate: "",
-                            numero: "",
-                            tireEmisDate: "",
-                            tireEmisLieu: "",
+                            chequeNo: "",
+                            tireurEmisDate: "",
+                            tireurEmisLieu: "",
                             rib: null,
-                            tireNom: "",
+                            tireurEmisNom: "",
                             montant: "",
-                            echeance: "",
                         }}
                         validationSchema={validationSchema}
                         onSubmit={(values) => {
@@ -297,20 +304,20 @@ const AddTraite = () => {
                                 contrat: values.contrat,
                                 acheteurPresent: values.acheteurPresent,
                                 acheteurId: values.acheteurPresent ? values.acheteur.id : null,
-                                acheteurType: values.acheteurPresent ? values.acheteur.type : null,
-                                adherFactorCode: adherType === "pm" ? currentPM?.factorAdherCode : currentPP?.factorAdherCode,
-                                achetFactorCode: values.acheteurPresent ? values.acheteur.factorAchetCode : null,
+                                acheteurType: values.acheteurPresent  ? values.acheteur.type : null,
+                                tireurFactorAdherCode:adherType === "pm" ? currentPM?.factorAdherCode : currentPP?.factorAdherCode,
+
+                                tireurFactorAchetCode:values.acheteurPresent===true? values.acheteur.factorAchetCode : null,
                                 factorDate: values.factorDate,
-                                numero: values.numero,
-                                tireEmisDate: values.tireEmisDate,
-                                tireEmisLieu: values.tireEmisLieu,
-                                tireRib: values.rib ? values.rib.rib : null,
-                                tireNom: values.tireNom,
-                                montant: Number(values.montant), // raw number, no formatting
-                                devise: values.contrat.devise,
-                                echFirst: values.echeance,
+                                chequeNo: values.chequeNo,
+                                tireurEmisDate: values.tireurEmisDate,
+                                tireurEmisLieu: values.tireurEmisLieu,
+                                tireurEmisRib: values.rib ? values.rib.rib : null,
+                                tireurEmisNom: values.tireurEmisNom,
+                                montant: Number(values.montant),
+                                deviseId: values.contrat.devise.id,
                             };
-                            dispatch(addTraite(payload, navigate));
+                            dispatch(addInCheque(payload, navigate));
                         }}
                     >
                         {({
@@ -330,6 +337,7 @@ const AddTraite = () => {
                                     <Grid container spacing={2}>
                                         {/* Three autocompletes for adherent selection */}
                                         <Grid container item xs={12} spacing={2}>
+                                            {/* Factor Code Autocomplete */}
                                             <Grid item xs={4}>
                                                 <Autocomplete
                                                     options={adherentOptions}
@@ -354,6 +362,7 @@ const AddTraite = () => {
                                                 />
                                             </Grid>
 
+                                            {/* Identity Autocomplete */}
                                             <Grid item xs={4}>
                                                 <Autocomplete
                                                     options={adherentOptions}
@@ -378,6 +387,7 @@ const AddTraite = () => {
                                                 />
                                             </Grid>
 
+                                            {/* Contrat Autocomplete */}
                                             <Grid item xs={4}>
                                                 <Autocomplete
                                                     options={filteredContrats}
@@ -407,6 +417,7 @@ const AddTraite = () => {
                                             </Grid>
                                         </Grid>
 
+                                        {/* Devise Field */}
                                         <Grid item xs={12}>
                                             {values.contrat ? (
                                                 <TextField
@@ -420,10 +431,10 @@ const AddTraite = () => {
                                             )}
                                         </Grid>
 
-                                        {/* Acheteur present (radio) */}
+                                        {/* Acheteur present (radio) & Acheteur select (pair) */}
                                         <Grid item xs={6}>
                                             <FormControl component="fieldset" fullWidth>
-                                                <Typography fontWeight="bold">Tireur De La Traite ?</Typography>
+                                                <Typography fontWeight="bold">Tireur Du Chéque ?</Typography>
                                                 <RadioGroup
                                                     row
                                                     name="acheteurPresent"
@@ -444,7 +455,6 @@ const AddTraite = () => {
                                                 </FormHelperText>
                                             </FormControl>
                                         </Grid>
-
                                         <Grid item xs={6}>
                                             {values.acheteurPresent ? (
                                                 <Grid container spacing={2}>
@@ -494,7 +504,7 @@ const AddTraite = () => {
                                             )}
                                         </Grid>
 
-                                        {/* factorDate & numero */}
+                                        {/* factorDate & chequeNo (pair) */}
                                         <Grid item xs={6}>
                                             <TextField
                                                 label="Date de factor"
@@ -511,30 +521,29 @@ const AddTraite = () => {
                                         </Grid>
                                         <Grid item xs={6}>
                                             <TextField
-                                                label="Numéro de traite"
+                                                label="Numéro de chèque"
                                                 fullWidth
-                                                name="numero"
-                                                value={values.numero}
+                                                name="chequeNo"
+                                                value={values.chequeNo}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
-                                                error={!!touched.numero && !!errors.numero}
-                                                helperText={touched.numero && errors.numero}
-                                                inputProps={{ maxLength: 12 }}
+                                                error={!!touched.chequeNo && !!errors.chequeNo}
+                                                helperText={touched.chequeNo && errors.chequeNo}
                                             />
                                         </Grid>
 
-                                        {/* tireEmisDate & tireEmisLieu */}
+                                        {/* tireurEmisDate & tireurEmisLieu (pair) */}
                                         <Grid item xs={6}>
                                             <TextField
                                                 label="Date d'émission"
                                                 fullWidth
                                                 type="date"
-                                                name="tireEmisDate"
-                                                value={values.tireEmisDate}
+                                                name="tireurEmisDate"
+                                                value={values.tireurEmisDate}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
-                                                error={!!touched.tireEmisDate && !!errors.tireEmisDate}
-                                                helperText={touched.tireEmisDate && errors.tireEmisDate}
+                                                error={!!touched.tireurEmisDate && !!errors.tireurEmisDate}
+                                                helperText={touched.tireurEmisDate && errors.tireurEmisDate}
                                                 InputLabelProps={{ shrink: true }}
                                             />
                                         </Grid>
@@ -542,16 +551,16 @@ const AddTraite = () => {
                                             <TextField
                                                 label="Lieu d'émission"
                                                 fullWidth
-                                                name="tireEmisLieu"
-                                                value={values.tireEmisLieu}
+                                                name="tireurEmisLieu"
+                                                value={values.tireurEmisLieu}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
-                                                error={!!touched.tireEmisLieu && !!errors.tireEmisLieu}
-                                                helperText={touched.tireEmisLieu && errors.tireEmisLieu}
+                                                error={!!touched.tireurEmisLieu && !!errors.tireurEmisLieu}
+                                                helperText={touched.tireurEmisLieu && errors.tireurEmisLieu}
                                             />
                                         </Grid>
 
-                                        {/* RIB & Nom tireur */}
+                                        {/* RIB (autocomplete) & Nom tireur (pair) */}
                                         <Grid item xs={6}>
                                             <Autocomplete
                                                 options={ribs || []}
@@ -585,16 +594,16 @@ const AddTraite = () => {
                                             <TextField
                                                 label="Nom tireur"
                                                 fullWidth
-                                                name="tireNom"
-                                                value={values.tireNom}
+                                                name="tireurEmisNom"
+                                                value={values.tireurEmisNom}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
-                                                error={!!touched.tireNom && !!errors.tireNom}
-                                                helperText={touched.tireNom && errors.tireNom}
+                                                error={!!touched.tireurEmisNom && !!errors.tireurEmisNom}
+                                                helperText={touched.tireurEmisNom && errors.tireurEmisNom}
                                             />
                                         </Grid>
 
-                                        {/* Montant & Montant en lettres */}
+                                        {/* montant & montant en lettres */}
                                         <Grid item xs={6}>
                                             <TextField
                                                 label={`Montant (${decimalPlaces} décimales max)`}
@@ -643,34 +652,19 @@ const AddTraite = () => {
                                             />
                                         </Grid>
 
-                                        {/* échéance */}
-                                        <Grid item xs={12}>
-                                            <TextField
-                                                label="Date d'échéance"
-                                                fullWidth
-                                                type="date"
-                                                name="echeance"
-                                                value={values.echeance}
-                                                onChange={handleChange}
-                                                onBlur={handleBlur}
-                                                error={!!touched.echeance && !!errors.echeance}
-                                                helperText={touched.echeance && errors.echeance}
-                                                InputLabelProps={{ shrink: true }}
-                                            />
-                                        </Grid>
-
+                                        {/* Submit - full width centered */}
                                         <Grid item xs={12}>
                                             <Box textAlign="center" mt={2}>
                                                 <Button
                                                     type="submit"
                                                     variant="contained"
                                                     color="secondary"
-                                                    disabled={loading}
+                                                    disabled={loadingInCheque}
                                                 >
-                                                    {loading ? (
+                                                    {loadingInCheque ? (
                                                         <CircularProgress size={24} />
                                                     ) : (
-                                                        "Créer la traite"
+                                                        "Créer le chèque"
                                                     )}
                                                 </Button>
                                             </Box>
@@ -686,4 +680,4 @@ const AddTraite = () => {
     );
 };
 
-export default AddTraite;
+export default CreateInCheque;

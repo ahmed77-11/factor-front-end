@@ -1,10 +1,12 @@
 import {createSlice} from "@reduxjs/toolkit";
 import axios from "axios";
+import {findPMByIdFailure, findPMByIdStart, findPMByIdSuccess} from "./PersonneMoraleSlice.js";
 
 
 const initialState={
     personnePhysiques:[],
     currentPP: null, // add a field to store a single person's data
+    currentPPByAchetCode: null, // store a single personne physique by achat code
     errorPP:null,
     loadingPP:false,
 };
@@ -33,6 +35,17 @@ const ppSlice=createSlice({
 
         },
         findPPByIdFailure:(state,action)=>{
+            state.loadingPP=false;
+            state.errorPP=action.payload;
+        },
+        findPPByIdAchetCodeStart:(state)=>{
+            state.loadingPP=true;
+        },
+        findPPByIdAchetCodeSuccess:(state,action)=>{
+            state.loadingPP=false;
+            state.currentPPByAchetCode=action.payload;
+        },
+        findPPByIdAchetCodeFailure:(state,action)=>{
             state.loadingPP=false;
             state.errorPP=action.payload;
         },
@@ -116,6 +129,24 @@ export const getPPById=(id)=>async (dispatch)=>{
         dispatch(findPPByIdFailure(e.response.data));
     }
 }
+export const getPPByAchetCode = (achetCode) => async (dispatch) => {
+    dispatch(findPPByIdAchetCodeStart());
+    try {
+        const response = await axios.get(
+            `http://localhost:8081/factoring/api/pp/get-pp-achet/${achetCode}`,
+            { withCredentials: true }
+        );
+
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+
+        // Make sure response.data is a single PM object
+        dispatch(findPPByIdAchetCodeSuccess(response.data));
+    } catch (e) {
+        dispatch(findPPByIdAchetCodeFailure(e.response?.data || e.message));
+    }
+};
 export const updatePP=(id,data,navigate)=>async(dispatch)=>{
     dispatch(updatePPStart());
     try {
@@ -175,5 +206,5 @@ export const getPPByAchetSansAccord=()=>async (dispatch)=>{
     }
 }
 
-export const {addPPStart,addPPSuccess,addPPFailure,allPPStart,allPPSuccess,allPPFailure,findPPByIdStart,findPPByIdSuccess,findPPByIdFailure,updatePPStart,updatePPSuccess,updatePPFailure,deletePPStart,deletePPSuccess,deletePPFailure}=ppSlice.actions;
+export const {addPPStart,addPPSuccess,addPPFailure,allPPStart,allPPSuccess,allPPFailure,findPPByIdStart,findPPByIdSuccess,findPPByIdFailure,findPPByIdAchetCodeStart,findPPByIdAchetCodeSuccess,findPPByIdAchetCodeFailure,updatePPStart,updatePPSuccess,updatePPFailure,deletePPStart,deletePPSuccess,deletePPFailure}=ppSlice.actions;
 export default ppSlice.reducer;

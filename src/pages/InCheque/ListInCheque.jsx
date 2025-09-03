@@ -34,19 +34,17 @@ import { getPMById } from "../../redux/personne/PersonneMoraleSlice.js";
 import { getPPById } from "../../redux/personne/PersonnePhysiqueSlice.js";
 import DeletePopup from "../../components/DeletePopup.jsx";
 import {
-    getAllTraitesEnAttente,
-    getAllTraitesEncaisee,
-    getAllTraitesPaye,
-    getAllTraitesRejetee,
-    getAllTraitesEnAttenteByContratAndAchetCode,
-    getAllTraitesEncaiseeByContratAndAchetCode,
-    getAllTraitesPayeByContratAndAchetCode,
-    getAllTraitesRejeteeByContratAndAchetCode,
-    deleteTraite,
-    updateTraite
-} from "../../redux/traite/traiteSlice.js";
+    getAllInChequeEncaisse,
+    getAllInChequeEnAttente,
+    getAllInChequePaye,
+    getAllInChequeRejete,
+    fetchInChequesByAchetEnAttente,
+    fetchInChequesByAchetEncaisse,
+    fetchInChequesByAchetPaye,
+    fetchInChequesByAchetRejete, deleteInChequeAsync,
+} from "../../redux/inCheque/inChequeSlice.js";
 
-const InTraite = () => {
+const InCheque = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const theme = useTheme();
@@ -59,21 +57,21 @@ const InTraite = () => {
     const { currentPP } = useSelector((state) => state.personnePhysique || {});
 
     const {
-        inTraiteEnAttente,
-        inTraiteEncaisee,
-        inTraitePaye,
-        inTraiteRejetee,
+        inChequeEnAttente,
+        inChequeEncaisse,
+        inChequePaye,
+        inChequeRejete,
         loading,
         error,
-    } = useSelector((state) => state.traite);
+    } = useSelector((state) => state.inCheque);
 
     // --- local state
     const [selectedAdherent, setSelectedAdherent] = useState(null);
     const [selectedAdherentId, setSelectedAdherentId] = useState(null);
-    const [selectedContrat, setSelectedContrat] = useState(null);
+    const [selectedContrat, setSelectedContrat] = useState(null); // contrat chosen from contracts list
     const [adherentName, setAdherentName] = useState("");
 
-    // Build adherent options
+    // Build adherent options like in CreateInCheque (factor code + identity label)
     const adherentOptions = (adherents || []).map((a) => ({
         id: a.id,
         adherFactorCode: a.adherFactorCode ?? a.factorAdherCode ?? "",
@@ -84,28 +82,28 @@ const InTraite = () => {
         raw: a,
     }));
 
-    // Filter contrats by selected adherent id
+    // Filter contrats by selected adherent id (same as Add component)
     const filteredContrats = (contrats || []).filter(
         (c) => !selectedAdherentId || c.adherent === selectedAdherentId
     );
 
     const [acheteurs, setAcheteurs] = useState([]);
-    const [selectedAcheteur, setSelectedAcheteur] = useState(null);
+    const [selectedAcheteur, setSelectedAcheteur] = useState(null); // used when chequesOfAcheteur === 'oui'
 
     // which status grid to show
     const [selectedStatus, setSelectedStatus] = useState("EN_ATTENTE");
 
-    // traites of acheteur: 'oui'|'non'
-    const [traitesOfAcheteur, setTraitesOfAcheteur] = useState("non");
+    // cheques of acheteur: 'oui'|'non'
+    const [chequesOfAcheteur, setChequesOfAcheteur] = useState("non");
 
-    // acheteur selections (when traitesOfAcheteur === 'oui')
+    // acheteur selections (when chequesOfAcheteur === 'oui') - two autocompletes (id & name)
     const [selectedAcheteurById, setSelectedAcheteurById] = useState(null);
     const [selectedAcheteurByName, setSelectedAcheteurByName] = useState(null);
 
     // delete/status modal state
     const [openDelete, setOpenDelete] = useState(false);
     const [openStatusChange, setOpenStatusChange] = useState(false);
-    const [selectedTraite, setSelectedTraite] = useState(null);
+    const [selectedCheque, setSelectedCheque] = useState(null);
     const [newStatus, setNewStatus] = useState("");
     const [statusOptions] = useState([
         { value: "EN_ATTENTE", label: "En attente" },
@@ -114,13 +112,13 @@ const InTraite = () => {
         { value: "REJETE", label: "Rejeté" },
     ]);
 
-    // Load adherents and contrats
+    // Load adherents and contrats (like CreateInCheque)
     useEffect(() => {
         dispatch(fetchAdherentsAsync());
         dispatch(fetchContratsSigner());
     }, [dispatch]);
 
-    // Apply adherent selection helper
+    // Apply adherent selection helper (same behavior as CreateInCheque)
     const applyAdherentSelection = (adherObj) => {
         if (!adherObj) {
             setSelectedAdherentId(null);
@@ -133,7 +131,7 @@ const InTraite = () => {
         setSelectedContrat(null);
     };
 
-    // When contrat changes, fetch adherent details (PM/PP) and relations (acheteurs)
+    // When contrat changes, fetch adherent details (PM/PP) and relations (acheteurs), like in Add
     useEffect(() => {
         if (selectedContrat) {
             const contrat = selectedContrat;
@@ -149,7 +147,7 @@ const InTraite = () => {
         }
     }, [selectedContrat, dispatch]);
 
-    // Update adherentName when details are fetched
+    // Update adherentName when details are fetched (same as Add)
     useEffect(() => {
         if (selectedContrat) {
             if (selectedContrat.contratNo && selectedContrat.contratNo.startsWith("RNE") && currentPM) {
@@ -164,7 +162,7 @@ const InTraite = () => {
         }
     }, [selectedContrat, currentPM, currentPP]);
 
-    // Build acheteurs from relations
+    // Build acheteurs from relations like in CreateInCheque
     useEffect(() => {
         if (relations && relations.length > 0) {
             const acheteursList = relations
@@ -196,32 +194,33 @@ const InTraite = () => {
         }
     }, [relations]);
 
-    // helper to extract acheteur code
+    // helper to extract acheteur code (adjust to your real field)
     const getAcheteurCode = (acheteur) => acheteur?.raw?.factorAchetCode || acheteur?.raw?.code || acheteur?.id || null;
-
-    // fetch data whenever filters change
+    // fetch data whenever filters change: require explicit selectedContrat (don't use first contrat fallback)
     useEffect(() => {
+        // if no contract selected, don't fetch anything — user requested empty grid until selection
         if (!selectedContrat) return;
 
         const contratId = selectedContrat.id;
 
-        if (traitesOfAcheteur === "oui") {
+        if (chequesOfAcheteur === "oui") {
             const chosenAcheteur = selectedAcheteurById || selectedAcheteurByName || selectedAcheteur;
             const acheteurCode = getAcheteurCode(chosenAcheteur);
+            // if user chose to filter by acheteur but didn't select one yet, don't fetch
             if (!acheteurCode) return;
 
             switch (selectedStatus) {
                 case "EN_ATTENTE":
-                    dispatch(getAllTraitesEnAttenteByContratAndAchetCode(contratId, acheteurCode));
+                    dispatch(fetchInChequesByAchetEnAttente(contratId, acheteurCode));
                     break;
                 case "ENCAISSE":
-                    dispatch(getAllTraitesEncaiseeByContratAndAchetCode(contratId, acheteurCode));
+                    dispatch(fetchInChequesByAchetEncaisse(contratId, acheteurCode));
                     break;
                 case "PAYE":
-                    dispatch(getAllTraitesPayeByContratAndAchetCode(contratId, acheteurCode));
+                    dispatch(fetchInChequesByAchetPaye(contratId, acheteurCode));
                     break;
                 case "REJETE":
-                    dispatch(getAllTraitesRejeteeByContratAndAchetCode(contratId, acheteurCode));
+                    dispatch(fetchInChequesByAchetRejete(contratId, acheteurCode));
                     break;
                 default:
                     break;
@@ -229,36 +228,34 @@ const InTraite = () => {
         } else {
             switch (selectedStatus) {
                 case "EN_ATTENTE":
-                    dispatch(getAllTraitesEnAttente(contratId));
+                    dispatch(getAllInChequeEnAttente(contratId));
                     break;
                 case "ENCAISSE":
-                    dispatch(getAllTraitesEncaisee(contratId));
+                    dispatch(getAllInChequeEncaisse(contratId));
                     break;
                 case "PAYE":
-                    dispatch(getAllTraitesPaye(contratId));
+                    dispatch(getAllInChequePaye(contratId));
                     break;
                 case "REJETE":
-                    dispatch(getAllTraitesRejetee(contratId));
+                    dispatch(getAllInChequeRejete(contratId));
                     break;
                 default:
                     break;
             }
         }
-    }, [selectedContrat, selectedStatus, traitesOfAcheteur, selectedAcheteurById, selectedAcheteurByName, selectedAcheteur, dispatch]);
+    }, [selectedContrat, selectedStatus, chequesOfAcheteur, selectedAcheteurById, selectedAcheteurByName, selectedAcheteur, dispatch]);
 
     // handlers
     const handleAdherentChange = (event, newValue) => {
+        // newValue is from adherentOptions: its .raw is the full adherent object
         applyAdherentSelection(newValue?.raw || null);
     };
-
     const handleContratChange = (event, newValue) => setSelectedContrat(newValue);
-
     const handleAcheteurByIdChange = (event, newValue) => {
         setSelectedAcheteurById(newValue || null);
         setSelectedAcheteur(newValue || null);
         setSelectedAcheteurByName(newValue || null);
     };
-
     const handleAcheteurByNameChange = (event, newValue) => {
         setSelectedAcheteurByName(newValue || null);
         setSelectedAcheteur(newValue || null);
@@ -266,32 +263,30 @@ const InTraite = () => {
     };
 
     const handleDeleteClick = (id) => {
-        setSelectedTraite(id);
+        setSelectedCheque(id);
         setOpenDelete(true);
     };
 
-    const handleStatusChangeClick = (traite, status) => {
-        setSelectedTraite(traite);
+    const handleStatusChangeClick = (cheque, status) => {
+        setSelectedCheque(cheque);
         setNewStatus(status);
         setOpenStatusChange(true);
     };
 
     const handleConfirmStatusChange = () => {
-        if (selectedTraite && newStatus) {
-            dispatch(updateTraite(selectedTraite.id, newStatus));
-        }
+        // dispatch update thunk when available
         setOpenStatusChange(false);
     };
 
     const handleConfirmDelete = () => {
         setOpenDelete(false);
-        if (!selectedTraite) return;
-        dispatch(deleteTraite(selectedTraite, navigate));
-        setSelectedTraite(null);
+        if (!selectedCheque) return;
+        dispatch(deleteInChequeAsync(selectedCheque, navigate));
+        setSelectedCheque(null);
     };
 
-    const handleNavigateToAdd = () => navigate("/ajouter-traite");
-    const handleNavigateToEdit = (id) => navigate(`/modifier-traite/${id}`);
+    const handleNavigateToAdd = () => navigate("/ajouter-in-cheque");
+    const handleNavigateToEdit = (id) => navigate(`/modifier-in-cheque/${id}`);
 
     const commonColumns = [
         {
@@ -300,20 +295,20 @@ const InTraite = () => {
             flex: 1,
             renderCell: (params) => params.row.contrat?.contratNo || "",
         },
-        { field: "numero", headerName: "Numéro Traite", flex: 1.25 },
+        { field: "chequeNo", headerName: "Numéro Chèque", flex: 1.25 },
         {
-            field: "factorDate",
-            headerName: "Date Factor",
+            field: "tireurEmisDate",
+            headerName: "Date Émission",
             flex: 0.75,
             renderCell: (params) => (params.value ? new Date(params.value).toLocaleDateString() : ""),
         },
-        { field: "tireNom", headerName: "Nom du Tiré", flex: 1 },
         {
             field: "montant",
             headerName: "Montant",
             flex: 0.5,
-            headerAlign: "left",
-            align: "right",
+            headerAlign: "left", // align header text
+            align: "right",         // align cell content
+
             renderCell: (params) => {
                 const devise = params.row?.contrat.devise?.codeAlpha;
                 let fractionDigits = 0;
@@ -331,10 +326,11 @@ const InTraite = () => {
 
                 return `${formatted} ${devise || ""}`;
             },
-
-    },
+        },
+        { field: "tireurEmisNom", headerName: "Tireur", flex: 0.5,align: "center",headerAlign: "center" },
+        { field: "tireurEmisRib", headerName: "RIB Tireur", flex: 1 },
         {
-            field: "statutMoyPai",
+            field: "statusMoyPai",
             headerName: "Statut",
             flex: 1,
             renderCell: (params) => (
@@ -348,7 +344,7 @@ const InTraite = () => {
                                     ? "blue"
                                     : "red"
                     }
-                    sx={{ fontWeight: "bold", textTransform: "capitalize", display: "inline-block" }}
+                    sx={{ fontWeight: "bold", textTransform: "capitalize",display: "inline-block" }}
                 >
                     {params.value?.dsg}
                 </Typography>
@@ -394,13 +390,13 @@ const InTraite = () => {
     const getCurrentDataForStatus = () => {
         switch (selectedStatus) {
             case "EN_ATTENTE":
-                return inTraiteEnAttente;
+                return inChequeEnAttente;
             case "ENCAISSE":
-                return inTraiteEncaisee;
+                return inChequeEncaisse;
             case "PAYE":
-                return inTraitePaye;
+                return inChequePaye;
             case "REJETE":
-                return inTraiteRejetee;
+                return inChequeRejete;
             default:
                 return [];
         }
@@ -413,17 +409,19 @@ const InTraite = () => {
         0
     );
 
-    // show grid only when user explicitly selected a contract
-    const shouldShowGrid = !!selectedContrat && (traitesOfAcheteur === "non" || !!(selectedAcheteur || selectedAcheteurById || selectedAcheteurByName));
+    // show grid only when user explicitly selected a contract. If filtering by acheteur, require acheteur selection too.
+    const shouldShowGrid = !!selectedContrat && (chequesOfAcheteur === "non" || !!(selectedAcheteur || selectedAcheteurById || selectedAcheteurByName));
 
     return (
         <Box m="20px">
             <Box display={"flex"} alignItems={"center"} justifyContent={"space-between"}>
-                <Header title="Gestion des Traites" subtitle="Suivi des traites entrantes" />
-                <Button variant="contained" color="secondary" onClick={handleNavigateToAdd} sx={{ height: "100%", marginBottom: 3.5 }}>
-                    Ajouter Traite
+
+            <Header title="Gestion des Chèques" subtitle="Suivi des chèques entrants" />
+                <Button variant="contained" color="secondary"  onClick={handleNavigateToAdd} sx={{ height: "100%" ,marginBottom:3.5}}>
+                    Ajouter Chèque
                 </Button>
             </Box>
+
 
             {error && (
                 <Box my={2}>
@@ -435,7 +433,7 @@ const InTraite = () => {
 
             {/* ---------- CONTROLS: 2 LINES ---------- */}
 
-            {/* LINE 1: Adherent (3-autocompletes) */}
+            {/* LINE 1: Adherent (3-autocompletes like Add) */}
             <Card sx={{ mb: 2, p: 2, backgroundColor: colors.grey[900] }}>
                 <Grid container spacing={2}>
                     <Grid item xs={12} md={4}>
@@ -481,7 +479,7 @@ const InTraite = () => {
                 </Grid>
             </Card>
 
-            {/* LINE 2: Status type + Traites of Acheteur toggle + Acheteur autocompletes (shown when 'oui') */}
+            {/* LINE 2: Status type + Cheques of Acheteur toggle + Acheteur autocompletes (shown when 'oui') */}
             <Card sx={{ mb: 3, p: 2, backgroundColor: colors.grey[900] }}>
                 <Grid container spacing={2} alignItems="center">
                     <Grid item xs={12} md={3}>
@@ -504,13 +502,13 @@ const InTraite = () => {
 
                     <Grid item xs={12} md={3}>
                         <FormControl fullWidth>
-                            <InputLabel id="traites-of-acheteur-label">Traites d'acheteurs</InputLabel>
+                            <InputLabel id="cheques-of-acheteur-label">Chèques d'acheteurs</InputLabel>
                             <Select
-                                labelId="traites-of-acheteur-label"
-                                value={traitesOfAcheteur}
-                                label="Traites d'acheteurs"
+                                labelId="cheques-of-acheteur-label"
+                                value={chequesOfAcheteur}
+                                label="Chèques d'acheteurs"
                                 onChange={(e) => {
-                                    setTraitesOfAcheteur(e.target.value);
+                                    setChequesOfAcheteur(e.target.value);
                                     if (e.target.value === "non") {
                                         setSelectedAcheteurById(null);
                                         setSelectedAcheteurByName(null);
@@ -524,8 +522,9 @@ const InTraite = () => {
                         </FormControl>
                     </Grid>
 
+
                     {/* Acheteur autocompletes when oui */}
-                    {traitesOfAcheteur === "oui" && (
+                    {chequesOfAcheteur === "oui" && (
                         <>
                             <Grid item xs={12} md={3}>
                                 <Autocomplete
@@ -556,24 +555,26 @@ const InTraite = () => {
                 <Grid item xs={12}>
                     <Card sx={{ p: 2, backgroundColor: colors.grey[900], mb: 3 }}>
                         <Typography variant="h6" gutterBottom>
-                            {selectedStatus === "EN_ATTENTE" && "Traites en Attente"}
-                            {selectedStatus === "ENCAISSE" && "Traites Encaissées"}
-                            {selectedStatus === "PAYE" && "Traites Payées"}
-                            {selectedStatus === "REJETE" && "Traites Rejetées"}
+                            {selectedStatus === "EN_ATTENTE" && "Chèques en Attente"}
+                            {selectedStatus === "ENCAISSE" && "Chèques Encaissés"}
+                            {selectedStatus === "PAYE" && "Chèques Payés"}
+                            {selectedStatus === "REJETE" && "Chèques Rejetés"}
                         </Typography>
 
                         <Box
                             sx={{
                                 height: 500,
-                                "& .MuiDataGrid-root": { border: "none", zIndex: 65 },
+                                "& .MuiDataGrid-root": { border: "none",zIndex:65 },
                                 "& .MuiDataGrid-cell": { borderBottom: `1px solid ${colors.blueAccent[500]}`, fontSize: "12px" },
                                 "& .MuiDataGrid-columnHeader": { backgroundColor: colors.blueAccent[700], fontSize: "14px" },
                                 "& .MuiDataGrid-footerContainer": { backgroundColor: colors.blueAccent[700] },
                                 "& .MuiCheckbox-root": { color: `${colors.greenAccent[200]} !important` },
                                 "& .MuiDataGrid-toolbarContainer .MuiButton-text": { color: `${colors.grey[100]} !important` },
+                                // "& .MuiTypography-root .MuiTypography-h6": { color: colors.grey[100]+" !important"  },
                             }}
                         >
                             {shouldShowGrid ? (
+                                <>
                                 <DataGrid
                                     rows={currentGridData || []}
                                     columns={[...commonColumns, actionsColumn(selectedStatus)]}
@@ -583,19 +584,25 @@ const InTraite = () => {
                                     localeText={localeText}
                                     getRowId={(row) => row.id}
                                     loading={loading}
+
                                 />
+
+                                </>
+
                             ) : (
                                 <Box p={2}>
-                                    <Typography variant="body2">Veuillez sélectionner un contrat{traitesOfAcheteur === "oui" ? " et un acheteur" : ""} pour afficher les traites.</Typography>
+                                    <Typography variant="body2">Veuillez sélectionner un contrat{chequesOfAcheteur === "oui" ? " et un acheteur" : ""} pour afficher les chèques.</Typography>
                                 </Box>
                             )}
+
                         </Box>
+
 
                         <Box p={2} display="flex" justifyContent="flex-start">
                             <Typography
                                 variant="h6"
                                 sx={{
-                                    color: `${colors.grey[100]} !important`,
+                                    color: `${colors.grey[100]} !important`, // force text color
                                 }}
                             >
                                 Total Montant: {totalMontant.toLocaleString()}{" "}
@@ -611,19 +618,19 @@ const InTraite = () => {
                 open={openDelete}
                 onClose={() => setOpenDelete(false)}
                 onConfirm={handleConfirmDelete}
-                title="Supprimer la traite"
-                message="Êtes-vous sûr de vouloir supprimer cette traite ?"
+                title="Supprimer le chèque"
+                message="Êtes-vous sûr de vouloir supprimer ce chèque ?"
             />
 
             {/* Status Change Confirmation */}
             <Dialog open={openStatusChange} onClose={() => setOpenStatusChange(false)}>
-                <DialogTitle>Changer le statut de la traite {selectedTraite?.numero}</DialogTitle>
+                <DialogTitle>Changer le statut du chèque {selectedCheque?.chequeNo}</DialogTitle>
                 <DialogContent>
                     <Typography variant="body1" mb={2}>
-                        Vous êtes sur le point de changer le statut de cette traite:
+                        Vous êtes sur le point de changer le statut de ce chèque:
                     </Typography>
                     <Typography variant="h6" mb={2}>
-                        Ancien statut: {selectedTraite?.statusMoyPai?.dsg}
+                        Ancien statut: {selectedCheque?.statusMoyPai?.dsg}
                     </Typography>
                     <Typography variant="h6">Nouveau statut: {statusOptions.find((opt) => opt.value === newStatus)?.label}</Typography>
                 </DialogContent>
@@ -640,4 +647,4 @@ const InTraite = () => {
     );
 };
 
-export default InTraite;
+export default InCheque;

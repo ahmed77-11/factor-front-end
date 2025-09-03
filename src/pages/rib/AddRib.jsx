@@ -16,7 +16,7 @@ import {
     useTheme,
     Autocomplete,
     MenuItem,
-    Select,
+    Select, Grid,
 } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
@@ -24,12 +24,12 @@ import Header from "../../components/Header.jsx";
 import { tokens } from "../../theme.js";
 import { useBanque } from "../../customeHooks/useBanque.jsx";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchContratsSigner } from "../../redux/contrat/ContratSlice.js";
+import { fetchContratsSigner, fetchContratsByAdherentAsync } from "../../redux/contrat/ContratSlice.js";
 import { getPMById } from "../../redux/personne/PersonneMoraleSlice.js";
 import { getPPById } from "../../redux/personne/PersonnePhysiqueSlice.js";
-import {fetchRelationsAsync, fetchRelationsFournAsync} from "../../redux/relations/relationsSlice.js";
-import {useNavigate} from "react-router-dom";
-import {addRib} from "../../redux/rib/ribSlice.js";
+import { fetchRelationsAsync, fetchRelationsFournAsync, fetchAdherentsAsync } from "../../redux/relations/relationsSlice.js";
+import { useNavigate } from "react-router-dom";
+import { addRib } from "../../redux/rib/ribSlice.js";
 
 // RIB validation function (same as in AddTraite)
 const validerRib = (value) => {
@@ -47,21 +47,27 @@ const validerRib = (value) => {
 
 // Initial values
 const initialValues = {
-    contrat: null,
+    // adherent-related
+    adherentId: "",           // id of adherent (from fetchAdherentsAsync)
+    adherFactorCode: "",      // factor/adherent code (for the first autocomplete)
+    contrat: null,            // full contrat object
     role: "",
     adherentName: "",
+    // acheteur / fournisseur
     achetType: "",
     achetPmId: null,
     achetPpId: null,
     fournType: "",
     fournPmId: null,
     fournPpId: null,
+    // banque / rib
     banqueCode: "",
     ribSuffix: "",
 };
 
 // Validation schema
 const validationSchema = yup.object().shape({
+    adherentId: yup.mixed().required("Adhérent requis"),
     contrat: yup.object().required("Contrat requis"),
     role: yup.string().required("Le rôle est requis"),
 
@@ -117,7 +123,7 @@ const AddRib = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const dispatch = useDispatch();
-    const navigate=useNavigate();
+    const navigate = useNavigate();
 
     const [selectedAdherentId, setSelectedAdherentId] = useState(null);
     const [selectedContratNo, setSelectedContratNo] = useState(null);
@@ -127,37 +133,52 @@ const AddRib = () => {
     const { contrats } = useSelector((state) => state.contrat);
     const { currentPM } = useSelector((state) => state.personneMorale);
     const { currentPP } = useSelector((state) => state.personnePhysique);
-    const { relations,relationsFourns } = useSelector((state) => state.relations);
-    const {loadingRib, errorRib} = useSelector((state) => state.rib);
-    // Load contrats
+    const { relations, relationsFourns, adherents = [] } = useSelector((state) => state.relations);
+    const { loadingRib, errorRib } = useSelector((state) => state.rib);
+
+    // On mount: load initial lists
     useEffect(() => {
         dispatch(fetchContratsSigner());
+        dispatch(fetchAdherentsAsync());
     }, [dispatch]);
 
-    // Fetch relations only for acheteur role
+    // Build adherent options safely and normalize field name to `adherFactorCode`
+    console.log(adherents.map((a) => (
+        a.id,
+        a.raisonSocial
+    )));
+    const adherentOptions = (adherents || []).map((a) => ({
+        id: a.id,
+        adherFactorCode: a.adherFactorCode ?? a.factorAdherCode ?? "",
+        label:
+            a.typePieceIdentite?.code === "RNE"
+                ? `${a.typePieceIdentite?.dsg || ""}${a.numeroPieceIdentite} - ${a.raisonSocial || ""}`
+                : `${a.typePieceIdentite?.dsg || ""}${a.numeroPieceIdentite}  - ${a.nom || ""} ${a.prenom || ""}`,
+        raw: a,
+    }));
+
+    // When an adherent is selected, fetch its contrats and relations (when needed)
     useEffect(() => {
-        if (selectedAdherentId && roleValue === "acheteur") {
-            dispatch(fetchRelationsAsync(selectedAdherentId));
-        }
-        if(selectedAdherentId && roleValue === "fournisseur") {
-            dispatch(fetchRelationsFournAsync(selectedAdherentId));
+        if (selectedAdherentId) {
+            dispatch(fetchContratsByAdherentAsync(selectedAdherentId));
+            if (roleValue === "acheteur") {
+                dispatch(fetchRelationsAsync(selectedAdherentId));
+            }
+            if (roleValue === "fournisseur") {
+                dispatch(fetchRelationsFournAsync(selectedAdherentId));
+            }
         }
     }, [selectedAdherentId, roleValue, dispatch]);
 
-    // Filter helpers
-    const acheteurPmOptions = relations.filter(
-        (r) => r.acheteurMorale !== null
-    );
-    const acheteurPpOptions = relations.filter(
-        (r) => r.acheteurPhysique !== null
-    );
+    // Filter relations helpers
+    const acheteurPmOptions = (relations || []).filter((r) => r.acheteurMorale !== null);
+    const acheteurPpOptions = (relations || []).filter((r) => r.acheteurPhysique !== null);
+    const fournisseurPmOptions = (relationsFourns || []).filter((r) => r.fournisseurMorale !== null);
+    const fournisseurPpOptions = (relationsFourns || []).filter((r) => r.fournisseurPhysique !== null);
 
-    const fournisseurPmOptions = relationsFourns.filter(
-        (r) => r.fournisseurMorale !== null
-    );
-    const fournisseurPpOptions = relationsFourns.filter(
-        (r) => r.fournisseurPhysique !== null
-    );
+    // Filter contrats to only those that belong to the selected adherent (defensive)
+    const filteredContrats = (contrats || []).filter((c) => !selectedAdherentId || c.adherent === selectedAdherentId);
+
     return (
         <Box m="20px">
             <Header title="RIB" subtitle="Ajouter un RIB" />
@@ -176,17 +197,17 @@ const AddRib = () => {
                         onSubmit={(values) => {
                             // Construct full RIB from bank code + suffix
                             const fullRib = values.banqueCode + values.ribSuffix;
-                            console.log(values.fournPmId)
-                            const payload= {
+                            const payload = {
                                 ...values,
                                 rib: fullRib,
-                                achetPmId:values.achetPmId ? values.achetPmId?.acheteurMorale?.id : null,
+                                achetPmId: values.achetPmId ? values.achetPmId?.acheteurMorale?.id : null,
                                 achetPpId: values.achetPpId ? values.achetPpId?.acheteurPhysique?.id : null,
                                 fournPmId: values.fournPmId ? values.fournPmId?.fournisseurMorale?.id : null,
                                 fournPpId: values.fournPpId ? values.fournPpId?.fournisseurPhysique?.id : null,
-                            }
-                            console.log(payload)
-                            dispatch(addRib(payload,navigate));
+                                // Attach selected contrat id (if backend expects id instead of entire object)
+                                contratId: values.contrat?.id ?? null,
+                            };
+                            dispatch(addRib(payload, navigate));
                         }}
                     >
                         {({
@@ -198,19 +219,49 @@ const AddRib = () => {
                               handleSubmit,
                               setFieldValue,
                           }) => {
-                            // Update adherent name
+                            // Set adherentName when contrat selection changes (no dispatches here)
                             // eslint-disable-next-line react-hooks/rules-of-hooks
                             useEffect(() => {
                                 if (selectedContratNo?.startsWith("RNE") && currentPM) {
                                     setFieldValue("adherentName", currentPM.raisonSocial || "");
-                                }
-                                if (selectedContratNo?.startsWith("PATENTE") && currentPP) {
+                                } else if (selectedContratNo?.startsWith("PATENTE") && currentPP) {
                                     setFieldValue(
                                         "adherentName",
-                                        (currentPP.nom || "") + " " + (currentPP.prenom || "")
+                                        `${currentPP.nom || ""} ${currentPP.prenom || ""}`.trim()
                                     );
                                 }
                             }, [currentPM, currentPP, selectedContratNo, setFieldValue]);
+
+                            // Auto-select single contrat when only one available for selected adherent
+                            // dispatch getPM/getPP only when necessary (guarded to avoid repeated calls)
+                            // eslint-disable-next-line react-hooks/rules-of-hooks
+                            useEffect(() => {
+                                if (filteredContrats.length === 1) {
+                                    const single = filteredContrats[0];
+                                    if (!values.contrat || values.contrat.id !== single.id) {
+                                        setFieldValue("contrat", single);
+                                        setSelectedContratNo(single.contratNo);
+
+                                        if (single.contratNo?.startsWith("RNE")) {
+                                            // only fetch PM if not already loaded or different
+                                            if (!currentPM || currentPM?.id !== single.adherent) {
+                                                dispatch(getPMById(single.adherent));
+                                            }
+                                        }
+                                        if (single.contratNo?.startsWith("PATENTE")) {
+                                            if (!currentPP || currentPP?.id !== single.adherent) {
+                                                dispatch(getPPById(single.adherent));
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // If the currently selected contrat is not part of the filtered list, clear it
+                                    if (values.contrat && !filteredContrats.some(c => c.id === values.contrat.id)) {
+                                        setFieldValue("contrat", null);
+                                        setSelectedContratNo(null);
+                                    }
+                                }
+                            }, [filteredContrats, values.contrat, setFieldValue, currentPM, currentPP, dispatch]);
 
                             // Properly handle ribSuffix input
                             const handleRibSuffixChange = (e) => {
@@ -219,48 +270,122 @@ const AddRib = () => {
                                 setFieldValue("ribSuffix", value);
                             };
 
+                            // Helper: sync adherent selection into form values
+                            const applyAdherentSelection = (adherObj) => {
+                                if (!adherObj) {
+                                    setSelectedAdherentId(null);
+                                    setFieldValue("adherentId", "");
+                                    setFieldValue("adherFactorCode", "");
+                                    // clear contrats list/value - fetch logic will handle
+                                    setFieldValue("contrat", null);
+                                    setSelectedContratNo(null);
+                                    return;
+                                }
+                                setSelectedAdherentId(adherObj.id);
+                                setFieldValue("adherentId", adherObj.id);
+                                setFieldValue("adherFactorCode", adherObj.adherFactorCode || "");
+                                // clear contrat so the contrat autocomplete is refreshed from filteredContrats
+                                setFieldValue("contrat", null);
+                                setSelectedContratNo(null);
+                            };
+
                             return (
                                 <form onSubmit={handleSubmit}>
                                     <Box display="flex" flexDirection="column" gap={3}>
-                                        {/* Contrat */}
-                                        <FormControl
-                                            fullWidth
-                                            error={!!touched.contrat && !!errors.contrat}
-                                        >
-                                            <InputLabel id="contrat-label">Contrat</InputLabel>
-                                            <Select
-                                                labelId="contrat-label"
-                                                name="contrat"
-                                                value={values.contrat || ""}
-                                                onChange={(e) => {
-                                                    const contrat = e.target.value;
-                                                    setFieldValue("contrat", contrat);
+                                        {/* --- Three autocompletes in one line --- */}
+                                        <Box display="flex" gap={2} alignItems="center" flexWrap="wrap">
+                                            {/* Autocomplete 1: AdherFactor Code */}
+                                            <Box sx={{ flex: 1, minWidth: 220 }}>
+                                                <Autocomplete
+                                                    size="small"
+                                                    options={adherentOptions}
+                                                    getOptionLabel={(o) => o?.adherFactorCode ?? ""}
+                                                    isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                                    value={adherentOptions.find((a) => a.id === values.adherentId) || null}
+                                                    onChange={(e, v) => {
+                                                        applyAdherentSelection(v);
+                                                    }}
+                                                    renderInput={(params) => (
+                                                        <TextField {...params} label="AdherFactor Code" fullWidth />
+                                                    )}
+                                                />
+                                            </Box>
 
-                                                    if (contrat) {
-                                                        setSelectedAdherentId(contrat.adherent);
-                                                        setSelectedContratNo(contrat.contratNo);
-                                                        if (contrat.contratNo.startsWith("RNE")) {
-                                                            dispatch(getPMById(contrat.adherent));
+                                            {/* Autocomplete 2: Adherent Identity (RNE / PATENTE label) */}
+                                            <Box sx={{ flex: 2, minWidth: 300 }}>
+                                                <Autocomplete
+                                                    size="small"
+                                                    options={adherentOptions}
+                                                    getOptionLabel={(o) => o?.label ?? ""}
+                                                    isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                                    value={adherentOptions.find((a) => a.id === values.adherentId) || null}
+                                                    onChange={(e, v) => {
+                                                        applyAdherentSelection(v);
+                                                    }}
+                                                    renderInput={(params) => (
+                                                        <TextField {...params} label="Adhérent" fullWidth />
+                                                    )}
+                                                />
+                                            </Box>
+
+                                            {/* Autocomplete 3: Contrat No (filtered to selected adherent) */}
+                                            <Box sx={{ flex: 1, minWidth: 220 }}>
+                                                <Autocomplete
+                                                    size="small"
+                                                    options={filteredContrats}
+                                                    getOptionLabel={(o) => o?.contratNo ?? ""}
+                                                    isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                                    value={values.contrat || null}
+                                                    onChange={(e, v) => {
+                                                        if (!v) {
+                                                            setFieldValue("contrat", null);
+                                                            setSelectedContratNo(null);
+                                                            return;
                                                         }
-                                                        if (contrat.contratNo.startsWith("PATENTE")) {
-                                                            dispatch(getPPById(contrat.adherent));
+
+                                                        // set the contrat and the contratNo
+                                                        setFieldValue("contrat", v);
+                                                        setSelectedContratNo(v.contratNo);
+
+                                                        // find related adherent from adherentOptions and set it (keeps autocompletes in sync)
+                                                        const adher = adherentOptions.find(a => a.id === v.adherent);
+                                                        if (adher) {
+                                                            // apply but avoid unnecessary clears/re-fetch if same
+                                                            if (values.adherentId !== adher.id) {
+                                                                setSelectedAdherentId(adher.id);
+                                                                setFieldValue("adherentId", adher.id);
+                                                                setFieldValue("adherFactorCode", adher.adherFactorCode || "");
+                                                            }
+                                                        } else {
+                                                            // if adherent is not found locally, set selectedAdherentId to contract.adherent
+                                                            setSelectedAdherentId(v.adherent);
+                                                            setFieldValue("adherentId", v.adherent);
+                                                            setFieldValue("adherFactorCode", "");
                                                         }
-                                                    }
-                                                }}
-                                            >
-                                                <MenuItem value="">
-                                                    <em>Aucun</em>
-                                                </MenuItem>
-                                                {contrats.map((c) => (
-                                                    <MenuItem key={c.id} value={c}>
-                                                        {c.contratNo}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                            <FormHelperText>
-                                                {touched.contrat && errors.contrat}
-                                            </FormHelperText>
-                                        </FormControl>
+
+                                                        // dispatch getPM/getPP only when needed (guarded)
+                                                        if (v.contratNo?.startsWith("RNE")) {
+                                                            if (!currentPM || currentPM?.id !== v.adherent) {
+                                                                dispatch(getPMById(v.adherent));
+                                                            }
+                                                        } else if (v.contratNo?.startsWith("PATENTE")) {
+                                                            if (!currentPP || currentPP?.id !== v.adherent) {
+                                                                dispatch(getPPById(v.adherent));
+                                                            }
+                                                        }
+                                                    }}
+                                                    renderInput={(params) => (
+                                                        <TextField
+                                                            {...params}
+                                                            label="Contrat"
+                                                            error={!!touched.contrat && !!errors.contrat}
+                                                            helperText={touched.contrat && errors.contrat}
+                                                            fullWidth
+                                                        />
+                                                    )}
+                                                />
+                                            </Box>
+                                        </Box>
 
                                         {/* Role */}
                                         <FormControl
@@ -305,7 +430,7 @@ const AddRib = () => {
                                             </FormHelperText>
                                         </FormControl>
 
-                                        {/* Adhérent */}
+                                        {/* Adhérent display name (disabled) */}
                                         {values.role === "adherent" && (
                                             <TextField
                                                 label="Adhérent"
@@ -351,38 +476,120 @@ const AddRib = () => {
                                                 </FormControl>
 
                                                 {values.achetType === "pm" && (
+                                                    <Grid container spacing={3}>
+                                                        <Grid item xs={4}>
                                                     <Autocomplete
                                                         options={acheteurPmOptions}
-                                                        getOptionLabel={(o) => o.acheteurMorale.raisonSocial || ""}
+                                                        getOptionLabel={(o) => o.acheteurMorale?.raisonSocial || ""}
                                                         value={values.achetPmId}
                                                         onChange={(e, v) => setFieldValue("achetPmId", v)}
                                                         renderInput={(params) => (
                                                             <TextField
                                                                 {...params}
-                                                                label="Acheteur morale"
+                                                                label="Acheteur morale raison sociale"
                                                                 error={!!touched.achetPmId && !!errors.achetPmId}
                                                                 helperText={touched.achetPmId && errors.achetPmId}
                                                             />
                                                         )}
                                                     />
+                                                        </Grid>
+                                                        <Grid item xs={4}>
+                                                            <Autocomplete
+                                                                options={acheteurPmOptions}
+                                                                getOptionLabel={(o) => o.acheteurMorale?.typePieceIdentite?.dsg+ ""+o.acheteurMorale?.numeroPieceIdentite  || ""}
+                                                                value={values.achetPmId}
+                                                                onChange={(e, v) => setFieldValue("achetPmId", v)}
+                                                                renderInput={(params) => (
+                                                                    <TextField
+                                                                        {...params}
+                                                                        label="Acheteur morale identité"
+                                                                        error={!!touched.achetPmId && !!errors.achetPmId}
+                                                                        helperText={touched.achetPmId && errors.achetPmId}
+                                                                    />
+                                                                )}
+                                                            />
+                                                        </Grid>
+                                                        <Grid item xs={4}>
+                                                            <Autocomplete
+                                                                options={acheteurPmOptions}
+                                                                getOptionLabel={(o) => o.acheteurMorale?.factorAchetCode || ""}
+                                                                value={values.achetPmId}
+                                                                onChange={(e, v) => setFieldValue("achetPmId", v)}
+                                                                renderInput={(params) => (
+                                                                    <TextField
+                                                                        {...params}
+                                                                        label="Acheteur morale code"
+                                                                        error={!!touched.achetPmId && !!errors.achetPmId}
+                                                                        helperText={touched.achetPmId && errors.achetPmId}
+                                                                    />
+                                                                )}
+                                                            />
+                                                        </Grid>
+
+
+                                                    </Grid>
                                                 )}
                                                 {values.achetType === "pp" && (
-                                                    <Autocomplete
-                                                        options={acheteurPpOptions}
-                                                        getOptionLabel={(o) =>
-                                                            o.acheteurPhysique.nom + " " + o.acheteurPhysique.prenom || ""
-                                                        }
-                                                        value={values.achetPpId}
-                                                        onChange={(e, v) => setFieldValue("achetPpId", v)}
-                                                        renderInput={(params) => (
-                                                            <TextField
-                                                                {...params}
-                                                                label="Acheteur physique"
-                                                                error={!!touched.achetPpId && !!errors.achetPpId}
-                                                                helperText={touched.achetPpId && errors.achetPpId}
+                                                    <Grid container spacing={3}>
+                                                        <Grid item xs={4}>
+
+                                                            <Autocomplete
+                                                                options={acheteurPpOptions}
+                                                                getOptionLabel={(o) =>
+                                                                    (o.acheteurPhysique?.nom || "") + " " + (o.acheteurPhysique?.prenom || "")
+                                                                }
+                                                                value={values.achetPpId}
+                                                                onChange={(e, v) => setFieldValue("achetPpId", v)}
+                                                                renderInput={(params) => (
+                                                                    <TextField
+                                                                        {...params}
+                                                                        label="Acheteur physique nom/prénom"
+                                                                        error={!!touched.achetPpId && !!errors.achetPpId}
+                                                                        helperText={touched.achetPpId && errors.achetPpId}
+                                                                    />
+                                                                )}
                                                             />
-                                                        )}
-                                                    />
+                                                        </Grid>
+                                                        <Grid item xs={4}>
+
+                                                            <Autocomplete
+                                                                options={acheteurPpOptions}
+                                                                getOptionLabel={(o) => o.acheteurPhysique?.typePieceIdentite?.dsg+ ""+o.acheteurPhysique?.numeroPieceIdentite  || ""}
+
+                                                                value={values.achetPpId}
+                                                                onChange={(e, v) => setFieldValue("achetPpId", v)}
+                                                                renderInput={(params) => (
+                                                                    <TextField
+                                                                        {...params}
+                                                                        label="Acheteur physique identité"
+                                                                        error={!!touched.achetPpId && !!errors.achetPpId}
+                                                                        helperText={touched.achetPpId && errors.achetPpId}
+                                                                    />
+                                                                )}
+                                                            />
+                                                        </Grid>
+                                                        <Grid item xs={4}>
+
+                                                        <Autocomplete
+                                                            options={acheteurPpOptions}
+                                                            getOptionLabel={(o) =>
+                                                                (o.acheteurPhysique?.factorAchetCode || "")
+                                                            }
+                                                            value={values.achetPpId}
+                                                            onChange={(e, v) => setFieldValue("achetPpId", v)}
+                                                            renderInput={(params) => (
+                                                                <TextField
+                                                                    {...params}
+                                                                    label="Acheteur physique code"
+                                                                    error={!!touched.achetPpId && !!errors.achetPpId}
+                                                                    helperText={touched.achetPpId && errors.achetPpId}
+                                                                />
+                                                            )}
+                                                        />
+                                                    </Grid>
+
+                                                    </Grid>
+
                                                 )}
                                             </>
                                         )}
@@ -390,6 +597,7 @@ const AddRib = () => {
                                         {/* Fournisseur */}
                                         {values.role === "fournisseur" && (
                                             <>
+
                                                 <FormControl
                                                     error={!!touched.fournType && !!errors.fournType}
                                                 >
@@ -423,36 +631,117 @@ const AddRib = () => {
                                                 </FormControl>
 
                                                 {values.fournType === "pm" && (
+                                                    <Grid container spacing={3}>
+                                                       <Grid item xs={4}>
+
                                                     <Autocomplete
-                                                        options={fournisseurPmOptions || []} // Add your fournisseur options here
-                                                        getOptionLabel={(o) => o.fournisseurMorale.raisonSocial || ""}
+                                                        options={fournisseurPmOptions || []}
+                                                        getOptionLabel={(o) => o.fournisseurMorale?.raisonSocial || ""}
                                                         value={values.fournPmId}
                                                         onChange={(e, v) => setFieldValue("fournPmId", v)}
                                                         renderInput={(params) => (
                                                             <TextField
                                                                 {...params}
-                                                                label="Fournisseur morale"
+                                                                label="Fournisseur morale raison sociale"
                                                                 error={!!touched.fournPmId && !!errors.fournPmId}
                                                                 helperText={touched.fournPmId && errors.fournPmId}
                                                             />
                                                         )}
                                                     />
+                                                       </Grid>
+                                                        <Grid item xs={4}>
+
+                                                            <Autocomplete
+                                                                options={fournisseurPpOptions || []}
+                                                                getOptionLabel={(o) => (o.fournisseurMorale?.typePieceIdentite.dsg + o.fournisseurMorale?.numeroPieceIdentite || "")}
+                                                                value={values.fournPmId}
+                                                                onChange={(e, v) => setFieldValue("fournPmId", v)}
+                                                                renderInput={(params) => (
+                                                                    <TextField
+                                                                        {...params}
+                                                                        label="Fournisseur morale identité"
+                                                                        error={!!touched.fournPmId && !!errors.fournPmId}
+                                                                        helperText={touched.fournPmId && errors.fournPmId}
+                                                                    />
+                                                                )}
+                                                            />
+                                                        </Grid>
+                                                        <Grid item xs={4}>
+
+                                                        <Autocomplete
+                                                            options={fournisseurPmOptions || []}
+                                                            getOptionLabel={(o) => o.fournisseurMorale?.factorFournCode || ""}
+                                                            value={values.fournPmId}
+                                                            onChange={(e, v) => setFieldValue("fournPmId", v)}
+                                                            renderInput={(params) => (
+                                                                <TextField
+                                                                    {...params}
+                                                                    label="Fournisseur morale code"
+                                                                    error={!!touched.fournPmId && !!errors.fournPmId}
+                                                                    helperText={touched.fournPmId && errors.fournPmId}
+                                                                />
+                                                            )}
+                                                        />
+                                                        </Grid>
+                                                    </Grid>
+
+
                                                 )}
                                                 {values.fournType === "pp" && (
+                                                    <Grid container spacing={3}>
+                                                        <Grid item xs={4}>
+
                                                     <Autocomplete
-                                                        options={fournisseurPpOptions || []} // Add your fournisseur options here
-                                                        getOptionLabel={(o) => o.fournisseurPhysique.nom + " " + o.fournisseurPhysique.prenom || ""}
+                                                        options={fournisseurPpOptions || []}
+                                                        getOptionLabel={(o) => (o.fournisseurPhysique?.nom || "") + " " + (o.fournisseurPhysique?.prenom || "")}
                                                         value={values.fournPpId}
                                                         onChange={(e, v) => setFieldValue("fournPpId", v)}
                                                         renderInput={(params) => (
                                                             <TextField
                                                                 {...params}
-                                                                label="Fournisseur physique"
+                                                                label="Fournisseur physique nom/prénom"
                                                                 error={!!touched.fournPpId && !!errors.fournPpId}
                                                                 helperText={touched.fournPpId && errors.fournPpId}
                                                             />
                                                         )}
                                                     />
+                                                        </Grid>
+                                                        <Grid item xs={4}>
+
+                                                            <Autocomplete
+                                                                options={fournisseurPpOptions || []}
+                                                                getOptionLabel={(o) => (o.fournisseurPhysique?.typePieceIdentite.dsg || "") +""+ (o.fournisseurPhysique?.numeroPieceIdentite || "")}
+                                                                value={values.fournPpId}
+                                                                onChange={(e, v) => setFieldValue("fournPpId", v)}
+                                                                renderInput={(params) => (
+                                                                    <TextField
+                                                                        {...params}
+                                                                        label="Fournisseur physique identité"
+                                                                        error={!!touched.fournPpId && !!errors.fournPpId}
+                                                                        helperText={touched.fournPpId && errors.fournPpId}
+                                                                    />
+                                                                )}
+                                                            />
+                                                        </Grid>
+                                                        <Grid item xs={4}>
+
+                                                            <Autocomplete
+                                                                options={fournisseurPpOptions || []}
+                                                                getOptionLabel={(o) => (o.fournisseurPhysique?.factorFournCode || "")}
+                                                                value={values.fournPpId}
+                                                                onChange={(e, v) => setFieldValue("fournPpId", v)}
+                                                                renderInput={(params) => (
+                                                                    <TextField
+                                                                        {...params}
+                                                                        label="Fournisseur physique code"
+                                                                        error={!!touched.fournPpId && !!errors.fournPpId}
+                                                                        helperText={touched.fournPpId && errors.fournPpId}
+                                                                    />
+                                                                )}
+                                                            />
+                                                        </Grid>
+
+                                                    </Grid>
                                                 )}
                                             </>
                                         )}
@@ -494,7 +783,7 @@ const AddRib = () => {
                                                 name="ribSuffix"
                                                 fullWidth
                                                 value={values.ribSuffix}
-                                                onChange={handleRibSuffixChange}  // Use the custom handler
+                                                onChange={handleRibSuffixChange}
                                                 onBlur={handleBlur}
                                                 error={!!touched.ribSuffix && !!errors.ribSuffix}
                                                 helperText={touched.ribSuffix && errors.ribSuffix}

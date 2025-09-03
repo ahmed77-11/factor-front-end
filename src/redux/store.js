@@ -17,6 +17,11 @@ import accordReducer from "./accord/accordSlice.js";
 import mereFilialeReducer from "./MereFiliale/MereFilialeSlice.js";
 import blackListReducer from "./blackList/blackListSlice.js";
 import ribReducer from "./rib/ribSlice.js";
+import inChequeReducer from "./inCheque/InChequeSlice.js";
+import insfinReducer from "./insfin/InsfinSlice.js";
+import inViremReducer from "./inVirem/InViremSlice.js";
+import inLettrageReducer from "./inLettrage/InLettrageSlice.js";
+import prorogSlice from "./prorog/prorogSlice.js";
 import {persistReducer,persistStore} from "redux-persist";
 import {createTransform} from "redux-persist";
 
@@ -69,6 +74,12 @@ const rootReducer = combineReducers({
     mereFiliale:mereFilialeReducer,
     blackList:blackListReducer,
     rib:ribReducer,
+    inCheque:inChequeReducer,
+    insfin:insfinReducer,
+    inVirem:inViremReducer,
+    inLettrage:inLettrageReducer,
+    prorog:prorogSlice,
+
 });
 
 const persistConfig = {

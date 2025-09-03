@@ -3,6 +3,10 @@ import axios from "axios";
 
 const initialState = {
     traites: [],
+    inTraiteEnAttente: [],
+    inTraiteEncaisee: [],
+    inTraitePaye: [],
+    inTraiteRejetee: [],
     currentTraite: null,
     errorTraite: null,
     loadingTraite: false,
@@ -21,6 +25,50 @@ const traiteSlice = createSlice({
             state.traites = action.payload;
         },
         allTraiteFailure: (state, action) => {
+            state.loadingTraite = false;
+            state.errorTraite = action.payload;
+        },
+        allTraiteEnAttenteStart: (state) => {
+            state.loadingTraite = true;
+        },
+        allTraiteEnAttenteSuccess: (state, action) => {
+            state.loadingTraite = false;
+            state.inTraiteEnAttente = action.payload;
+        },
+        allTraiteEnAttenteFailure: (state, action) => {
+            state.loadingTraite = false;
+            state.errorTraite = action.payload;
+        },
+        allTraiteEncaiseeStart: (state) => {
+            state.loadingTraite = true;
+        },
+        allTraiteEncaiseeSuccess: (state, action) => {
+            state.loadingTraite = false;
+            state.inTraiteEncaisee = action.payload;
+        },
+        allTraiteEncaiseeFailure: (state, action) => {
+            state.loadingTraite = false;
+            state.errorTraite = action.payload;
+        },
+        allTraitePayeStart: (state) => {
+            state.loadingTraite = true;
+        },
+        allTraitePayeSuccess: (state, action) => {
+            state.loadingTraite = false;
+            state.inTraitePaye = action.payload;
+        },
+        allTraitePayeFailure: (state, action) => {
+            state.loadingTraite = false;
+            state.errorTraite = action.payload;
+        },
+        allTraiteRejeteeStart: (state) => {
+            state.loadingTraite = true;
+        },
+        allTraiteRejeteeSuccess: (state, action) => {
+            state.loadingTraite = false;
+            state.inTraiteRejetee = action.payload;
+        },
+        allTraiteRejeteeFailure: (state, action) => {
             state.loadingTraite = false;
             state.errorTraite = action.payload;
         },
@@ -68,7 +116,11 @@ const traiteSlice = createSlice({
         },
         deleteTraiteSuccess: (state, action) => {
             state.loadingTraite = false;
-            state.traites = state.traites.filter(t => t.id !== action.payload);
+            state.inTraiteEnAttente = state.inTraiteEnAttente.filter((traite) => traite.id !== action.payload);
+            state.inTraiteEncaisee = state.inTraiteEncaisee.filter((traite) => traite.id !== action.payload);
+            state.inTraitePaye = state.inTraitePaye.filter((traite) => traite.id !== action.payload);
+            state.inTraiteRejetee = state.inTraiteRejetee.filter((traite) => traite.id !== action.payload);
+            state.traites = state.traites.filter((traite) => traite.id !== action.payload);
         },
         deleteTraiteFailure: (state, action) => {
             state.loadingTraite = false;
@@ -81,6 +133,18 @@ export const {
     allTraiteStart,
     allTraiteSuccess,
     allTraiteFailure,
+    allTraiteEnAttenteStart,
+    allTraiteEnAttenteSuccess,
+    allTraiteEnAttenteFailure,
+    allTraiteEncaiseeStart,
+    allTraiteEncaiseeSuccess,
+    allTraiteEncaiseeFailure,
+    allTraitePayeStart,
+    allTraitePayeSuccess,
+    allTraitePayeFailure,
+    allTraiteRejeteeStart,
+    allTraiteRejeteeSuccess,
+    allTraiteRejeteeFailure,
     addTraiteStart,
     addTraiteSuccess,
     addTraiteFailure,
@@ -114,6 +178,62 @@ export const getAllTraites = () => async (dispatch) => {
         dispatch(allTraiteFailure(e.message));
     }
 };
+export const getAllTraitesEnAttente = (contratId) => async (dispatch) => {
+    dispatch(allTraiteEnAttenteStart());
+    try {
+        const response = await axios.get(`http://localhost:8083/factoring/contrat/api/traite/all-en-attente-traite-by-contrat/${contratId}`, {
+            withCredentials: true,
+        });
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(allTraiteEnAttenteSuccess(response.data));
+    } catch (e) {
+        dispatch(allTraiteEnAttenteFailure(e.message));
+    }
+}
+export const getAllTraitesEncaisee = (contratId) => async (dispatch) => {
+    dispatch(allTraiteEncaiseeStart());
+    try {
+        const response = await axios.get(`http://localhost:8083/factoring/contrat/api/traite/all-encaisee-traite-by-contrat/${contratId}`, {
+            withCredentials: true,
+        });
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(allTraiteEncaiseeSuccess(response.data));
+    } catch (e) {
+        dispatch(allTraiteEncaiseeFailure(e.message));
+    }
+}
+export const getAllTraitesPaye = (contratId) => async (dispatch) => {
+    dispatch(allTraitePayeStart());
+    try {
+        const response = await axios.get(`http://localhost:8083/factoring/contrat/api/traite/all-paye-traite-by-contrat/${contratId}`, {
+            withCredentials: true,
+        });
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(allTraitePayeSuccess(response.data));
+    } catch (e) {
+        dispatch(allTraitePayeFailure(e.message));
+    }
+}
+export const getAllTraitesRejetee = (contratId) => async (dispatch) => {
+    dispatch(allTraiteRejeteeStart());
+    try {
+        const response = await axios.get(`http://localhost:8083/factoring/contrat/api/traite/all-rejetee-traite-by-contrat/${contratId}`, {
+            withCredentials: true,
+        });
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(allTraiteRejeteeSuccess(response.data));
+    } catch (e) {
+        dispatch(allTraiteRejeteeFailure(e.message));
+    }   
+}
 
 export const getAllTraitesByContrat=(id)=>async (dispatch)=>{
     dispatch(allTraiteStart())
@@ -129,7 +249,77 @@ export const getAllTraitesByContrat=(id)=>async (dispatch)=>{
         dispatch(allTraiteFailure(e.message));
     }
 }
+export const getAllTraitesByContratAndAchetCode=(id,code)=>async (dispatch)=>{
+    dispatch(allTraiteStart())
+    try {
+        const response = await axios.get(`http://localhost:8083/factoring/contrat/api/traite/all-traite-by-contrat-and-achet/${id}/${code}`, {
+            withCredentials: true,
+        });
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(allTraiteSuccess(response.data));
+    }catch (e) {
+        dispatch(allTraiteFailure(e.message));
+    }
 
+}
+export const getAllTraitesEnAttenteByContratAndAchetCode=(id,code)=>async (dispatch)=>{
+    dispatch(allTraiteEnAttenteStart())
+    try {
+        const response = await axios.get(`http://localhost:8083/factoring/contrat/api/traite/all-traites-en-attente-by-contrat-and-achet/${id}/${code}`, {
+            withCredentials: true,
+        });
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(allTraiteEnAttenteSuccess(response.data));
+    }catch (e) {
+        dispatch(allTraiteEnAttenteFailure(e.message));
+    }
+}
+export const getAllTraitesEncaiseeByContratAndAchetCode=(id,code)=>async (dispatch)=>{
+    dispatch(allTraiteEncaiseeStart())
+    try {
+        const response = await axios.get(`http://localhost:8083/factoring/contrat/api/traite/all-traites-encaisee-by-contrat-and-achet/${id}/${code}`, {
+            withCredentials: true,
+        });
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(allTraiteEncaiseeSuccess(response.data));
+    }catch (e) {
+        dispatch(allTraiteEncaiseeFailure(e.message));
+    }
+}
+export const getAllTraitesPayeByContratAndAchetCode=(id,code)=>async (dispatch)=>{
+    dispatch(allTraitePayeStart())
+    try {
+        const response = await axios.get(`http://localhost:8083/factoring/contrat/api/traite/all-traites-paye-by-contrat-and-achet/${id}/${code}`, {
+            withCredentials: true,
+        });
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(allTraitePayeSuccess(response.data));
+    }catch (e) {
+        dispatch(allTraitePayeFailure(e.message));
+    }
+}
+export const getAllTraitesRejeteeByContratAndAchetCode=(id,code)=>async (dispatch)=>{
+    dispatch(allTraiteRejeteeStart())
+    try {
+        const response = await axios.get(`http://localhost:8083/factoring/contrat/api/traite/all-traites-rejetee-by-contrat-and-achet/${id}/${code}`, {
+            withCredentials: true,
+        });
+        if (response.status !== 200) {
+            throw new Error("Une erreur s'est produite");
+        }
+        dispatch(allTraiteRejeteeSuccess(response.data));
+    }catch (e) {
+        dispatch(allTraiteRejeteeFailure(e.message));
+    }
+}
 // ➕ Add traite
 export const addTraite = (data, navigate) => async (dispatch) => {
     dispatch(addTraiteStart());
@@ -174,7 +364,7 @@ export const updateTraite = (id, data, navigate) => async (dispatch) => {
             throw new Error("Une erreur s'est produite");
         }
         dispatch(updateTraiteSuccess());
-        navigate("/all-traite");
+        navigate("/all-traites");
     } catch (e) {
         dispatch(updateTraiteFailure(e.message));
     }

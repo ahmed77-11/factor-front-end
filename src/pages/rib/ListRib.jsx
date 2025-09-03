@@ -1,4 +1,3 @@
-// src/pages/Rib/AllRibs.jsx
 import Header from "../../components/Header.jsx";
 import {
     Alert,
@@ -34,6 +33,7 @@ import {
 } from "../../redux/rib/ribSlice.js";
 import {
     fetchAcheteursAsync,
+    fetchAdherentsAsync,
     fetchFournisseursAsync
 } from "../../redux/relations/relationsSlice.js";
 
@@ -43,57 +43,103 @@ const AllRibs = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
-    const { contrats } = useSelector(state => state.contrat);
-    const { ribs, loadingRib, errorRib } = useSelector(state => state.rib);
+    const { contrats = [] } = useSelector(state => state.contrat);
+    const { ribs = [], loadingRib, errorRib } = useSelector(state => state.rib);
     const {
-        acheteurs,
-        fournisseurs,
+        acheteurs = {},
+        fournisseurs = {},
+        adherents = [],
         loading: loadingRelations,
         error: errorRelations
     } = useSelector(state => state.relations);
 
     const [selectedContrat, setSelectedContrat] = useState(null);
-    const [selectedAcheteur, setSelectedAcheteur] = useState(null);
-    const [selectedFournisseur, setSelectedFournisseur] = useState(null);
-    const [selectedAcheteurType, setSelectedAcheteurType] = useState("");
-    const [selectedFournisseurType, setSelectedFournisseurType] = useState("");
+    const [selectedAdherent, setSelectedAdherent] = useState(null);
+    const [selectedEntityType, setSelectedEntityType] = useState("adherent"); // 'adherent', 'acheteur', 'fournisseur'
+    const [selectedEntitySubType, setSelectedEntitySubType] = useState(""); // 'pm' or 'pp'
+    const [selectedEntity, setSelectedEntity] = useState(null);
     const [openDelete, setOpenDelete] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
 
+    // Build adherent options
+    const adherentOptions = (adherents || []).map(ad => ({
+        id: ad.id,
+        name: ad.typePieceIdentite?.code === "RNE"
+            ? ad.raisonSocial
+            : `${ad.nom} ${ad.prenom}`,
+        code: ad.factorAdherCode,
+        identity: `${ad.typePieceIdentite?.dsg || ""}${ad.numeroPieceIdentite || ""}`,
+        raw: ad
+    }));
+
+    // Build contrat options (all contrats). We'll allow selecting any contract even without selecting an adherent first.
+    const contratOptions = contrats || [];
+
     useEffect(() => {
         dispatch(fetchContratsSigner());
+        dispatch(fetchAdherentsAsync());
         dispatch(fetchAcheteursAsync());
         dispatch(fetchFournisseursAsync());
     }, [dispatch]);
 
+    // When adherent is selected, find their contrats and if only one contrat exists, auto-select it.
     useEffect(() => {
-        setSelectedAcheteur(null);
-        setSelectedFournisseur(null);
-        setSelectedAcheteurType("");
-        setSelectedFournisseurType("");
+        if (!selectedAdherent) {
+            // don't automatically clear a contract chosen explicitly by user
+            return;
+        }
+
+        const filtered = contratOptions.filter(c => c.adherent === selectedAdherent.id);
+
+        if (filtered.length === 1) {
+            setSelectedContrat(filtered[0]);
+        } else {
+            // Leave contract alone only if currently selected contract belongs to this adherent
+            if (!selectedContrat || selectedContrat.adherent !== selectedAdherent.id) {
+                setSelectedContrat(null);
+            }
+        }
+    }, [selectedAdherent, contratOptions, selectedContrat]);
+
+    // When contrat is selected, sync adherent (vice-versa) and reset entity filters
+    useEffect(() => {
+        if (selectedContrat && selectedAdherent) {
+            // Sync adherent to the contract's adherent (if present in adherentOptions)
+            const matchedAdherent = adherentOptions.find(a => a.id === selectedContrat.adherent) || null;
+            if (matchedAdherent) {
+                setSelectedAdherent(matchedAdherent);
+            }
+
+            // Reset entity filters when a contract is chosen
+            setSelectedEntityType("adherent");
+            setSelectedEntitySubType("");
+            setSelectedEntity(null);
+        }
     }, [selectedContrat]);
 
+    // Fetch RIBs when filters change
     useEffect(() => {
+        // we require a contract to fetch ribs (business logic kept as original)
         if (!selectedContrat) return;
 
-        if (selectedAcheteur) {
-            if (selectedAcheteurType === "pm") {
-                dispatch(allAchetPmRibs(selectedContrat.id, selectedAcheteur.id));
-            } else if (selectedAcheteurType === "pp") {
-                dispatch(allAchetPpRibs(selectedContrat.id, selectedAcheteur.id));
-            }
-        }
-        else if (selectedFournisseur) {
-            if (selectedFournisseurType === "pm") {
-                dispatch(allFournPmRibs(selectedContrat.id, selectedFournisseur.id));
-            } else if (selectedFournisseurType === "pp") {
-                dispatch(allFournPpRibs(selectedContrat.id, selectedFournisseur.id));
-            }
-        }
-        else {
+        if (selectedEntityType === "adherent") {
             dispatch(allAdherRibs(selectedContrat.id));
         }
-    }, [selectedContrat, selectedAcheteur, selectedFournisseur, dispatch]);
+        else if (selectedEntityType === "acheteur" && selectedEntity) {
+            if (selectedEntitySubType === "pm") {
+                dispatch(allAchetPmRibs(selectedContrat.id, selectedEntity.id));
+            } else if (selectedEntitySubType === "pp") {
+                dispatch(allAchetPpRibs(selectedContrat.id, selectedEntity.id));
+            }
+        }
+        else if (selectedEntityType === "fournisseur" && selectedEntity) {
+            if (selectedEntitySubType === "pm") {
+                dispatch(allFournPmRibs(selectedContrat.id, selectedEntity.id));
+            } else if (selectedEntitySubType === "pp") {
+                dispatch(allFournPpRibs(selectedContrat.id, selectedEntity.id));
+            }
+        }
+    }, [selectedContrat, selectedEntityType, selectedEntitySubType, selectedEntity, dispatch]);
 
     const handleDeleteClick = (id) => {
         setSelectedId(id);
@@ -106,6 +152,52 @@ const AllRibs = () => {
         }
         setOpenDelete(false);
     };
+
+    // Build entity options based on type and subtype
+    const getEntityOptions = () => {
+        if (!selectedEntitySubType) return [];
+
+        let options = [];
+
+        if (selectedEntityType === "acheteur") {
+            if (selectedEntitySubType === "pm") {
+                options = (acheteurs.pms || []).map(pm => ({
+                    id: pm.id,
+                    name: pm.raisonSocial,
+                    identity: `${pm.typePieceIdentite?.dsg || ""}${pm.numeroPieceIdentite || ""}`,
+                    raw: pm
+                }));
+            } else if (selectedEntitySubType === "pp") {
+                options = (acheteurs.pps || []).map(pp => ({
+                    id: pp.id,
+                    name: `${pp.nom} ${pp.prenom}`,
+                    identity: `${pp.typePieceIdentite?.dsg || ""}${pp.numeroPieceIdentite || ""}`,
+                    raw: pp
+                }));
+            }
+        }
+        else if (selectedEntityType === "fournisseur") {
+            if (selectedEntitySubType === "pm") {
+                options = (fournisseurs.pms || []).map(pm => ({
+                    id: pm.id,
+                    name: pm.raisonSocial,
+                    identity: `${pm.typePieceIdentite?.dsg || ""}${pm.numeroPieceIdentite || ""}`,
+                    raw: pm
+                }));
+            } else if (selectedEntitySubType === "pp") {
+                options = (fournisseurs.pps || []).map(pp => ({
+                    id: pp.id,
+                    name: `${pp.nom} ${pp.prenom}`,
+                    identity: `${pp.typePieceIdentite?.dsg || ""}${pp.numeroPieceIdentite || ""}`,
+                    raw: pp
+                }));
+            }
+        }
+
+        return options;
+    };
+
+    const entityOptions = getEntityOptions();
 
     const columns = [
         { field: "id", headerName: "ID", flex: 0.5 },
@@ -157,146 +249,190 @@ const AllRibs = () => {
         },
     ];
 
-    const getAcheteursList = () => {
-        if (!selectedAcheteurType) return [];
-        if (!acheteurs) return [];
-
-        const list = selectedAcheteurType === "pp"
-            ? acheteurs.pps || []
-            : acheteurs.pms || [];
-
-        return list.map(item => ({
-            id: item.id,
-            name: selectedAcheteurType === "pp"
-                ? `${item.nom} ${item.prenom}`
-                : item.raisonSocial
-        }));
-    };
-
-    const getFournisseursList = () => {
-        if (!selectedFournisseurType) return [];
-        if (!fournisseurs) return [];
-
-        const list = selectedFournisseurType === "pp"
-            ? fournisseurs.pps || []
-            : fournisseurs.pms || [];
-
-        return list.map(item => ({
-            id: item.id,
-            name: selectedFournisseurType === "pp"
-                ? `${item.nom} ${item.prenom}`
-                : item.raisonSocial
-        }));
-    };
-
     return (
         <Box m="20px">
-            <Header title="RIB" subtitle="Gestion des RIBs" />
-
+            <Box display={"flex"} alignItems={"center"} justifyContent={"space-between"}>
+            <Header title="RIB" subtitle="Gestion des RIBs"  />
+            <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => navigate("/ajouter-rib")}
+                sx={{ height: "100%",mb: 4 }}
+            >
+                Ajouter un RIB
+            </Button>
+            </Box>
             {(errorRib || errorRelations) && (
-                <Box my={2}>
+                <Box m={2}>
                     <Alert severity="error" sx={{ fontSize: "14px" }}>
                         {errorRib || errorRelations || "Une erreur s'est produite !"}
                     </Alert>
                 </Box>
             )}
 
-            {/* Filters */}
+
+            {/* Single Card containing both contract + entity filters (merged) */}
             <Card sx={{ mb: 3, p: 2, backgroundColor: colors.grey[900] }}>
                 <Grid container spacing={2} alignItems="center">
+                    {/* Contrat No */}
                     <Grid item xs={12} md={3}>
                         <Autocomplete
-                            options={contrats}
-                            getOptionLabel={(option) => option.contratNo}
+                            options={contratOptions}
+                            getOptionLabel={(option) => option?.contratNo || ""}
                             value={selectedContrat}
-                            onChange={(e, v) => setSelectedContrat(v)}
+                            onChange={(e, v) => {
+                                setSelectedContrat(v);
+                                // When the user picks a contract, set the adherent accordingly
+                                if (v) {
+                                    const matched = adherentOptions.find(a => a.id === v.adherent) || null;
+                                    setSelectedAdherent(matched);
+                                }
+                            }}
                             renderInput={(params) => (
-                                <TextField {...params} label="Sélectionner un contrat" fullWidth />
+                                <TextField {...params} label="Contrat No" fullWidth />
+                            )}
+                            disabled={contrats.length === 0}
+                        />
+                    </Grid>
+
+                    {/* Adherent Name */}
+                    <Grid item xs={12} md={3}>
+                        <Autocomplete
+                            options={adherentOptions}
+                            getOptionLabel={(option) => option.name || ""}
+                            value={selectedAdherent}
+                            onChange={(e, v) => {
+                                setSelectedAdherent(v);
+                                // if user picks an adherent, clear contract so effect can auto-select if only one
+                                setSelectedContrat(null);
+                            }}
+                            renderInput={(params) => (
+                                <TextField {...params} label="Adhérent (Nom)" fullWidth />
                             )}
                         />
                     </Grid>
 
+                    {/* Adherent Code */}
+                    <Grid item xs={12} md={3}>
+                        <Autocomplete
+                            options={adherentOptions}
+                            getOptionLabel={(option) => option.code || ""}
+                            value={selectedAdherent}
+                            onChange={(e, v) => {
+                                setSelectedAdherent(v);
+                                setSelectedContrat(null);
+                            }}
+                            renderInput={(params) => (
+                                <TextField {...params} label="Code Adhérent" fullWidth />
+                            )}
+                        />
+                    </Grid>
+
+                    {/* Adherent Identity */}
+                    <Grid item xs={12} md={3}>
+                        <Autocomplete
+                            options={adherentOptions}
+                            getOptionLabel={(option) => option.identity || ""}
+                            value={selectedAdherent}
+                            onChange={(e, v) => {
+                                setSelectedAdherent(v);
+                                setSelectedContrat(null);
+                            }}
+                            renderInput={(params) => (
+                                <TextField {...params} label="Identité Adhérent" fullWidth />
+                            )}
+                        />
+                    </Grid>
+
+                    {/* Entity Type Selection */}
                     <Grid item xs={12} md={3}>
                         <FormControl fullWidth>
-                            <InputLabel>Type Acheteur</InputLabel>
+                            <InputLabel>Type d'entité</InputLabel>
                             <Select
-                                value={selectedAcheteurType}
+                                value={selectedEntityType}
                                 onChange={(e) => {
-                                    setSelectedAcheteurType(e.target.value);
-                                    setSelectedAcheteur(null);
-                                    setSelectedFournisseur(null);
-                                    setSelectedFournisseurType("");
+                                    setSelectedEntityType(e.target.value);
+                                    setSelectedEntitySubType("");
+                                    setSelectedEntity(null);
                                 }}
                                 disabled={!selectedContrat}
                             >
-                                <MenuItem value=""><em>Aucun</em></MenuItem>
-                                <MenuItem value="pm">Personne morale</MenuItem>
-                                <MenuItem value="pp">Personne physique</MenuItem>
+                                <MenuItem value="adherent">Adhérent</MenuItem>
+                                <MenuItem value="acheteur">Acheteur</MenuItem>
+                                <MenuItem value="fournisseur">Fournisseur</MenuItem>
                             </Select>
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} md={3}>
-                        <Autocomplete
-                            options={getAcheteursList()}
-                            getOptionLabel={(option) => option.name || ""}
-                            value={selectedAcheteur}
-                            onChange={(e, v) => {
-                                setSelectedAcheteur(v);
-                                setSelectedFournisseur(null);
-                            }}
-                            disabled={!selectedAcheteurType || !selectedContrat || loadingRelations}
-                            renderInput={(params) => (
-                                <TextField {...params} label="Sélectionner un acheteur" fullWidth />
-                            )}
-                        />
-                    </Grid>
+                    {/* Entity Subtype Selection (only for acheteur/fournisseur) */}
+                    {(selectedEntityType === "acheteur" || selectedEntityType === "fournisseur") && (
+                        <Grid item xs={12} md={3}>
+                            <FormControl fullWidth>
+                                <InputLabel>Type</InputLabel>
+                                <Select
+                                    value={selectedEntitySubType}
+                                    onChange={(e) => {
+                                        setSelectedEntitySubType(e.target.value);
+                                        setSelectedEntity(null);
+                                    }}
+                                    disabled={!selectedContrat}
+                                >
+                                    <MenuItem value="pm">Personne morale</MenuItem>
+                                    <MenuItem value="pp">Personne physique</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                    )}
 
-                    <Grid item xs={12} md={3}>
-                        <FormControl fullWidth>
-                            <InputLabel>Type Fournisseur</InputLabel>
-                            <Select
-                                value={selectedFournisseurType}
-                                onChange={(e) => {
-                                    setSelectedFournisseurType(e.target.value);
-                                    setSelectedFournisseur(null);
-                                    setSelectedAcheteur(null);
-                                    setSelectedAcheteurType("");
-                                }}
-                                disabled={!selectedContrat}
-                            >
-                                <MenuItem value=""><em>Aucun</em></MenuItem>
-                                <MenuItem value="pm">Personne morale</MenuItem>
-                                <MenuItem value="pp">Personne physique</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Grid>
+                    {/* Entity Name Autocomplete (only for acheteur/fournisseur with subtype) */}
+                    {(selectedEntityType === "acheteur" || selectedEntityType === "fournisseur") &&
+                        selectedEntitySubType && (
+                            <Grid item xs={12} md={3}>
+                                <Autocomplete
+                                    options={entityOptions}
+                                    getOptionLabel={(option) => option.name || ""}
+                                    value={selectedEntity}
+                                    onChange={(e, v) => {
+                                        setSelectedEntity(v);
+                                    }}
+                                    disabled={!selectedContrat || loadingRelations}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Nom"
+                                            fullWidth
+                                        />
+                                    )}
+                                />
+                            </Grid>
+                        )}
 
-                    <Grid item xs={12} md={3}>
-                        <Autocomplete
-                            options={getFournisseursList()}
-                            getOptionLabel={(option) => option.name || ""}
-                            value={selectedFournisseur}
-                            onChange={(e, v) => {
-                                setSelectedFournisseur(v);
-                                setSelectedAcheteur(null);
-                            }}
-                            disabled={!selectedFournisseurType || !selectedContrat || loadingRelations}
-                            renderInput={(params) => (
-                                <TextField {...params} label="Sélectionner un fournisseur" fullWidth />
-                            )}
-                        />
-                    </Grid>
+                    {/* Entity Identity Autocomplete (only for acheteur/fournisseur with subtype) */}
+                    {(selectedEntityType === "acheteur" || selectedEntityType === "fournisseur") &&
+                        selectedEntitySubType && (
+                            <Grid item xs={12} md={3}>
+                                <Autocomplete
+                                    options={entityOptions}
+                                    getOptionLabel={(option) => option.identity || ""}
+                                    value={selectedEntity}
+                                    onChange={(e, v) => {
+                                        setSelectedEntity(v);
+                                    }}
+                                    disabled={!selectedContrat || loadingRelations}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Identité"
+                                            fullWidth
+                                        />
+                                    )}
+                                />
+                            </Grid>
+                        )}
 
+                    {/* Add RIB Button */}
                     <Grid item xs={12} md={3} display="flex" justifyContent="flex-end">
-                        <Button
-                            variant="contained"
-                            color="secondary"
-                            onClick={() => navigate("/ajouter-rib")}
-                            sx={{ height: "100%" }}
-                        >
-                            Ajouter un RIB
-                        </Button>
+
                     </Grid>
                 </Grid>
             </Card>

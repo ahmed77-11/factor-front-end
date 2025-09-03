@@ -502,7 +502,7 @@ const ValidateFacture = () => {
                                                     }
 
                                                     return (
-                                                        <MenuItem key={relIndex} value={acheteur.id}>
+                                                        <MenuItem key={relIndex} value={acheteur.factorAchetCode}>
                                                             {label}
                                                         </MenuItem>
                                                     );

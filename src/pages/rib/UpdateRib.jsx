@@ -15,6 +15,7 @@ import {
     Select,
     CircularProgress,
     Alert,
+    Grid,
 } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
@@ -63,8 +64,11 @@ const ModifyRib = () => {
     const navigate = useNavigate();
     const { id } = useParams(); // Get rib ID from URL params
 
-    const [entityName, setEntityName] = useState("");
     const [entityType, setEntityType] = useState("");
+    const [entityName, setEntityName] = useState("");
+    const [entityIdentity, setEntityIdentity] = useState("");
+    const [entityCode, setEntityCode] = useState("");
+    const [contratNo, setContratNo] = useState("");
 
     const { banques } = useBanque();
     const { currentPM, loadingPM } = useSelector((state) => state.personneMorale);
@@ -77,6 +81,13 @@ const ModifyRib = () => {
             dispatch(fetchRibByIdAsync(id));
         }
     }, [id, dispatch]);
+
+    // Set contratNo when currentRib is available
+    useEffect(() => {
+        if (currentRib) {
+            setContratNo(currentRib.contrat?.contratNo || "");
+        }
+    }, [currentRib]);
 
     // Once rib is loaded, fetch entity data
     useEffect(() => {
@@ -111,27 +122,43 @@ const ModifyRib = () => {
         }
     }, [currentRib, dispatch]);
 
-    // Update entity name when data is fetched
+    // Update entity details when data is fetched
     useEffect(() => {
         if (currentRib) {
             // Handle PP (Acheteur or Fournisseur)
             if (currentRib.achetPpId || currentRib.fournPpId) {
                 if (currentPP) {
                     setEntityName(`${currentPP.nom || ""} ${currentPP.prenom || ""}`);
+                    setEntityIdentity(`${currentPP.typePieceIdentite?.dsg || ""}${currentPP.numeroPieceIdentite || ""}`);
+                    setEntityCode(
+                        currentRib.achetPpId
+                            ? currentPP.factorAchetCode || ""
+                            : currentPP.factorFournCode || ""
+                    );
                 }
             }
             // Handle PM (Acheteur or Fournisseur)
             else if (currentRib.achetPmId || currentRib.fournPmId) {
                 if (currentPM) {
                     setEntityName(currentPM.raisonSocial || "");
+                    setEntityIdentity(`${currentPM.typePieceIdentite?.dsg || ""}${currentPM.numeroPieceIdentite || ""}`);
+                    setEntityCode(
+                        currentRib.achetPmId
+                            ? currentPM.factorAchetCode || ""
+                            : currentPM.factorFournCode || ""
+                    );
                 }
             }
             // Handle Adherent
             else {
                 if (currentRib.contrat.contratNo.startsWith("RNE") && currentPM) {
                     setEntityName(currentPM.raisonSocial || "");
+                    setEntityIdentity(`${currentPM.typePieceIdentite?.dsg || ""}${currentPM.numeroPieceIdentite || ""}`);
+                    setEntityCode(currentPM.factorAdherCode || "");
                 } else if (currentRib.contrat.contratNo.startsWith("PATENTE") && currentPP) {
                     setEntityName(`${currentPP.nom || ""} ${currentPP.prenom || ""}`);
+                    setEntityIdentity(`${currentPP.typePieceIdentite?.dsg || ""}${currentPP.numeroPieceIdentite || ""}`);
+                    setEntityCode(currentPP.factorAdherCode || "");
                 }
             }
         }
@@ -199,9 +226,8 @@ const ModifyRib = () => {
                                 ribSuffix: values.ribSuffix,
                                 rib: fullRib,
                             };
-                            console.log(payload)
 
-                            dispatch(updateRib(id,payload, navigate));
+                            dispatch(updateRib(id, payload, navigate));
                         }}
                         enableReinitialize
                     >
@@ -231,13 +257,41 @@ const ModifyRib = () => {
                                             disabled
                                         />
 
-                                        {/* Entity Display */}
+                                        {/* Contrat Number */}
                                         <TextField
-                                            label="Entité"
+                                            label="Contrat No"
                                             fullWidth
-                                            value={entityName}
+                                            value={contratNo}
                                             disabled
                                         />
+
+                                        {/* Entity Details */}
+                                        <Grid container spacing={2}>
+                                            <Grid item xs={4}>
+                                                <TextField
+                                                    label="Nom"
+                                                    fullWidth
+                                                    value={entityName}
+                                                    disabled
+                                                />
+                                            </Grid>
+                                            <Grid item xs={4}>
+                                                <TextField
+                                                    label="Identité"
+                                                    fullWidth
+                                                    value={entityIdentity}
+                                                    disabled
+                                                />
+                                            </Grid>
+                                            <Grid item xs={4}>
+                                                <TextField
+                                                    label="Code"
+                                                    fullWidth
+                                                    value={entityCode}
+                                                    disabled
+                                                />
+                                            </Grid>
+                                        </Grid>
 
                                         {/* Banque + RIB */}
                                         <Box display="flex" gap={2}>

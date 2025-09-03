@@ -162,7 +162,8 @@ const SaisieBordereau = () => {
     };
 
     const handleAcheteurChange = (idx, newVal) => {
-        formik.setFieldValue(`docRemises[${idx}].acheteurFactorCode`, newVal?.id || '');
+        console.log(newVal)
+        formik.setFieldValue(`docRemises[${idx}].acheteurFactorCode`, newVal?.acheteur.factorAchetCode || '');
     };
 
     function createEmptyDocument(dev) {
@@ -400,7 +401,7 @@ const SaisieBordereau = () => {
                                             <Autocomplete
                                                 options={acheteurOptions}
                                                 getOptionLabel={o => o.label}
-                                                value={acheteurOptions.find(o => o.id === doc.acheteurFactorCode) || null}
+                                                value={acheteurOptions.find(o => o.factorAchetCode === doc.acheteurFactorCode) || null}
                                                 onChange={(_, v) => handleAcheteurChange(idx, v)}
                                                 renderInput={params => <TextField {...params} error={Boolean(formik.errors.docRemises?.[idx]?.acheteurFactorCode)} helperText={formik.errors.docRemises?.[idx]?.acheteurFactorCode} />}
                                             />
